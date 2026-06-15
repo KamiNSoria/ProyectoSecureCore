@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SecureCore - Cumplimiento Normativo</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/cumplimiento.css">
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="logo-area">
+            <div class="logo-icon"><i class='bx bx-shield'></i></div>
+            <div><h2>SecureCore</h2><p>Plataforma de Riesgo</p></div>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="../index.html" class="nav-item"> 
+                <i class='bx bx-grid-alt'></i> Panel
+            </a>
+            
+            <a href="activos.html" class="nav-item">
+                <i class='bx bx-server'></i> Activos
+            </a>
+            
+            <a href="analisis.html" class="nav-item">
+                <i class='bx bx-line-chart-down'></i> Riesgos
+            </a>
+            
+            <a href="tratamiento.html" class="nav-item">
+                <i class='bx bx-check-shield'></i> Tratamiento
+            </a>
+            
+            <a href="#" class="nav-item active">
+                <i class='bx bx-file'></i> Cumplimiento
+            </a>
+        </nav>
+    </aside>
+
+    <main class="main-content">
+        <header class="top-header header-flex">
+            <div>
+                <h1>Gestión de Cumplimiento (Compliance)</h1>
+                <p>Nivel de madurez ISO/IEC 27002:2022 y alineación legal LOPDP</p>
+            </div>
+        </header>
+
+        <section class="compliance-grid">
+            <div class="card maturity-card">
+                <div class="card-header"><i class='bx bx-pie-chart-alt'></i> <h3>Madurez ISO 27002</h3></div>
+                <div class="card-body flex-center">
+                    <div class="circular-progress">
+                        <div class="inner-circle">65%</div>
+                    </div>
+                    <div class="mt-16 text-center">
+                        <strong>Nivel: Gestionado</strong>
+                        <p style="font-size: 12px; color: #64748b;">60 de 93 controles aplicados</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card gap-card">
+                <div class="card-header"><i class='bx bx-bar-chart-alt-2'></i> <h3>Análisis de Brechas (Gap Analysis)</h3></div>
+                <div class="card-body">
+                    <div class="gap-item">
+                        <div class="gap-info"><span>Organizacional</span><strong>80%</strong></div>
+                        <div class="gap-bar"><div class="gap-fill" style="width: 80%;"></div></div>
+                    </div>
+                    <div class="gap-item">
+                        <div class="gap-info"><span>Personas</span><strong>45%</strong></div>
+                        <div class="gap-bar"><div class="gap-fill" style="width: 45%; background: #f59e0b;"></div></div>
+                    </div>
+                    <div class="gap-item">
+                        <div class="gap-info"><span>Físico</span><strong>15%</strong></div>
+                        <div class="gap-bar"><div class="gap-fill" style="width: 15%; background: #ef4444;"></div></div>
+                    </div>
+                    <div class="gap-item">
+                        <div class="gap-info"><span>Tecnológico</span><strong>92%</strong></div>
+                        <div class="gap-bar"><div class="gap-fill" style="width: 92%;"></div></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="card mt-24">
+            <div class="card-header"><i class='bx bx-book-content'></i> <h3>Mapeo de Cumplimiento Legal y Ético (RC4)</h3></div>
+            <div class="card-body" style="padding: 0;">
+                <table class="monitoring-table">
+                    <thead>
+                        <tr>
+                            <th>Cuerpo Normativo</th>
+                            <th>Requisito Legal</th>
+                            <th>Afectación Social</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>LOPDP (Ecuador)</strong></td>
+                            <td>Art. 38 - Medidas de seguridad</td>
+                            <td>Privacidad de ciudadanos</td>
+                            <td><span class="status-badge status-ok">CUMPLE</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Código Ética Profesional</strong></td>
+                            <td>Responsabilidad de Ingeniería</td>
+                            <td>Impacto en confianza pública</td>
+                            <td><span class="status-badge status-ok">CUMPLE</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>ISO 27001:2022</strong></td>
+                            <td>A.5.17 Relación con proveedores</td>
+                            <td>Economía de la cadena de valor</td>
+                            <td><span class="status-badge status-late">BRECHA DETECTADA</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+</body>
+</html>

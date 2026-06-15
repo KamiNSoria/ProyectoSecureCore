@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SecureCore - Gestión de Tratamiento y Controles</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/analisis.css"> 
+    <link rel="stylesheet" href="../css/tratamiento.css"> </head>
+<body>
+
+    <aside class="sidebar">
+        <div class="logo-area">
+            <div class="logo-icon"><i class='bx bx-shield'></i></div>
+            <div>
+                <h2>SecureCore</h2>
+                <p>Plataforma de Riesgo</p>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="../index.html" class="nav-item"> 
+                <i class='bx bx-grid-alt'></i> Panel
+            </a>
+            
+            <a href="activos.html" class="nav-item">
+                <i class='bx bx-server'></i> Activos
+            </a>
+            
+            <a href="analisis.html" class="nav-item">
+                <i class='bx bx-line-chart-down'></i> Riesgos
+            </a>
+            
+            <a href="#" class="nav-item active">
+                <i class='bx bx-check-shield'></i> Tratamiento
+            </a>
+            
+            <a href="cumplimiento.html" class="nav-item">
+                <i class='bx bx-file'></i> Cumplimiento
+            </a>
+        </nav>
+
+        <div class="user-profile">
+            <div class="avatar">UA</div>
+            <div class="user-info">
+                <strong>Usuario Admin</strong>
+                <span>Analista de Seguridad</span>
+            </div>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        
+        <header class="top-header header-flex">
+            <div>
+                <h1>Tratamiento y Mitigación de Riesgos</h1>
+                <p>Mapeo guiado por intenciones y visualización del impacto residual</p>
+            </div>
+        </header>
+
+        <div class="tabs-container">
+            <div class="tab-btn active" onclick="switchTab(event, 'tab-biblioteca')">Biblioteca de Controles</div>
+            <div class="tab-btn" onclick="switchTab(event, 'tab-plan')">Plan de Tratamiento (Residual)</div>
+        </div>
+
+        <section id="tab-biblioteca" class="tab-content active">
+            <div class="analisis-layout">
+                
+                <div class="data-entry-column">
+                    <div class="card form-card">
+                        <div class="card-header"><i class='bx bx-plus-circle'></i> <h3>Crear Nuevo Control Maestro</h3></div>
+                        <div class="card-body">
+                            
+                            <div class="form-group mb-16">
+                                <label>Nombre del Control</label>
+                                <input type="text" class="form-input" id="ctrl_name" placeholder="Ej. Implementación de WAF Corporativo">
+                            </div>
+
+                            <div class="form-group mb-16">
+                                <label>1. ¿Qué busca lograr este control?</label>
+                                <select class="form-input form-select" id="intencion_usuario">
+                                    <option value="">Selecciona el objetivo principal...</option>
+                                    <option value="accesos">Controlar quién entra al sistema (Usuarios, Contraseñas)</option>
+                                    <option value="tecnologia">Proteger redes, servidores o equipos (Antivirus, WAF)</option>
+                                    <option value="personas">Capacitar o gestionar empleados (Entrenamientos, Contratos)</option>
+                                    <option value="fisico">Proteger oficinas y hardware (Cámaras, Guardias, Candados)</option>
+                                    <option value="respaldos">Garantizar que la información no se pierda (Backups)</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group mb-24">
+                                <label>2. Control Sugerido por el Sistema (ISO 27002)</label>
+                                <select class="form-input form-select" id="ctrl_iso" disabled>
+                                    <option value="">Primero selecciona el objetivo arriba...</option>
+                                </select>
+                            </div>
+
+                            <hr class="section-divider" style="margin: 24px 0;">
+
+                            <div class="flex-between mb-16">
+                                <label class="icon-label"><i class='bx bx-slider-alt'></i> 3. Características del Diseño</label>
+                                <span class="control-score-badge" id="ctrl-strength-percent">Fuerza: 0%</span>
+                            </div>
+
+                            <div class="impact-table mb-24">
+                                <div class="impact-row">
+                                    <div class="impact-row-header"><label>Naturaleza</label><small id="lbl-c-tipo">No definido</small></div>
+                                    <div class="rating-options-compact">
+                                        <label><input type="radio" name="c_tipo" value="100"><span>P</span></label>
+                                        <label><input type="radio" name="c_tipo" value="60"><span>D</span></label>
+                                        <label><input type="radio" name="c_tipo" value="30"><span>C</span></label>
+                                    </div>
+                                </div>
+                                <div class="impact-row">
+                                    <div class="impact-row-header"><label>Ejecución</label><small id="lbl-c-exec">No definido</small></div>
+                                    <div class="rating-options-compact">
+                                        <label><input type="radio" name="c_exec" value="100"><span>A</span></label>
+                                        <label><input type="radio" name="c_exec" value="50"><span>S</span></label>
+                                        <label><input type="radio" name="c_exec" value="20"><span>M</span></label>
+                                    </div>
+                                </div>
+                                <div class="impact-row">
+                                    <div class="impact-row-header"><label>Documentación</label><small id="lbl-c-doc">No definido</small></div>
+                                    <div class="rating-options-compact">
+                                        <label><input type="radio" name="c_doc" value="100"><span>F</span></label>
+                                        <label><input type="radio" name="c_doc" value="50"><span>P</span></label>
+                                        <label><input type="radio" name="c_doc" value="0"><span>N</span></label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button class="btn-primary-solid w-100">Guardar en Biblioteca</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="visual-column">
+                    <div class="card">
+                        <div class="card-header"><i class='bx bx-list-ul'></i> <h3>Controles en Biblioteca</h3></div>
+                        <div class="card-body">
+                            <div class="saved-risks-list" id="library-list">
+                                <div class="saved-risk-item">
+                                    <div class="sr-info">
+                                        <strong>Firewall de Aplicaciones (WAF)</strong>
+                                        <span>ISO 8.12 - Eficacia: 85%</span>
+                                    </div>
+                                    <div class="sr-score impacto-bajo">VINCULADO</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="tab-plan" class="tab-content">
+            <div class="analisis-layout">
+                
+                <div class="data-entry-column">
+                    <div class="card form-card">
+                        <div class="card-header"><i class='bx bx-link-alt'></i> <h3>Asociación de Mitigación</h3></div>
+                        <div class="card-body">
+                            
+                            <div class="form-group mb-16">
+                                <label>Seleccionar Riesgo para Tratar</label>
+                                <select class="form-input form-select" id="select-riesgo">
+                                    <option value="12">Fuga de Datos por Inyección SQL - Inherente: 12</option>
+                                    <option value="9">Caída de Servicio por Tráfico - Inherente: 9</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group mb-16">
+                                <label>Estrategia de Respuesta</label>
+                                <div class="rating-options dark-options">
+                                    <label><input type="radio" name="estrategia_plan" value="mitigar" checked><span>Mitigar</span></label>
+                                    <label><input type="radio" name="estrategia_plan" value="transferir"><span>Transferir</span></label>
+                                    <label><input type="radio" name="estrategia_plan" value="aceptar"><span>Aceptar</span></label>
+                                    <label><input type="radio" name="estrategia_plan" value="evitar"><span>Evitar</span></label>
+                                </div>
+                            </div>
+
+                            <div class="form-group mb-24">
+                                <label>Vincular Control de Biblioteca Creada</label>
+                                <select class="form-input form-select" id="select-control-lib">
+                                    <option value="0.85">Firewall de Aplicaciones (Eficacia 85%)</option>
+                                    <option value="0.50">Capacitación en OWASP (Eficacia 50%)</option>
+                                </select>
+                            </div>
+
+                            <div class="calculo-inline mb-24">
+                                <span>Riesgo Residual Calculado:</span>
+                                <strong id="residual-score-inline">2</strong>
+                                <span class="badge-impacto impacto-bajo" id="residual-label-inline">Nivel Bajo</span>
+                            </div>
+
+                            <div class="form-group mb-16">
+                                <label>Responsable de la Implementación</label>
+                                <input type="text" class="form-input" placeholder="Ej. Equipo de Seguridad / Infraestructura">
+                            </div>
+
+                            <div class="form-group mb-24">
+                                <label>Observaciones y Recomendaciones</label>
+                                <textarea class="form-input" rows="2" placeholder="Detalles de supervisión o fechas de revisión..."></textarea>
+                            </div>
+
+                            <button class="btn-primary-solid w-100">Finalizar Plan de Tratamiento</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="visual-column">
+                    <div class="card heatmap-card">
+                        <div class="card-header"><i class='bx bx-grid-alt'></i> <h3>Matriz de Riesgo Residual</h3></div>
+                        <div class="card-body heatmap-card-body">
+                            <div class="heatmap-container">
+                                <div class="axis-label y-axis">Impacto →</div>
+                                <div class="axis-label x-axis">← Probabilidad</div>
+
+                                <div class="heatmap-grid" id="heatmap-grid-residual">
+                                    <div class="hm-cell hm-r-5 hm-c-1 hm-med">5</div><div class="hm-cell hm-r-5 hm-c-2 hm-high">10</div><div class="hm-cell hm-r-5 hm-c-3 hm-crit">15</div><div class="hm-cell hm-r-5 hm-c-4 hm-crit">20</div><div class="hm-cell hm-r-5 hm-c-5 hm-crit">25</div>
+                                    <div class="hm-cell hm-r-4 hm-c-1 hm-med">4</div><div class="hm-cell hm-r-4 hm-c-2 hm-med">8</div><div class="hm-cell hm-r-4 hm-c-3 hm-high">12</div><div class="hm-cell hm-r-4 hm-c-4 hm-crit">16</div><div class="hm-cell hm-r-4 hm-c-5 hm-crit">20</div>
+                                    <div class="hm-cell hm-r-3 hm-c-1 hm-low">3</div><div class="hm-cell hm-r-3 hm-c-2 hm-med">6</div><div class="hm-cell hm-r-3 hm-c-3 hm-med">9</div><div class="hm-cell hm-r-3 hm-c-4 hm-high">12</div><div class="hm-cell hm-r-3 hm-c-5 hm-crit">15</div>
+                                    <div class="hm-cell hm-r-2 hm-c-1 hm-low">2</div><div class="hm-cell hm-r-2 hm-c-2 hm-low">4</div><div class="hm-cell hm-r-2 hm-c-3 hm-med">6</div><div class="hm-cell hm-r-2 hm-c-4 hm-med">8</div><div class="hm-cell hm-r-2 hm-c-5 hm-high">10</div>
+                                    <div class="hm-cell hm-r-1 hm-c-1 hm-low">1</div><div class="hm-cell hm-r-1 hm-c-2 hm-low">2</div><div class="hm-cell hm-r-1 hm-c-3 hm-low">3</div><div class="hm-cell hm-r-1 hm-c-4 hm-low">4</div><div class="hm-cell hm-r-1 hm-c-5 hm-med">5</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+        </section>
+    </main>
+
+    <script src="../js/tratamiento.js"></script>
+</body>
+</html>

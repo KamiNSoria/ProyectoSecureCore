@@ -1,0 +1,659 @@
+/* ==========================================================================
+   ACTIVOS.CSS - Estilos exclusivos de la Gestión de Activos (activos.html)
+   ========================================================================== */
+
+/* --- CABECERA Y BOTONES --- */
+.header-flex {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.btn-primary {
+    background-color: #6366f1;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.btn-primary:hover { 
+    background-color: #4f46e5; 
+    transform: translateY(-2px); 
+}
+
+/* --- ESTRUCTURA GENERAL DE LA PÁGINA --- */
+.activos-layout {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 24px;
+    align-items: start; /* Mantiene la barra derecha en su lugar arriba */
+}
+
+.assets-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+/* ==========================================================================
+   TARJETAS DE ACTIVOS (LISTA IZQUIERDA)
+   ========================================================================== */
+
+.asset-card {
+    background: #ffffff;
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column; /* Estructura en columna para el acordeón */
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    overflow: hidden; 
+}
+
+.asset-card:hover { 
+    transform: translateY(-3px); 
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05); 
+}
+
+/* Contenedor principal siempre visible */
+.asset-card-main {
+    padding: 20px 24px;
+    display: flex;
+    justify-content: space-between; /* Empuja info a la izq y métricas a la der */
+    align-items: center;
+    width: 100%;
+}
+
+/* Bloque Izquierdo: Icono, ID y Textos */
+.asset-info-wrapper { 
+    display: flex; 
+    align-items: center; 
+    gap: 16px; 
+    text-align: left; /* Alineación forzada a la izquierda */
+}
+
+.asset-icon {
+    width: 48px;
+    height: 48px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    color: #64748b;
+}
+
+.asset-details { 
+    display: flex; 
+    flex-direction: column; 
+    align-items: flex-start; /* Evita centrado accidental de etiquetas */
+}
+
+.asset-id {
+    color: #94a3b8;
+    font-size: 12px;
+    margin-right: 6px;
+    font-weight: 600;
+}
+
+.toggle-desc { 
+    font-size: 14px; 
+    color: #0f172a; 
+    margin-bottom: 6px; 
+    display: flex; 
+    align-items: center; 
+    gap: 4px; 
+    cursor: pointer; 
+}
+
+.toggle-desc:hover { 
+    color: #3b82f6; 
+}
+
+/* Etiquetas (Tags) de Hardware/Software y Estado */
+.asset-tags { display: flex; gap: 8px; margin-top: 6px; }
+.tag { font-size: 10px; font-weight: 700; padding: 4px 8px; border-radius: 4px; letter-spacing: 0.5px; text-transform: uppercase; }
+
+.tag-tipo { background: #f1f5f9; color: #475569; }
+.estado-operativo { background: #dcfce7; color: #16a34a; }
+.estado-mantenimiento { background: #fef3c7; color: #d97706; }
+.estado-inactivo { background: #fee2e2; color: #ef4444; }
+
+
+
+/* Información Extra (El acordeón que se oculta/muestra) */
+.asset-extra-info {
+    background: #f8fafc;
+    border-top: 1px dashed var(--border-color);
+    padding: 20px 24px;
+    display: none; 
+}
+
+.asset-card.expanded .asset-extra-info {
+    display: block;
+}
+
+.asset-description { font-size: 13px; color: #475569; margin-bottom: 16px; line-height: 1.5; }
+.extra-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.extra-item { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #0f172a; font-weight: 500; }
+.extra-item span { font-size: 10px; color: #94a3b8; font-weight: 600; text-transform: uppercase; }
+
+
+/* ==========================================================================
+   MÉTRICAS CIA (PÍLDORAS)
+   ========================================================================== */
+
+.cia-metrics { 
+    display: flex; 
+    flex-direction: column; 
+    gap: 6px; 
+    align-items: flex-end; /* Alineación forzada a la derecha */
+}
+
+.cia-row { 
+    display: flex; 
+    align-items: center; 
+    gap: 8px; 
+    justify-content: flex-end; 
+}
+
+.cia-row small { font-size: 10px; font-weight: 700; color: #94a3b8; width: 10px; }
+.pills { display: flex; gap: 4px; }
+.pill { width: 18px; height: 6px; border-radius: 4px; }
+
+.pill-c { background-color: #8b5cf6; } 
+.pill-i { background-color: #10b981; } 
+.pill-d { background-color: #f59e0b; } 
+.empty { background-color: #e2e8f0; } 
+
+
+/* ==========================================================================
+   RESUMEN LATERAL (SIDEBAR DERECHA)
+   ========================================================================== */
+
+.summary-sidebar { height: fit-content; }
+.summary-header { display: flex; align-items: center; gap: 8px; }
+.shield-icon { color: #6366f1; font-size: 18px; }
+
+.critical-alert-box {
+    background: #fff1f2;
+    border: 1px solid #ffe4e6;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 24px;
+}
+
+.alert-header { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+.icon-danger { color: #e11d48; font-size: 20px; }
+.number-danger { font-size: 24px; font-weight: 700; color: #0f172a; }
+.critical-alert-box strong { font-size: 13px; color: #e11d48; display: block; margin-bottom: 8px; }
+.critical-alert-box p { font-size: 12px; color: #64748b; line-height: 1.5; }
+
+/* Barras de Progreso */
+.risk-breakdown { margin-bottom: 24px; }
+.breakdown-title { font-size: 11px; color: #94a3b8; font-weight: 600; letter-spacing: 0.5px; display: block; margin-bottom: 16px; }
+.progress-item { margin-bottom: 16px; }
+.progress-labels { display: flex; justify-content: space-between; font-size: 13px; font-weight: 500; color: #334155; margin-bottom: 8px; }
+
+.progress-track {
+    width: 100%;
+    height: 6px;
+    background: #f1f5f9;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progress-fill { height: 100%; border-radius: 4px; }
+.fill-red { background: #fb7185; }
+.fill-orange { background: #fb923c; }
+.fill-yellow { background: #facc15; }
+
+.view-report-link {
+    display: block;
+    text-align: center;
+    font-size: 13px;
+    color: #475569;
+    text-decoration: none;
+    font-weight: 500;
+    margin-top: 32px;
+}
+.view-report-link:hover { color: #0f172a; text-decoration: underline; }
+
+
+/* ==========================================================================
+   VENTANA EMERGENTE (MODAL DE REGISTRO)
+   ========================================================================== */
+
+/* Capa oscura que cubre el fondo */
+.modal-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background-color: rgba(15, 23, 42, 0.4);
+    backdrop-filter: blur(2px); 
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000; 
+    transition: opacity 0.3s ease;
+}
+
+.modal-overlay.hidden {
+    opacity: 0;
+    pointer-events: none; 
+}
+
+/* Tarjeta principal del modal */
+.modal-content {
+    background-color: #ffffff;
+    width: 630px;       /* <--- AQUÍ ESTÁ EL ANCHO */
+    max-height: 90vh;   /* <--- AQUÍ ESTÁ EL ALTO MÁXIMO */
+    border-radius: 16px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    transform: translateY(0);
+    transition: transform 0.3s ease;
+}
+
+.modal-overlay.hidden .modal-content {
+    transform: translateY(20px);
+}
+
+.modal-header {
+    padding: 24px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.modal-header h2 { font-size: 18px; color: #0f172a; margin-bottom: 4px; }
+.modal-header p { font-size: 13px; color: var(--text-muted); }
+
+.close-modal-btn {
+    background: transparent;
+    border: none;
+    font-size: 24px;
+    color: #94a3b8;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+.close-modal-btn:hover { color: #0f172a; }
+
+.modal-body {
+    padding: 24px;
+    overflow-y: auto;       /* Permite el scroll de arriba hacia abajo */
+    overflow-x: hidden;     /* ESTO ES LO NUEVO: Corta de raíz el scroll horizontal */
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+}
+
+.section-title {
+    font-size: 13px;
+    color: #64748b;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Formularios */
+.form-group { display: flex; flex-direction: column; gap: 8px; flex: 1; }
+.form-row { display: flex; gap: 16px; margin-top: 16px; }
+.form-group label { font-size: 13px; font-weight: 500; color: #334155; }
+
+.form-input {
+    width: 100%;            /* Asegura que no superen el tamaño de su contenedor */
+    box-sizing: border-box; /* Evita que el padding las ensanche accidentalmente */
+    padding: 12px 16px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #0f172a;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-input::placeholder { color: #94a3b8; }
+
+
+.form-input:focus {
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+textarea.form-input { resize: vertical; min-height: 60px; font-family: inherit; }
+
+/* Selección de Valoración CIA */
+.rating-group {
+    background: #ffffff;
+    border: 1px solid #f1f5f9;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 16px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+}
+
+.rating-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.rating-header span { font-size: 13px; font-weight: 500; color: #334155; }
+.rating-header small { font-size: 10px; font-weight: 700; color: #94a3b8; letter-spacing: 1px; }
+
+/* Contenedor gris general */
+.rating-options {
+    display: flex;
+    background: #f8fafc;
+    border-radius: 8px;
+    padding: 4px;
+}
+
+.rating-options input[type="radio"] { 
+    display: none; 
+}
+
+
+/* El label ya no tiene el padding, solo controla el clic */
+.rating-options label {
+    flex: 1;
+    cursor: pointer;
+}
+
+/* El span ahora es un bloque completo. Así el color de fondo pintará el cuadrado perfecto */
+.rating-options span {
+    display: block;
+    text-align: center;
+    padding: 8px 0;
+    font-size: 13px;
+    font-weight: 500;
+    color: #64748b;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+/* Colores específicos cuando se selecciona un número */
+.conf-options input:checked + span { background: #e0e7ff; color: #4f46e5; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+.int-options input:checked + span { background: #dcfce7; color: #16a34a; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+.disp-options input:checked + span { background: #fef3c7; color: #d97706; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+
+
+/* Footer del Modal */
+.modal-footer {
+    padding: 24px;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    background: #fdfbfc; 
+    border-radius: 0 0 16px 16px;
+}
+
+.btn-secondary {
+    background: #ffffff;
+    color: #475569;
+    border: 1px solid #cbd5e1;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-secondary:hover { 
+    background: #f8fafc; 
+    color: #0f172a; 
+}
+
+
+/* Botones de filtro */
+.filter-pills-group {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.filter-btn {
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    /* mismo estilo que .tag */
+    font-size: 10px;
+    font-weight: 700;
+    padding: 4px 8px;
+    border-radius: 4px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.filter-btn.active {
+    background: #0f172a;
+    color: #ffffff;
+}
+
+/* Mismos estilos que las etiquetas */
+.tag-tipo,
+.filter-btn.f-info {
+    background: #f1f5f9;
+    color: #475569;
+}
+
+.estado-operativo,
+.filter-btn.f-soft {
+    background: #dcfce7;
+    color: #16a34a;
+}
+
+.estado-mantenimiento,
+.filter-btn.f-pers {
+    background: #fef3c7;
+    color: #d97706;
+}
+
+.estado-inactivo,
+.filter-btn.f-hard {
+    background: #fee2e2;
+    color: #ef4444;
+}
+
+.filter-btn:not(.active):hover {
+    filter: brightness(0.95);
+}
+
+
+
+
+/* Botones de Filtro tipo Píldora */
+.filter-pills-group {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+.filter-btn {
+    border: 1px solid;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+/* Colores basados en tu diseño */
+.filter-btn.active { background: #1a1a1a; color: #ffffff; border-color: #1a1a1a; }
+.filter-btn.f-info { background: #eff6ff; color: #2563eb; border-color: #bfdbfe; }
+.filter-btn.f-soft { background: #f0fdf4; color: #16a34a; border-color: #bbf7d0; }
+.filter-btn.f-hard { background: #fef2f2; color: #dc2626; border-color: #fecaca; }
+.filter-btn.f-pers { background: #fefce8; color: #ca8a04; border-color: #fef08a; }
+
+/* Efecto hover suave */
+.filter-btn:not(.active):hover { filter: brightness(0.95); }
+
+/* Contador de activos */
+.assets-counter {
+    font-size: 13px;
+    color: #64748b;
+    font-weight: 500;
+    padding-left: 8px;
+}
+
+
+/* ==========================================================================
+   BOTÓN MODIFICAR (DENTRO DE LA TARJETA)
+   ========================================================================== */
+
+.asset-actions {
+    display: flex;
+    justify-content: flex-end; /* Lo alinea a la derecha */
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px dashed var(--border-color); /* Línea divisoria muy sutil */
+}
+
+.btn-modificar {
+    background: transparent;
+    border: none;
+    color: #94a3b8; /* Color gris clarito */
+    font-size: 12px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.btn-modificar i { font-size: 16px; }
+
+/* Al pasar el mouse, resalta en color azul oscuro */
+.btn-modificar:hover {
+    color: #0f172a; 
+}
+
+
+/* ==========================================================================
+   BARRA DE BÚSQUEDA Y FILTROS (ESTILO CLARO)
+   ========================================================================== */
+
+.left-column {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.search-filter-container {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: transparent;
+}
+
+.search-box {
+    display: flex;
+    align-items: center;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    padding: 10px 14px;
+    flex: 1;
+    gap: 8px;
+    transition: all 0.2s ease;
+}
+
+.search-box:focus-within {
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.search-box i {
+    color: #94a3b8;
+    font-size: 18px;
+}
+
+.search-box input {
+    background: transparent;
+    border: none;
+    color: #0f172a;
+    font-size: 14px;
+    width: 100%;
+    outline: none;
+}
+
+.search-box input::placeholder {
+    color: #94a3b8;
+}
+
+
+/* ==========================================================================
+   RESULTADO AUTOMÁTICO DE CRITICIDAD (MODAL)
+   ========================================================================== */
+.criticidad-resultado {
+    background: #f8fafc;
+    border: 1px dashed #cbd5e1;
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin-top: 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.resultado-header {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.resultado-header span {
+    font-size: 11px;
+    color: #64748b;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.resultado-header strong {
+    font-size: 28px;
+    color: #0f172a;
+    line-height: 1;
+}
+
+/* Etiquetas de Impacto (Badges) */
+.badge-impacto {
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+
+/* ==========================================================================
+   COLORES PARA LOS 5 NIVELES DE CRITICIDAD (Modal y Lista)
+   ========================================================================== */
+
+.impacto-critico  { background: #fee2e2; color: #dc2626; border: 1px solid #fecaca; } /* Nivel 5: Rojo */
+.impacto-alto     { background: #ffedd5; color: #ea580c; border: 1px solid #fed7aa; } /* Nivel 4: Naranja */
+.impacto-medio    { background: #fefce8; color: #ca8a04; border: 1px solid #fef08a; } /* Nivel 3: Amarillo */
+.impacto-bajo     { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; } /* Nivel 2: Verde */
+.impacto-marginal { background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; } /* Nivel 1: Azul */
+
+/* 2. Clases para las etiquetas pequeñitas en la lista de activos (.tag) */
+.tag-critico  { background: #fee2e2; color: #dc2626; border: 1px solid #fecaca; }
+.tag-alto     { background: #ffedd5; color: #ea580c; border: 1px solid #fed7aa; }
+.tag-medio    { background: #fefce8; color: #ca8a04; border: 1px solid #fef08a; }
+.tag-bajo     { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
+.tag-marginal { background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; }

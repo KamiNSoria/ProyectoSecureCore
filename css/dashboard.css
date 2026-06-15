@@ -1,0 +1,191 @@
+/* ==========================================================================
+   DASHBOARD.CSS - Estilos exclusivos del Panel Principal (index.html)
+   ========================================================================== */
+
+.dashboard-top-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 24px;
+    margin-bottom: 24px;
+}
+
+/* Mapa de Calor */
+.heat-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr); 
+    gap: 24px;
+}
+.heat-item {
+    padding: 16px;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: pointer;
+}
+.heat-item span { font-size: 12px; margin-bottom: 8px; }
+.heat-item strong { font-size: 24px; font-weight: 700; line-height: 1; margin-bottom: 4px; }
+.heat-item small { font-size: 10px; font-weight: 600; letter-spacing: 0.5px; }
+
+.critico { background: var(--critico-bg); color: var(--critico-text); border: 1px solid rgba(225, 29, 72, 0.3); }
+.alto { background: var(--alto-bg); color: var(--alto-text); border: 1px solid rgba(234, 88, 12, 0.3); }
+.medio { background: var(--medio-bg); color: var(--medio-text); border: 1px solid rgba(202, 138, 4, 0.3); }
+.bajo { background: var(--bajo-bg); color: var(--bajo-text); border: 1px solid rgba(22, 163, 74, 0.3); }
+
+/* Dona de Riesgo Residual */
+.chart-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 80%;
+}
+.donut-chart {
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    background: conic-gradient(#f97316 0% 68%, #f1f5f9 68% 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 24px;
+}
+.donut-inner {
+    width: 110px;
+    height: 110px;
+    background: #ffffff; 
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+.donut-inner strong { font-size: 32px; color: #ea580c; line-height: 1; }
+.donut-inner span { font-size: 12px; color: var(--text-muted); }
+
+.badge-elevado {
+    background: #fff7ed;
+    color: #ea580c;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+    border: 1px solid #ffedd5;
+}
+
+/* KPIs */
+.kpi-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+}
+.kpi-card {
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: pointer;
+}
+.kpi-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+}
+.kpi-icon.blue { background: #eff6ff; color: #3b82f6; }
+.kpi-icon.green { background: #f0fdf4; color: #22c55e; }
+.kpi-icon.yellow { background: #fefce8; color: #eab308; }
+.kpi-icon.purple { background: #f5f3ff; color: #8b5cf6; }
+
+.kpi-data { display: flex; flex-direction: column; }
+.kpi-data small { font-size: 12px; color: var(--text-muted); margin-bottom: 4px; }
+.kpi-data strong { font-size: 24px; color: #0f172a; font-weight: 700; margin-bottom: 8px; }
+
+.trend { font-size: 11px; font-weight: 500; }
+.blue-trend { color: #3b82f6; }
+.green-trend { color: #22c55e; }
+.yellow-trend { color: #d97706; }
+
+/* Grid Alertas e Inteligencia */
+.bottom-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.8fr;
+    gap: 24px;
+    margin-top: 24px;
+}
+.alerts-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.alert-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: pointer;
+}
+.alert-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 12px;
+    flex-shrink: 0;
+}
+.alert-info { display: flex; flex-direction: column; }
+.alert-info strong { font-size: 13px; color: #1e293b; margin-bottom: 2px; }
+.alert-info span { font-size: 11px; color: var(--text-muted); }
+
+.alert-red { background: #fff1f2; border-color: #ffe4e6; }
+.alert-red .alert-icon { background: #ffe4e6; color: #e11d48; }
+.alert-yellow { background: #fefce8; border-color: #fef08a; }
+.alert-yellow .alert-icon { background: #fef08a; color: #ca8a04; }
+.alert-blue { background: #eff6ff; border-color: #dbeafe; }
+.alert-blue .alert-icon { background: #dbeafe; color: #3b82f6; }
+
+.threat-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+}
+.threat-item {
+    padding: 20px;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid transparent;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: pointer;
+}
+.threat-title { font-size: 13px; font-weight: 600; margin-bottom: 12px; }
+.threat-item strong { font-size: 28px; font-weight: 700; color: #0f172a; margin-bottom: 8px; line-height: 1; }
+.threat-item small { font-size: 11px; color: var(--text-muted); }
+
+.threat-red { background: #fff1f2; border-color: #ffe4e6; }
+.threat-red .threat-title { color: #e11d48; }
+.threat-purple { background: #f5f3ff; border-color: #ede9fe; }
+.threat-purple .threat-title { color: #6366f1; }
+.threat-green { background: #f0fdf4; border-color: #dcfce7; }
+.threat-green .threat-title { color: #16a34a; }
+
+/* HOVERS DE ESTA PÁGINA */
+.heat-item:hover, .kpi-card:hover, .alert-item:hover, .threat-item:hover { transform: translateY(-5px); }
+.heat-item.critico:hover { box-shadow: 0 10px 20px rgba(225, 29, 72, 0.25); }
+.heat-item.alto:hover { box-shadow: 0 10px 20px rgba(234, 88, 12, 0.25); }
+.heat-item.medio:hover { box-shadow: 0 10px 20px rgba(202, 138, 4, 0.25); }
+.heat-item.bajo:hover { box-shadow: 0 10px 20px rgba(22, 163, 74, 0.25); }
+.kpi-card:hover, .alert-item:hover, .threat-item:hover { box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08); }

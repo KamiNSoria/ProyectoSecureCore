@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SecureCore Dashboard</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link rel="stylesheet" href="css/global.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+</head>
+<body>
+<aside class="sidebar">
+        
+        <div class="logo-area">
+            <div class="logo-icon"><i class='bx bx-shield'></i></div>
+            <div>
+                <h2>SecureCore</h2>
+                <p>Plataforma de Riesgo</p>
+            </div>
+        </div>
+
+         <nav class="sidebar-nav">
+            <a href="#" class="nav-item active"> 
+                <i class='bx bx-grid-alt'></i> Panel
+            </a>
+            
+            <a href="pages/activos.html" class="nav-item">
+                <i class='bx bx-server'></i> Activos
+            </a>
+            
+            <a href="pages/analisis.html" class="nav-item">
+                <i class='bx bx-line-chart-down'></i> Riesgos
+            </a>
+            
+            <a href="pages/tratamiento.html" class="nav-item">
+                <i class='bx bx-check-shield'></i> Tratamiento
+            </a>
+            
+            <a href="pages/cumplimiento.html" class="nav-item">
+                <i class='bx bx-file'></i> Cumplimiento
+            </a>
+        </nav>
+
+        <div class="user-profile">
+            <div class="avatar">UA</div>
+            <div class="user-info">
+                <strong>Usuario Admin</strong>
+                <span>Analista de Seguridad</span>
+            </div>
+        </div>
+    </aside>
+
+
+    <main class="main-content">
+        <header class="top-header">
+            <h1>Gestión de Riesgos Cibernéticos</h1>
+            <p>Monitoreo de amenazas y análisis de riesgos en tiempo real</p>
+        </header>
+
+        <section class="dashboard-top-grid">
+            <div class="card map-card">
+                <div class="card-header">
+                    <h3>Mapa de Calor de Riesgos</h3>
+                    <p>Dominios de seguridad por nivel de severidad</p>
+                </div>
+                
+                <div class="heat-grid">
+                    <div class="heat-item critico"><span>Red</span><strong>3</strong><small>CRÍTICO</small></div>
+                    <div class="heat-item alto"><span>Acceso</span><strong>7</strong><small>ALTO</small></div>
+                    <div class="heat-item medio"><span>Datos</span><strong>12</strong><small>MEDIO</small></div>
+                    <div class="heat-item bajo"><span>Físico</span><strong>2</strong><small>BAJO</small></div>
+                    
+                    <div class="heat-item alto"><span>Terminales</span><strong>5</strong><small>ALTO</small></div>
+                    <div class="heat-item critico"><span>Nube</span><strong>4</strong><small>CRÍTICO</small></div>
+                    <div class="heat-item medio"><span>Apps</span><strong>8</strong><small>MEDIO</small></div>
+                    <div class="heat-item bajo"><span>Cadena de Sum.</span><strong>3</strong><small>BAJO</small></div>
+                    
+                    <div class="heat-item medio"><span>Identidad</span><strong>6</strong><small>MEDIO</small></div>
+                    <div class="heat-item alto"><span>Cumplimiento</span><strong>9</strong><small>ALTO</small></div>
+                    <div class="heat-item bajo"><span>Social</span><strong>4</strong><small>BAJO</small></div>
+                    <div class="heat-item critico"><span>Infraestructura</span><strong>2</strong><small>CRÍTICO</small></div>
+                </div>
+            </div>
+
+            <div class="card residual-card">
+                <div class="card-header">
+                    <h3>Riesgo Residual</h3>
+                    <p>Nivel de exposición actual</p>
+                </div>
+                <div class="chart-container">
+                    <div class="donut-chart">
+                        <div class="donut-inner">
+                            <strong>68</strong>
+                            <span>Puntaje</span>
+                        </div>
+                    </div>
+                    <div class="badge-elevado">Nivel Elevado</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="kpi-row">
+            <div class="kpi-card">
+                <div class="kpi-icon blue">〽️</div>
+                <div class="kpi-data">
+                    <small>Amenazas Activas</small>
+                    <strong>247</strong>
+                    <span class="trend blue-trend">↗ +12% desde la semana pasada</span>
+                </div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-icon green">👥</div>
+                <div class="kpi-data">
+                    <small>Activos Protegidos</small>
+                    <strong>1,854</strong>
+                    <span class="trend green-trend">↗ Todos los sistemas seguros</span>
+                </div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-icon yellow">⚠️</div>
+                <div class="kpi-data">
+                    <small>Vulnerabilidades</small>
+                    <strong>42</strong>
+                    <span class="trend yellow-trend">⚠️ 18 parches críticos pendientes</span>
+                </div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-icon purple">〽️</div>
+                <div class="kpi-data">
+                    <small>Tiempo de Respuesta</small>
+                    <strong>4.2m</strong>
+                    <span class="trend blue-trend">↙ -23% de mejora</span>
+                </div>
+            </div>
+        </section>
+        <section class="bottom-grid">
+            
+            <div class="card alerts-card">
+                <div class="card-header">
+                    <h3>Alertas Recientes</h3>
+                    <p>Últimos eventos de seguridad</p>
+                </div>
+                <div class="alerts-list">
+                    <div class="alert-item alert-red">
+                        <div class="alert-icon">!</div>
+                        <div class="alert-info">
+                            <strong>Intento de acceso no autorizado</strong>
+                            <span>Firewall • Hace 2 min</span>
+                        </div>
+                    </div>
+                    <div class="alert-item alert-yellow">
+                        <div class="alert-icon">⚠️</div>
+                        <div class="alert-info">
+                            <strong>Patrón de tráfico inusual</strong>
+                            <span>IDS • Hace 15 min</span>
+                        </div>
+                    </div>
+                    <div class="alert-item alert-red">
+                        <div class="alert-icon">!</div>
+                        <div class="alert-info">
+                            <strong>Múltiples intentos fallidos de login</strong>
+                            <span>Servidor de Auth • Hace 32 min</span>
+                        </div>
+                    </div>
+                    <div class="alert-item alert-blue">
+                        <div class="alert-icon">i</div>
+                        <div class="alert-info">
+                            <strong>Parche de seguridad desplegado</strong>
+                            <span>Gestor de Updates • Hace 1 hr</span>
+                        </div>
+                    </div>
+                    <div class="alert-item alert-yellow">
+                        <div class="alert-icon">⚠️</div>
+                        <div class="alert-info">
+                            <strong>Ejecución de archivo sospechosa bloqueada</strong>
+                            <span>Seguridad Endpoint • Hace 2 hr</span>
+                        </div>
+                    </div>
+                    <div class="alert-item alert-blue">
+                        <div class="alert-icon">i</div>
+                        <div class="alert-info">
+                            <strong>Respaldo completado</strong>
+                            <span>Sistema de Respaldo • Hace 3 hr</span>
+                        </div>
+                    </div>
+                    <div class="alert-item alert-yellow">
+                        <div class="alert-icon">⚠️</div>
+                        <div class="alert-info">
+                            <strong>Cambio de configuración detectado</strong>
+                            <span>Monitor de Config • Hace 4 hr</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card threat-card">
+                <div class="card-header">
+                    <h3>Resumen de Inteligencia de Amenazas</h3>
+                    <p>Hallazgos clave de las últimas 24 horas</p>
+                </div>
+                <div class="threat-grid">
+                    <div class="threat-item threat-red">
+                        <span class="threat-title">Intentos DDoS</span>
+                        <strong>156</strong>
+                        <small>Bloqueados con éxito</small>
+                    </div>
+                    <div class="threat-item threat-purple">
+                        <span class="threat-title">Malware Detectado</span>
+                        <strong>23</strong>
+                        <small>En cuarentena y eliminado</small>
+                    </div>
+                    <div class="threat-item threat-green">
+                        <span class="threat-title">Escaneos de Seguridad</span>
+                        <strong>1,247</strong>
+                        <small>Completados hoy</small>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+
+
+
+
+    </main>
+
+</body>
+</html>

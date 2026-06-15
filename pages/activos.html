@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SecureCore - Gestión de Activos</title> 
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/activos.css">
+</head>
+<body>
+
+    <aside class="sidebar">
+        
+        <div class="logo-area">
+            <div class="logo-icon"><i class='bx bx-shield'></i></div>
+            <div>
+                <h2>SecureCore</h2>
+                <p>Plataforma de Riesgo</p>
+            </div>
+        </div>
+            <!-- Este es un comentario en HTML, el navegador no lo mostrará -->
+        <nav class="sidebar-nav">
+            <a href="../index.html" class="nav-item"> 
+                <i class='bx bx-grid-alt'></i> Panel
+            </a>
+            
+            <a href="#" class="nav-item active">
+                <i class='bx bx-server'></i> Activos
+            </a>
+            
+            <a href="analisis.html" class="nav-item">
+                <i class='bx bx-line-chart-down'></i> Riesgos
+            </a>
+            
+            <a href="tratamiento.html" class="nav-item">
+                <i class='bx bx-check-shield'></i> Tratamiento
+            </a>
+            
+            <a href="cumplimiento.html" class="nav-item">
+                <i class='bx bx-file'></i> Cumplimiento
+            </a>
+        </nav>
+
+        <div class="user-profile">
+            <div class="avatar">UA</div>
+            <div class="user-info">
+                <strong>Usuario Admin</strong>
+                <span>Analista de Seguridad</span>
+            </div>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        
+        <header class="top-header header-flex">
+            <div>
+                <h1>Gestión de Activos</h1>
+                <p>Inventario y evaluación de criticidad en la infraestructura (CIA)</p>
+            </div>
+            <button id="btnAbrirModal" class="btn-primary">+ Registrar Nuevo Activo</button>
+        </header>
+
+        <section class="activos-layout">
+            
+            <div class="left-column">
+                
+<div class="search-filter-container">
+                    <div class="search-box">
+                        <i class='bx bx-search'></i>
+                        <input type="text" id="buscadorActivos" placeholder="Buscar por nombre, propietario...">
+                    </div>
+                    
+                    <div class="filter-pills-group">
+                        <button class="filter-btn active" data-categoria="todos">Todos</button>
+                        <button class="filter-btn f-info" data-categoria="informacion">Información</button>
+                        <button class="filter-btn f-soft" data-categoria="software">Software</button>
+                        <button class="filter-btn f-hard" data-categoria="hardware">Hardware</button>
+                        <button class="filter-btn f-pers" data-categoria="personas">Personas</button>
+                    </div>
+                    
+                    <div class="assets-counter">
+                        <span id="contadorActivos">2 activos</span>
+                    </div>
+                </div>
+
+                <div class="assets-list">
+                    
+                    <div class="asset-card expanded" id="activo-001" data-categoria="hardware">
+                        <div class="asset-card-main">
+                            <div class="asset-info-wrapper">
+                                <div class="asset-icon"><i class='bx bx-server'></i></div>
+                                <div class="asset-details">
+                                    <strong class="toggle-desc" title="Haz clic para ver detalles">
+                                        <span class="asset-id">#ACT-001</span> Base de Datos Principal (PostgreSQL) <i class='bx bx-chevron-down'></i>
+                                    </strong>
+                                    <div class="asset-tags">
+                                        <span class="tag tag-tipo">Hardware</span>
+                                        <span class="tag tag-estado estado-operativo">Operativo</span>
+                                        <span class="tag tag-critico">Impacto Crítico (5)</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="cia-metrics">
+                                <div class="cia-row"><small>C</small> <div class="pills"><span class="pill pill-c"></span><span class="pill pill-c"></span><span class="pill pill-c"></span><span class="pill pill-c"></span><span class="pill pill-c"></span></div></div>
+                                <div class="cia-row"><small>I</small> <div class="pills"><span class="pill pill-i"></span><span class="pill pill-i"></span><span class="pill pill-i"></span><span class="pill pill-i"></span><span class="pill pill-i"></span></div></div>
+                                <div class="cia-row"><small>D</small> <div class="pills"><span class="pill pill-d"></span><span class="pill pill-d"></span><span class="pill pill-d"></span><span class="pill empty"></span><span class="pill empty"></span></div></div>
+                            </div>
+                        </div>
+                        <div class="asset-extra-info">
+                            <p class="asset-description"><strong>Descripción:</strong> Servidor físico de alto rendimiento que aloja las bases de datos transaccionales del core financiero de la empresa. Contiene datos altamente sensibles.</p>
+                            <div class="extra-grid">
+                                <div class="extra-item"><span>Sistema Involucrado:</span> Core Financiero</div>
+                                <div class="extra-item"><span>Ubicación:</span> Física (Data Center)</div>
+                                <div class="extra-item"><span>Propietario:</span> Equipo DBA</div>
+                            </div>
+                            <div class="asset-actions">
+                                <button class="btn-modificar"><i class='bx bx-edit-alt'></i> Modificar activo</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="asset-card" id="activo-002" data-categoria="software">
+                        <div class="asset-card-main">
+                            <div class="asset-info-wrapper">
+                                <div class="asset-icon"><i class='bx bx-code-alt'></i></div>
+                                <div class="asset-details">
+                                    <strong class="toggle-desc" title="Haz clic para ver detalles">
+                                        <span class="asset-id">#ACT-002</span> API de Pasarela de Pagos <i class='bx bx-chevron-down'></i>
+                                    </strong>
+                                    <div class="asset-tags">
+                                        <span class="tag tag-tipo">Software</span>
+                                        <span class="tag tag-estado estado-mantenimiento">En Mantenimiento</span>
+                                        <span class="tag tag-alto">Impacto Alto (4)</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="cia-metrics">
+                                <div class="cia-row"><small>C</small> <div class="pills"><span class="pill pill-c"></span><span class="pill pill-c"></span><span class="pill pill-c"></span><span class="pill pill-c"></span><span class="pill pill-c"></span></div></div>
+                                <div class="cia-row"><small>I</small> <div class="pills"><span class="pill pill-i"></span><span class="pill pill-i"></span><span class="pill pill-i"></span><span class="pill pill-i"></span><span class="pill pill-i"></span></div></div>
+                                <div class="cia-row"><small>D</small> <div class="pills"><span class="pill pill-d"></span><span class="pill pill-d"></span><span class="pill pill-d"></span><span class="pill pill-d"></span><span class="pill empty"></span></div></div>
+                            </div>
+                        </div>
+                        <div class="asset-extra-info">
+                            <p class="asset-description"><strong>Descripción:</strong> Microservicio encargado de procesar y encriptar las transacciones de pago.</p>
+                            <div class="extra-grid">
+                                <div class="extra-item"><span>Sistema Involucrado:</span> Plataforma Web</div>
+                                <div class="extra-item"><span>Ubicación:</span> Lógica (AWS Cloud)</div>
+                                <div class="extra-item"><span>Propietario:</span> Equipo Backend</div>
+                            </div>
+                            <div class="asset-actions">
+                                <button class="btn-modificar"><i class='bx bx-edit-alt'></i> Modificar activo</button>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="card summary-sidebar">
+                <div class="card-header summary-header">
+                    <span class="shield-icon"><i class='bx bx-shield'></i></span> <h3>Resumen de Criticidad</h3>
+                </div>
+                
+                <div class="critical-alert-box">
+                    <div class="alert-header">
+                        <span class="icon-danger"><i class='bx bx-error'></i></span>
+                        <span class="number-danger">4</span>
+                    </div>
+                    <strong>Activos Críticos</strong>
+                    <p>Requieren monitoreo constante. Presentan niveles de confidencialidad o disponibilidad máximos.</p>
+                </div>
+                <div class="risk-breakdown">
+                    <small class="breakdown-title">DESGLOSE DE RIESGO</small>
+                    <div class="progress-item">
+                        <div class="progress-labels"><span>Nivel Crítico (Nivel 5)</span><span>4</span></div>
+                        <div class="progress-track"><div class="progress-fill fill-red" style="width: 80%;"></div></div>
+                    </div>
+                    <div class="progress-item">
+                        <div class="progress-labels"><span>Nivel Alto (Nivel 4)</span><span>2</span></div>
+                        <div class="progress-track"><div class="progress-fill fill-orange" style="width: 40%;"></div></div>
+                    </div>
+                    <div class="progress-item">
+                        <div class="progress-labels"><span>Nivel Medio (Nivel 3)</span><span>1</span></div>
+                        <div class="progress-track"><div class="progress-fill fill-yellow" style="width: 20%;"></div></div>
+                    </div>
+                </div>
+                <a href="#" class="view-report-link">Ver Reporte Completo</a>
+            </div> 
+
+        </section>
+    </main>
+
+    <div id="modalNuevoActivo" class="modal-overlay hidden">
+        
+        <div class="modal-content">
+            
+            <header class="modal-header">
+                <div>
+                    <h2>Registrar Nuevo Activo</h2>
+                    <p>Ingresa la información básica y define su nivel de criticidad.</p>
+                </div>
+                <button id="btnCerrarModal" class="close-modal-btn"><i class='bx bx-x'></i></button>
+            </header>
+
+            <div class="modal-body">
+                <form>
+                    <div class="form-section">
+                        <h4 class="section-title"><i class='bx bx-list-ul'></i> 1. DATOS GENERALES</h4>
+                        
+                        <div class="form-group">
+                            <label>Nombre del Activo</label>
+                            <input type="text" class="form-input" placeholder="Ej. Servidor de Base de Datos Principal">
+                        </div>
+
+                        <div class="form-group" style="margin-top: 12px;">
+                            <label>Descripción</label>
+                            <textarea class="form-input" rows="2" placeholder="Detalla la función y propósito del activo..."></textarea>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Sistema Involucrado</label>
+                                <input type="text" class="form-input" placeholder="Ej. Core Financiero">
+                            </div>
+                            <div class="form-group">
+                                <label>Tipo de Activo</label>
+                                <select class="form-input form-select">
+                                    <option>Hardware</option>
+                                    <option>Software</option>
+                                    <option>Red / Infraestructura</option>
+                                    <option>Datos / Información</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Tipo de Ubicación</label>
+                                <select class="form-input form-select">
+                                    <option>Física (Data Center, Oficina)</option>
+                                    <option>Lógica (Nube, Máquina Virtual)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Propietario del Activo</label>
+                                <input type="text" class="form-input" placeholder="Responsable o equipo">
+                            </div>
+                        </div>
+
+                        <div class="form-group" style="margin-top: 12px;">
+                            <label>Estado Actual</label>
+                            <select class="form-input form-select">
+                                <option>Operativo</option>
+                                <option>En Mantenimiento</option>
+                                <option>Inactivo / Retirado</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-section" style="margin-top: 32px;">
+                        <h4 class="section-title"><i class='bx bx-shield-quarter'></i> 2. VALORACIÓN DE CRITICIDAD (CIA)</h4>
+                        
+                        <div class="rating-group">
+                            <div class="rating-header">
+                                <span>Confidencialidad</span>
+                                <small id="txt-nivel-conf">NIVEL 3</small>
+                            </div>
+                            <div class="rating-options conf-options">
+                                <label><input type="radio" name="conf" value="1"><span>1</span></label>
+                                <label><input type="radio" name="conf" value="2"><span>2</span></label>
+                                <label><input type="radio" name="conf" value="3" checked><span>3</span></label>
+                                <label><input type="radio" name="conf" value="4"><span>4</span></label>
+                                <label><input type="radio" name="conf" value="5"><span>5</span></label>
+                            </div>
+                        </div>
+
+                        <div class="rating-group">
+                            <div class="rating-header">
+                                <span>Integridad</span>
+                                <small id="txt-nivel-int">NIVEL 3</small>
+                            </div>
+                            <div class="rating-options int-options">
+                                <label><input type="radio" name="int" value="1"><span>1</span></label>
+                                <label><input type="radio" name="int" value="2"><span>2</span></label>
+                                <label><input type="radio" name="int" value="3" checked><span>3</span></label>
+                                <label><input type="radio" name="int" value="4"><span>4</span></label>
+                                <label><input type="radio" name="int" value="5"><span>5</span></label>
+                            </div>
+                        </div>
+
+                        <div class="rating-group">
+                            <div class="rating-header">
+                                <span>Disponibilidad</span>
+                                <small id="txt-nivel-disp">NIVEL 3</small>
+                            </div>
+                            <div class="rating-options disp-options">
+                                <label><input type="radio" name="disp" value="1"><span>1</span></label>
+                                <label><input type="radio" name="disp" value="2"><span>2</span></label>
+                                <label><input type="radio" name="disp" value="3" checked><span>3</span></label>
+                                <label><input type="radio" name="disp" value="4"><span>4</span></label>
+                                <label><input type="radio" name="disp" value="5"><span>5</span></label>
+                            </div>
+                        </div>
+
+                        <div class="criticidad-resultado">
+                            <div class="resultado-header">
+                                <span>Valor Final (MAX)</span>
+                                <strong id="valor-final-num">3</strong>
+                            </div>
+                            <div class="resultado-body">
+                                <span id="valor-final-texto" class="badge-impacto impacto-mayor">Impacto Mayor</span>
+                            </div>
+                        </div>
+
+                    </div>
+                </form>
+            </div>
+
+            <footer class="modal-footer">
+                <button type="button" id="btnCancelarModal" class="btn-secondary">Cancelar</button>
+                <button type="button" class="btn-primary">Guardar Activo</button>
+            </footer>
+        </div>
+    </div>
+
+    <script src="../js/activos.js"></script>
+
+</body>
+</html>

@@ -2,32 +2,74 @@
      Lógica interactiva para la página de Gestión de Activos (Conexión SQL)
    ========================================================================== */
 
-// Esperamos a que la página cargue para ir a buscar los datos
-document.addEventListener('DOMContentLoaded', () => {
+// Variables globales para guardar los catálogos en memoria y no hacer múltiples peticiones
+let catalogoTipos = [];
+let catalogoEstados = [];
+
+document.addEventListener('DOMContentLoaded', async () => {
+    // Usamos 'await' para asegurar que primero bajen los catálogos antes de pintar las tarjetas
+    await cargarTiposDeActivo(); 
+    // Nota: Deberías hacer un endpoint similar para ParamEstadosActivo en tu API
+    // await cargarEstadosDeActivo(); 
+    
     cargarActivosDesdeSQL();
-    cargarTiposDeActivo(); // <-- Agrega esta línea
 });
 
-// --- NUEVO: FUNCIÓN PARA TRAER DATOS DEL BACKEND ---
+// --- FUNCIÓN MEJORADA: Cargar Tipos de Activos ---
+async function cargarTiposDeActivo() {
+    try {
+        const respuesta = await fetch('http://127.0.0.1:8000/api/tipos-activo/');
+        const tipos = await respuesta.json();
+        
+        catalogoTipos = tipos; // Guardamos en la variable global
+        
+        const selectTipo = document.getElementById('in-tipo');
+        if(selectTipo) {
+            selectTipo.innerHTML = '<option value="" disabled selected>Selecciona un tipo de activo...</option>';
+            tipos.forEach(tipo => {
+                const opcionHTML = `<option value="${tipo.id_tipo_activo}">[${tipo.codigo}] ${tipo.nombre_tipo}</option>`;
+                selectTipo.innerHTML += opcionHTML;
+            });
+        }
+    } catch (error) {
+        console.error("Error al cargar los tipos de activo:", error);
+        const selectTipo = document.getElementById('in-tipo');
+        if(selectTipo) selectTipo.innerHTML = '<option value="" disabled>Error de conexión</option>';
+    }
+}
+
+// --- FUNCIÓN MEJORADA: Cargar y Pintar Activos ---
 function cargarActivosDesdeSQL() {
     fetch('http://127.0.0.1:8000/api/activos/')
         .then(respuesta => respuesta.json())
         .then(datos_sql => {
             const contenedor = document.getElementById('contenedor-activos');
-            contenedor.innerHTML = ''; // Limpiamos las tarjetas quemadas
+            if(!contenedor) return;
+            
+            contenedor.innerHTML = ''; 
 
-            // Dibujamos las tarjetas de SQL
             datos_sql.forEach(activo => {
                 
-                // Asignamos iconos y colores según la categoría para mantener tu diseño
-                let icono = 'bx-server';
-                let claseEstado = 'estado-operativo';
+                // 1. "Traducir" los IDs usando el catálogo que cargamos antes
+                // Busca en el arreglo catalogoTipos el objeto cuyo ID coincida con la llave foránea del activo
+                const tipoObjeto = catalogoTipos.find(t => t.id_tipo_activo === activo.id_tipo_activo);
+                const nombreTipoReal = tipoObjeto ? tipoObjeto.nombre_tipo : 'Desconocido';
+                const codigoTipoReal = tipoObjeto ? tipoObjeto.codigo : '';
                 
-                if(activo.tipo_activo === 'Software') icono = 'bx-code-alt';
-                else if(activo.tipo_activo === 'Informacion') icono = 'bx-file';
+                // 2. Asignar iconos de forma dinámica basándonos en el código de SQL Server
+                let icono = 'bx-server'; // Por defecto (Hardware)
+                if(codigoTipoReal === 'SW') icono = 'bx-code-alt';
+                else if(codigoTipoReal === 'D') icono = 'bx-file';
+                else if(codigoTipoReal === 'S') icono = 'bx-cloud';
+                else if(codigoTipoReal === 'P') icono = 'bx-user';
                 
+                // TODO: Necesitas hacer lo mismo con id_estado_activo. Por ahora, forzamos un valor para el diseño.
+                let claseEstado = 'estado-operativo'; 
+                let nombreEstadoReal = 'Operativo';
+                
+                // 3. Renderizar la tarjeta
                 const tarjetaHTML = `
-                    <div class="asset-card" id="activo-${activo.id_activo}" data-categoria="${activo.tipo_activo ? activo.tipo_activo.toLowerCase() : 'hardware'}">
+                    <div class="asset-card" id="activo-${activo.id_activo}" data-categoria="${codigoTipoReal.toLowerCase()}">
                         <div class="asset-card-main">
                             <div class="asset-info-wrapper">
                                 <div class="asset-icon"><i class='bx ${icono}'></i></div>
@@ -36,16 +78,16 @@ function cargarActivosDesdeSQL() {
                                         <span class="asset-id">#ACT-${activo.id_activo}</span> ${activo.nombre_activo} <i class='bx bx-chevron-down'></i>
                                     </strong>
                                     <div class="asset-tags">
-                                        <span class="tag tag-tipo">${activo.tipo_activo || 'N/A'}</span>
-                                        <span class="tag tag-estado ${claseEstado}">${activo.estado_activo || 'Activo'}</span>
+                                        <span class="tag tag-tipo">${nombreTipoReal}</span>
+                                        <span class="tag tag-estado ${claseEstado}">${nombreEstadoReal}</span>
                                         <span class="tag tag-critico">Impacto: ${activo.nivel_impacto}</span>
                                     </div>
                                 </div>
                             </div>
                             <div class="cia-metrics">
-                                <div class="cia-row"><small>C</small> <div class="pills"><span class="pill pill-c"></span><span class="pill pill-c"></span><span class="pill pill-c"></span><span class="pill empty"></span><span class="pill empty"></span></div></div>
-                                <div class="cia-row"><small>I</small> <div class="pills"><span class="pill pill-i"></span><span class="pill pill-i"></span><span class="pill pill-i"></span><span class="pill empty"></span><span class="pill empty"></span></div></div>
-                                <div class="cia-row"><small>D</small> <div class="pills"><span class="pill pill-d"></span><span class="pill pill-d"></span><span class="pill pill-d"></span><span class="pill empty"></span><span class="pill empty"></span></div></div>
+                                <div class="cia-row"><small>C</small> <div class="pills">${generarPills(activo.confidencialidad, 'c')}</div></div>
+                                <div class="cia-row"><small>I</small> <div class="pills">${generarPills(activo.integridad, 'i')}</div></div>
+                                <div class="cia-row"><small>D</small> <div class="pills">${generarPills(activo.disponibilidad, 'd')}</div></div>
                             </div>
                         </div>
                         <div class="asset-extra-info">
@@ -63,40 +105,28 @@ function cargarActivosDesdeSQL() {
                 contenedor.innerHTML += tarjetaHTML;
             });
 
-            // UNA VEZ CREADAS LAS TARJETAS, ENCENDEMOS TUS FUNCIONES
             activarTarjetasExpandibles();
             activarFiltros();
             
         })
         .catch(error => {
             console.error("Error al conectar con SQL:", error);
-            document.getElementById('contenedor-activos').innerHTML = '<p style="color:red; padding:20px;">No se pudo conectar a la base de datos SQL Server.</p>';
+            const contenedor = document.getElementById('contenedor-activos');
+            if(contenedor) contenedor.innerHTML = '<p style="color:red; padding:20px;">Error al cargar los activos.</p>';
         });
 }
 
-
-// NUEVA FUNCIÓN: Trae las categorías oficiales de MAGERIT desde SQL
-function cargarTiposDeActivo() {
-    fetch('http://127.0.0.1:8000/api/tipos-activo/')
-        .then(respuesta => respuesta.json())
-        .then(tipos => {
-            const selectTipo = document.getElementById('in-tipo');
-            
-            // Limpiamos el "Cargando..." y ponemos el texto inicial
-            selectTipo.innerHTML = '<option value="" disabled selected>Selecciona un tipo de activo...</option>';
-
-            // Recorremos la tabla Param_Tipos_Activo
-            tipos.forEach(tipo => {
-                // Combinamos el código y el nombre que tienes en SQL (Ej: "[D] Datos / Información")
-                // Asegúrate de que 'id_tipo_activo', 'codigo' y 'nombre_tipo' sean los nombres exactos de tus columnas
-                const opcionHTML = `<option value="${tipo.id_tipo_activo}">[${tipo.codigo}] ${tipo.nombre_tipo}</option>`;
-                selectTipo.innerHTML += opcionHTML;
-            });
-        })
-        .catch(error => {
-            console.error("Error al cargar los tipos de activo:", error);
-            document.getElementById('in-tipo').innerHTML = '<option value="" disabled>Error de conexión</option>';
-        });
+// Función auxiliar para dibujar las "píldoras" de la matriz CIA dinámicamente
+function generarPills(valor, tipo) {
+    let html = '';
+    for (let i = 1; i <= 5; i++) {
+        if (i <= valor) {
+            html += `<span class="pill pill-${tipo}"></span>`;
+        } else {
+            html += `<span class="pill empty"></span>`;
+        }
+    }
+    return html;
 }
 
 
@@ -226,4 +256,79 @@ function activarFiltros() {
     });
 
     filtrarActivos(); 
+}
+
+// --- F. LÓGICA PARA GUARDAR UN NUEVO ACTIVO (POST a la API) ---
+const btnGuardarActivo = document.getElementById('btnGuardarActivo'); // ¡Cambiado para que coincida con el HTML!
+
+if(btnGuardarActivo) {
+    btnGuardarActivo.addEventListener('click', async (e) => {
+        e.preventDefault(); // Evitamos que la página se recargue
+
+        // 1. Recolectamos los datos del formulario (Asegúrate de que los IDs coincidan con tu HTML)
+        const nombre = document.getElementById('in-nombre').value;
+        const descripcion = document.getElementById('in-desc').value;
+        const sistema = document.getElementById('in-sistema').value;
+        const propietario = document.getElementById('in-propietario').value;
+        const idTipoActivo = document.getElementById('in-tipo').value;
+        
+        // 2. Recolectamos los valores de la matriz CIA
+        const conf = document.querySelector('input[name="conf"]:checked').value;
+        const int = document.querySelector('input[name="int"]:checked').value;
+        const disp = document.querySelector('input[name="disp"]:checked').value;
+        
+        // 3. Obtenemos los campos calculados (Valor Final y Nivel de Impacto)
+        const valorFinal = document.getElementById('valor-final-num').textContent;
+        // Limpiamos el texto del badge (ej. "Impacto Crítico" -> "Alto")
+        let nivelImpacto = document.getElementById('valor-final-texto').textContent.replace('Impacto ', '');
+        if (nivelImpacto === 'Crítico') nivelImpacto = 'Alto'; // Ajuste simple para que encaje en el VARCHAR(5) de tu BD
+        if (nivelImpacto === 'Marginal') nivelImpacto = 'Bajo';
+
+        // Validaciones básicas
+        if (!nombre || !sistema || !idTipoActivo || !propietario) {
+            alert('Por favor, llena todos los campos obligatorios del activo.');
+            return;
+        }
+
+        // 4. Armamos el objeto JSON tal como lo espera tu API y tu modelo de Django
+        const nuevoActivo = {
+            nombre_activo: nombre,
+            descripcion: descripcion,
+            sistema_involucrado: sistema,
+            propietario_activo: propietario,
+            id_tipo_activo: parseInt(idTipoActivo),
+            id_tipo_ubicacion: 1, // TODO: En el futuro, sacar de un select en el modal
+            id_estado_activo: 1,  // TODO: En el futuro, sacar de un select en el modal
+            confidencialidad: parseInt(conf),
+            integridad: parseInt(int),
+            disponibilidad: parseInt(disp),
+            //valor_final_max: parseInt(valorFinal),
+            //nivel_impacto: nivelImpacto
+        };
+
+        try {
+            // 5. Enviamos la petición POST a la API
+            const respuesta = await fetch('http://127.0.0.1:8000/api/activos/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(nuevoActivo)
+            });
+
+            if (respuesta.ok) {
+                alert('¡Activo guardado exitosamente en SQL Server!');
+                cerrarModal(); // Cerramos la ventana
+                document.querySelector('form').reset(); // Limpiamos el formulario (asumiendo que los inputs están en un <form>)
+                cargarActivosDesdeSQL(); // Recargamos la lista para ver el nuevo activo
+            } else {
+                const errorData = await respuesta.json();
+                console.error('Error del servidor:', errorData);
+                alert('Hubo un error al guardar. Revisa la consola.');
+            }
+        } catch (error) {
+            console.error('Error de red:', error);
+            alert('No se pudo conectar con el servidor.');
+        }
+    });
 }

@@ -13,7 +13,6 @@
 <body>
 
     <aside class="sidebar">
-        
         <div class="logo-area">
             <div class="logo-icon"><i class='bx bx-shield'></i></div>
             <div>
@@ -21,7 +20,7 @@
                 <p>Plataforma de Riesgo</p>
             </div>
         </div>
-            <!-- Este es un comentario en HTML, el navegador no lo mostrará -->
+        
         <nav class="sidebar-nav">
             <a href="../index.html" class="nav-item"> 
                 <i class='bx bx-grid-alt'></i> Panel
@@ -54,7 +53,6 @@
     </aside>
 
     <main class="main-content">
-        
         <header class="top-header header-flex">
             <div>
                 <h1>Gestión de Activos</h1>
@@ -64,99 +62,83 @@
         </header>
 
         <section class="activos-layout">
-            
             <div class="left-column">
                 
-<div class="search-filter-container">
-                    <div class="search-box">
-                        <i class='bx bx-search'></i>
-                        <input type="text" id="buscadorActivos" placeholder="Buscar por nombre, propietario...">
-                    </div>
-                    
-                    <div class="filter-pills-group">
-                        <button class="filter-btn active" data-categoria="todos">Todos</button>
-                        <button class="filter-btn f-info" data-categoria="informacion">Información</button>
-                        <button class="filter-btn f-soft" data-categoria="software">Software</button>
-                        <button class="filter-btn f-hard" data-categoria="hardware">Hardware</button>
-                        <button class="filter-btn f-pers" data-categoria="personas">Personas</button>
-                    </div>
-                    
-                    <div class="assets-counter">
-                        <span id="contadorActivos">2 activos</span>
+            <style>
+                /* Estilizamos la barra de desplazamiento */
+                .scroll-filtros::-webkit-scrollbar { height: 6px; }
+                .scroll-filtros::-webkit-scrollbar-track { background: transparent; }
+                .scroll-filtros::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 10px; }
+                .scroll-filtros::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
+
+                /* Estilos generales para los botones de filtro */
+                .filter-btn {
+                    border-radius: 20px;
+                    padding: 6px 16px;
+                    font-weight: 700;
+                    font-size: 12px;
+                    cursor: pointer;
+                    border: 2px solid #bfdbfe; /* Borde azul claro */
+                    background: white;
+                    color: #3b82f6; /* Texto azul */
+                    text-transform: uppercase;
+                    transition: all 0.2s ease;
+                }
+                
+                .filter-btn:hover {
+                    background: #eff6ff;
+                }
+
+                /* Estilo para el botón activo (TODOS) */
+                .filter-btn.active {
+                    background: #1a1a1a;
+                    color: #ffffff;
+                    border: 2px solid #1a1a1a;
+                }
+            </style>
+
+            <div class="search-filter-container" style="display: flex; flex-direction: column; gap: 16px; width: 100%; max-width: 100%; overflow: hidden;">
+                
+                <div style="width: 100%; display: flex;">
+                    <div class="search-box" style="width: 100%; max-width: 450px; display: flex; align-items: center; background: white; border-radius: 25px; padding: 10px 16px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border: 1px solid #e5e7eb;">
+                        <i class='bx bx-search' style="color: #6b7280; font-size: 20px; margin-right: 8px;"></i>
+                        <input type="text" id="buscadorActivos" placeholder="Buscar por nombre..." style="width: 100%; border: none; outline: none; background: transparent; font-size: 14px; color: #374151;">
                     </div>
                 </div>
-
-                <div class="assets-list">
+                
+                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
                     
-                    <div class="asset-card expanded" id="activo-001" data-categoria="hardware">
-                        <div class="asset-card-main">
-                            <div class="asset-info-wrapper">
-                                <div class="asset-icon"><i class='bx bx-server'></i></div>
-                                <div class="asset-details">
-                                    <strong class="toggle-desc" title="Haz clic para ver detalles">
-                                        <span class="asset-id">#ACT-001</span> Base de Datos Principal (PostgreSQL) <i class='bx bx-chevron-down'></i>
-                                    </strong>
-                                    <div class="asset-tags">
-                                        <span class="tag tag-tipo">Hardware</span>
-                                        <span class="tag tag-estado estado-operativo">Operativo</span>
-                                        <span class="tag tag-critico">Impacto Crítico (5)</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="cia-metrics">
-                                <div class="cia-row"><small>C</small> <div class="pills"><span class="pill pill-c"></span><span class="pill pill-c"></span><span class="pill pill-c"></span><span class="pill pill-c"></span><span class="pill pill-c"></span></div></div>
-                                <div class="cia-row"><small>I</small> <div class="pills"><span class="pill pill-i"></span><span class="pill pill-i"></span><span class="pill pill-i"></span><span class="pill pill-i"></span><span class="pill pill-i"></span></div></div>
-                                <div class="cia-row"><small>D</small> <div class="pills"><span class="pill pill-d"></span><span class="pill pill-d"></span><span class="pill pill-d"></span><span class="pill empty"></span><span class="pill empty"></span></div></div>
-                            </div>
-                        </div>
-                        <div class="asset-extra-info">
-                            <p class="asset-description"><strong>Descripción:</strong> Servidor físico de alto rendimiento que aloja las bases de datos transaccionales del core financiero de la empresa. Contiene datos altamente sensibles.</p>
-                            <div class="extra-grid">
-                                <div class="extra-item"><span>Sistema Involucrado:</span> Core Financiero</div>
-                                <div class="extra-item"><span>Ubicación:</span> Física (Data Center)</div>
-                                <div class="extra-item"><span>Propietario:</span> Equipo DBA</div>
-                            </div>
-                            <div class="asset-actions">
-                                <button class="btn-modificar"><i class='bx bx-edit-alt'></i> Modificar activo</button>
-                            </div>
-                        </div>
+                    <div class="filter-pills-group scroll-filtros" style="display: flex; flex-wrap: nowrap; overflow-x: auto; gap: 10px; width: 100%; padding-bottom: 8px; align-items: center;">
+                        <button class="filter-btn active" data-categoria="todos" style="flex-shrink: 0;">Todos</button>
+                        
+                        <button class="filter-btn f-info" data-categoria="d" style="flex-shrink: 0;">[D] Datos</button>
+                        <button class="filter-btn f-info" data-categoria="k" style="flex-shrink: 0;">[K] Claves</button>
+                        <button class="filter-btn f-info" data-categoria="media" style="flex-shrink: 0;">[Media] Soportes</button>
+                        
+                        <button class="filter-btn f-soft" data-categoria="sw" style="flex-shrink: 0;">[SW] Software</button>
+                        <button class="filter-btn f-soft" data-categoria="s" style="flex-shrink: 0;">[S] Servicios</button>
+                        
+                        <button class="filter-btn f-hard" data-categoria="hw" style="flex-shrink: 0;">[HW] Hardware</button>
+                        <button class="filter-btn f-hard" data-categoria="com" style="flex-shrink: 0;">[COM] Redes</button>
+                        <button class="filter-btn f-hard" data-categoria="aux" style="flex-shrink: 0;">[AUX] Auxiliar</button>
+                        
+                        <button class="filter-btn f-pers" data-categoria="p" style="flex-shrink: 0;">[P] Personal</button>
+                        <button class="filter-btn f-pers" data-categoria="l" style="flex-shrink: 0;">[L] Instalaciones</button>
                     </div>
 
-                    <div class="asset-card" id="activo-002" data-categoria="software">
-                        <div class="asset-card-main">
-                            <div class="asset-info-wrapper">
-                                <div class="asset-icon"><i class='bx bx-code-alt'></i></div>
-                                <div class="asset-details">
-                                    <strong class="toggle-desc" title="Haz clic para ver detalles">
-                                        <span class="asset-id">#ACT-002</span> API de Pasarela de Pagos <i class='bx bx-chevron-down'></i>
-                                    </strong>
-                                    <div class="asset-tags">
-                                        <span class="tag tag-tipo">Software</span>
-                                        <span class="tag tag-estado estado-mantenimiento">En Mantenimiento</span>
-                                        <span class="tag tag-alto">Impacto Alto (4)</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="cia-metrics">
-                                <div class="cia-row"><small>C</small> <div class="pills"><span class="pill pill-c"></span><span class="pill pill-c"></span><span class="pill pill-c"></span><span class="pill pill-c"></span><span class="pill pill-c"></span></div></div>
-                                <div class="cia-row"><small>I</small> <div class="pills"><span class="pill pill-i"></span><span class="pill pill-i"></span><span class="pill pill-i"></span><span class="pill pill-i"></span><span class="pill pill-i"></span></div></div>
-                                <div class="cia-row"><small>D</small> <div class="pills"><span class="pill pill-d"></span><span class="pill pill-d"></span><span class="pill pill-d"></span><span class="pill pill-d"></span><span class="pill empty"></span></div></div>
-                            </div>
-                        </div>
-                        <div class="asset-extra-info">
-                            <p class="asset-description"><strong>Descripción:</strong> Microservicio encargado de procesar y encriptar las transacciones de pago.</p>
-                            <div class="extra-grid">
-                                <div class="extra-item"><span>Sistema Involucrado:</span> Plataforma Web</div>
-                                <div class="extra-item"><span>Ubicación:</span> Lógica (AWS Cloud)</div>
-                                <div class="extra-item"><span>Propietario:</span> Equipo Backend</div>
-                            </div>
-                            <div class="asset-actions">
-                                <button class="btn-modificar"><i class='bx bx-edit-alt'></i> Modificar activo</button>
-                            </div>
-                        </div>
+                    <div class="assets-counter" style="flex-shrink: 0; margin-left: 20px; font-weight: 600; color: #6b7280; font-size: 14px;">
+                        <span id="contadorActivos">0 activos</span>
                     </div>
-
+                    
                 </div>
+            </div>
+
+
+
+                
+
+                <div class="assets-list" id="contenedor-activos">
+                    </div>
             </div>
 
             <div class="card summary-sidebar">
@@ -172,6 +154,7 @@
                     <strong>Activos Críticos</strong>
                     <p>Requieren monitoreo constante. Presentan niveles de confidencialidad o disponibilidad máximos.</p>
                 </div>
+                
                 <div class="risk-breakdown">
                     <small class="breakdown-title">DESGLOSE DE RIESGO</small>
                     <div class="progress-item">
@@ -189,14 +172,11 @@
                 </div>
                 <a href="#" class="view-report-link">Ver Reporte Completo</a>
             </div> 
-
         </section>
     </main>
 
     <div id="modalNuevoActivo" class="modal-overlay hidden">
-        
         <div class="modal-content">
-            
             <header class="modal-header">
                 <div>
                     <h2>Registrar Nuevo Activo</h2>
@@ -206,56 +186,53 @@
             </header>
 
             <div class="modal-body">
-                <form>
+                <form id="formNuevoActivo">
                     <div class="form-section">
                         <h4 class="section-title"><i class='bx bx-list-ul'></i> 1. DATOS GENERALES</h4>
                         
                         <div class="form-group">
-                            <label>Nombre del Activo</label>
-                            <input type="text" class="form-input" placeholder="Ej. Servidor de Base de Datos Principal">
+                            <label for="in-nombre">Nombre del Activo</label>
+                            <input type="text" id="in-nombre" class="form-input" placeholder="Ej. Servidor de Base de Datos Principal" required>
                         </div>
 
                         <div class="form-group" style="margin-top: 12px;">
-                            <label>Descripción</label>
-                            <textarea class="form-input" rows="2" placeholder="Detalla la función y propósito del activo..."></textarea>
+                            <label for="in-desc">Descripción</label>
+                            <textarea id="in-desc" class="form-input" rows="2" placeholder="Detalla la función y propósito del activo..." required></textarea>
                         </div>
                         
                         <div class="form-row">
                             <div class="form-group">
-                                <label>Sistema Involucrado</label>
-                                <input type="text" class="form-input" placeholder="Ej. Core Financiero">
+                                <label for="in-sistema">Sistema Involucrado</label>
+                                <input type="text" id="in-sistema" class="form-input" placeholder="Ej. Core Financiero" required>
                             </div>
                             <div class="form-group">
-                                <label>Tipo de Activo</label>
-                                <select class="form-input form-select">
-                                    <option>Hardware</option>
-                                    <option>Software</option>
-                                    <option>Red / Infraestructura</option>
-                                    <option>Datos / Información</option>
+                                <label for="in-tipo">Tipo de Activo</label>
+                                <select id="in-tipo" class="form-input form-select" required>
+                                    <option value="" disabled selected>Cargando categorías...</option>
                                 </select>
                             </div>
                         </div>
 
                         <div class="form-row">
                             <div class="form-group">
-                                <label>Tipo de Ubicación</label>
-                                <select class="form-input form-select">
-                                    <option>Física (Data Center, Oficina)</option>
-                                    <option>Lógica (Nube, Máquina Virtual)</option>
+                                <label for="in-ubicacion">Tipo de Ubicación</label>
+                                <select id="in-ubicacion" class="form-input form-select" required>
+                                    <option value="1">Física (Data Center, Oficina)</option>
+                                    <option value="2">Lógica (Nube, Máquina Virtual)</option>
                                 </select>
                             </div>
                             <div class="form-group">
-                                <label>Propietario del Activo</label>
-                                <input type="text" class="form-input" placeholder="Responsable o equipo">
+                                <label for="in-propietario">Propietario del Activo</label>
+                                <input type="text" id="in-propietario" class="form-input" placeholder="Responsable o equipo" required>
                             </div>
                         </div>
 
                         <div class="form-group" style="margin-top: 12px;">
-                            <label>Estado Actual</label>
-                            <select class="form-input form-select">
-                                <option>Operativo</option>
-                                <option>En Mantenimiento</option>
-                                <option>Inactivo / Retirado</option>
+                            <label for="in-estado">Estado Actual</label>
+                            <select id="in-estado" class="form-input form-select" required>
+                                <option value="1">Operativo</option>
+                                <option value="2">En Mantenimiento</option>
+                                <option value="3">Inactivo / Retirado</option>
                             </select>
                         </div>
                     </div>
@@ -311,22 +288,20 @@
                                 <strong id="valor-final-num">3</strong>
                             </div>
                             <div class="resultado-body">
-                                <span id="valor-final-texto" class="badge-impacto impacto-mayor">Impacto Mayor</span>
+                                <span id="valor-final-texto" class="badge-impacto impacto-medio">Impacto Medio</span>
                             </div>
                         </div>
-
                     </div>
                 </form>
             </div>
 
             <footer class="modal-footer">
                 <button type="button" id="btnCancelarModal" class="btn-secondary">Cancelar</button>
-                <button type="button" class="btn-primary">Guardar Activo</button>
+                <button type="button" id="btnGuardarActivo" class="btn-primary">Guardar Activo</button>
             </footer>
         </div>
     </div>
 
     <script src="../js/activos.js"></script>
-
 </body>
 </html>

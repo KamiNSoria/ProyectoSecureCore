@@ -1,6 +1,104 @@
 /* ==========================================================================
-     Lógica interactiva para la página de Gestión de Activos
+     Lógica interactiva para la página de Gestión de Activos (Conexión SQL)
    ========================================================================== */
+
+// Esperamos a que la página cargue para ir a buscar los datos
+document.addEventListener('DOMContentLoaded', () => {
+    cargarActivosDesdeSQL();
+    cargarTiposDeActivo(); // <-- Agrega esta línea
+});
+
+// --- NUEVO: FUNCIÓN PARA TRAER DATOS DEL BACKEND ---
+function cargarActivosDesdeSQL() {
+    fetch('http://127.0.0.1:8000/api/activos/')
+        .then(respuesta => respuesta.json())
+        .then(datos_sql => {
+            const contenedor = document.getElementById('contenedor-activos');
+            contenedor.innerHTML = ''; // Limpiamos las tarjetas quemadas
+
+            // Dibujamos las tarjetas de SQL
+            datos_sql.forEach(activo => {
+                
+                // Asignamos iconos y colores según la categoría para mantener tu diseño
+                let icono = 'bx-server';
+                let claseEstado = 'estado-operativo';
+                
+                if(activo.tipo_activo === 'Software') icono = 'bx-code-alt';
+                else if(activo.tipo_activo === 'Informacion') icono = 'bx-file';
+                
+                const tarjetaHTML = `
+                    <div class="asset-card" id="activo-${activo.id_activo}" data-categoria="${activo.tipo_activo ? activo.tipo_activo.toLowerCase() : 'hardware'}">
+                        <div class="asset-card-main">
+                            <div class="asset-info-wrapper">
+                                <div class="asset-icon"><i class='bx ${icono}'></i></div>
+                                <div class="asset-details">
+                                    <strong class="toggle-desc" title="Haz clic para ver detalles" style="cursor:pointer;">
+                                        <span class="asset-id">#ACT-${activo.id_activo}</span> ${activo.nombre_activo} <i class='bx bx-chevron-down'></i>
+                                    </strong>
+                                    <div class="asset-tags">
+                                        <span class="tag tag-tipo">${activo.tipo_activo || 'N/A'}</span>
+                                        <span class="tag tag-estado ${claseEstado}">${activo.estado_activo || 'Activo'}</span>
+                                        <span class="tag tag-critico">Impacto: ${activo.nivel_impacto}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="cia-metrics">
+                                <div class="cia-row"><small>C</small> <div class="pills"><span class="pill pill-c"></span><span class="pill pill-c"></span><span class="pill pill-c"></span><span class="pill empty"></span><span class="pill empty"></span></div></div>
+                                <div class="cia-row"><small>I</small> <div class="pills"><span class="pill pill-i"></span><span class="pill pill-i"></span><span class="pill pill-i"></span><span class="pill empty"></span><span class="pill empty"></span></div></div>
+                                <div class="cia-row"><small>D</small> <div class="pills"><span class="pill pill-d"></span><span class="pill pill-d"></span><span class="pill pill-d"></span><span class="pill empty"></span><span class="pill empty"></span></div></div>
+                            </div>
+                        </div>
+                        <div class="asset-extra-info">
+                            <p class="asset-description"><strong>Descripción:</strong> ${activo.descripcion || 'Sin descripción detallada.'}</p>
+                            <div class="extra-grid">
+                                <div class="extra-item"><span>Sistema Involucrado:</span> ${activo.sistema_involucrado || 'N/A'}</div>
+                                <div class="extra-item"><span>Propietario:</span> ${activo.propietario_activo || 'N/A'}</div>
+                            </div>
+                            <div class="asset-actions">
+                                <button class="btn-modificar"><i class='bx bx-edit-alt'></i> Modificar activo</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                contenedor.innerHTML += tarjetaHTML;
+            });
+
+            // UNA VEZ CREADAS LAS TARJETAS, ENCENDEMOS TUS FUNCIONES
+            activarTarjetasExpandibles();
+            activarFiltros();
+            
+        })
+        .catch(error => {
+            console.error("Error al conectar con SQL:", error);
+            document.getElementById('contenedor-activos').innerHTML = '<p style="color:red; padding:20px;">No se pudo conectar a la base de datos SQL Server.</p>';
+        });
+}
+
+
+// NUEVA FUNCIÓN: Trae las categorías oficiales de MAGERIT desde SQL
+function cargarTiposDeActivo() {
+    fetch('http://127.0.0.1:8000/api/tipos-activo/')
+        .then(respuesta => respuesta.json())
+        .then(tipos => {
+            const selectTipo = document.getElementById('in-tipo');
+            
+            // Limpiamos el "Cargando..." y ponemos el texto inicial
+            selectTipo.innerHTML = '<option value="" disabled selected>Selecciona un tipo de activo...</option>';
+
+            // Recorremos la tabla Param_Tipos_Activo
+            tipos.forEach(tipo => {
+                // Combinamos el código y el nombre que tienes en SQL (Ej: "[D] Datos / Información")
+                // Asegúrate de que 'id_tipo_activo', 'codigo' y 'nombre_tipo' sean los nombres exactos de tus columnas
+                const opcionHTML = `<option value="${tipo.id_tipo_activo}">[${tipo.codigo}] ${tipo.nombre_tipo}</option>`;
+                selectTipo.innerHTML += opcionHTML;
+            });
+        })
+        .catch(error => {
+            console.error("Error al cargar los tipos de activo:", error);
+            document.getElementById('in-tipo').innerHTML = '<option value="" disabled>Error de conexión</option>';
+        });
+}
+
 
 // --- A. LÓGICA DEL MODAL ---
 const modal = document.getElementById('modalNuevoActivo');
@@ -8,48 +106,39 @@ const btnAbrir = document.getElementById('btnAbrirModal');
 const btnCerrar = document.getElementById('btnCerrarModal');
 const btnCancelar = document.getElementById('btnCancelarModal');
 
-// Abrir modal
-btnAbrir.addEventListener('click', () => { 
-    modal.classList.remove('hidden'); 
-});
+btnAbrir.addEventListener('click', () => { modal.classList.remove('hidden'); });
 
-// Cerrar modal
-const cerrarModal = () => { 
-    modal.classList.add('hidden'); 
-};
-
+const cerrarModal = () => { modal.classList.add('hidden'); };
 btnCerrar.addEventListener('click', cerrarModal);
 btnCancelar.addEventListener('click', cerrarModal);
 
-// Cerrar al hacer clic afuera
 modal.addEventListener('click', (evento) => {
     if (evento.target === modal) { cerrarModal(); }
 });
 
-// --- B. LÓGICA DE LAS TARJETAS EXPANDIBLES ---
-const botonesExpandir = document.querySelectorAll('.toggle-desc');
 
-botonesExpandir.forEach(boton => {
-    boton.addEventListener('click', (e) => {
-        const tarjetaActivo = e.target.closest('.asset-card');
-        tarjetaActivo.classList.toggle('expanded');
+// --- B. LÓGICA DE LAS TARJETAS EXPANDIBLES (Refactorizado) ---
+function activarTarjetasExpandibles() {
+    const botonesExpandir = document.querySelectorAll('.toggle-desc');
+    botonesExpandir.forEach(boton => {
+        boton.addEventListener('click', (e) => {
+            const tarjetaActivo = e.target.closest('.asset-card');
+            tarjetaActivo.classList.toggle('expanded');
+        });
     });
-});
+}
 
-// --- C. LÓGICA PARA ACTUALIZAR EL TEXTO "NIVEL X" (Refactorizado DRY) ---
 
-// Aqui se agrupa las configuraciones que cambian en un arreglo para no repetir el codigo
+// --- C y D. LÓGICA DEL CALCULO CIA (Igual) ---
 const metricasCIA = [
     { name: 'conf', idTexto: 'txt-nivel-conf' },
     { name: 'int',  idTexto: 'txt-nivel-int' },
     { name: 'disp', idTexto: 'txt-nivel-disp' }
 ];
 
-// Iteramos sobre cada configuración una sola vez
 metricasCIA.forEach(metrica => {
     const radios = document.querySelectorAll(`input[name="${metrica.name}"]`);
     const txtNivel = document.getElementById(metrica.idTexto);
-    
     radios.forEach(radio => {
         radio.addEventListener('change', (e) => {
             txtNivel.textContent = 'NIVEL ' + e.target.value;
@@ -57,28 +146,17 @@ metricasCIA.forEach(metrica => {
     });
 });
 
-// --- D. LÓGICA DE CÁLCULO AUTOMÁTICO (MAX) ---
-
-// Función que calcula y pinta el resultado
 const calcularCriticidad = () => {
-    // 1. Obtener los valores actuales seleccionados y convertirlos a número (parseInt)
     const valConf = parseInt(document.querySelector('input[name="conf"]:checked').value);
     const valInt = parseInt(document.querySelector('input[name="int"]:checked').value);
     const valDisp = parseInt(document.querySelector('input[name="disp"]:checked').value);
 
-    // 2. Calcular el valor máximo (Igual que MAX(C,I,D) en Excel)
     const valorFinal = Math.max(valConf, valInt, valDisp);
-
-    // 3. Actualizar el número grande en el HTML
     document.getElementById('valor-final-num').textContent = valorFinal;
 
-    // 4. Aplicar la condición lógica para el texto y los colores
     const badgeTexto = document.getElementById('valor-final-texto');
-    
-    // Primero limpiamos todos los colores viejos posibles
     badgeTexto.classList.remove('impacto-critico', 'impacto-alto', 'impacto-medio', 'impacto-bajo', 'impacto-marginal');
 
-    // Evaluamos cada uno de los 5 niveles exactamente
     if (valorFinal === 5) {
         badgeTexto.textContent = "Impacto Crítico";
         badgeTexto.classList.add('impacto-critico');
@@ -92,78 +170,60 @@ const calcularCriticidad = () => {
         badgeTexto.textContent = "Impacto Bajo";
         badgeTexto.classList.add('impacto-bajo');
     } else {
-        // Nivel 1
         badgeTexto.textContent = "Impacto Marginal";
         badgeTexto.classList.add('impacto-marginal');
     }
 };
 
-// Le decimos a TODOS los botoncitos que, si los clickean, ejecuten el cálculo
 const todosLosRadios = document.querySelectorAll('.rating-options input[type="radio"]');
-todosLosRadios.forEach(radio => {
-    radio.addEventListener('change', calcularCriticidad);
-});
-
-// Ejecutamos la función una vez al cargar la página para que pinte el 3 (que viene por defecto)
+todosLosRadios.forEach(radio => radio.addEventListener('change', calcularCriticidad));
 calcularCriticidad();
 
-// --- E. LÓGICA DE BÚSQUEDA Y FILTRADO MULTIPLE ---
 
-// Seleccionamos los elementos clave del HTML
-const buscadorActivos = document.getElementById('buscadorActivos');
-const botonesFiltro = document.querySelectorAll('.filter-btn');
-const tarjetasActivos = document.querySelectorAll('.asset-card');
-const contadorActivos = document.getElementById('contadorActivos');
+// --- E. LÓGICA DE BÚSQUEDA Y FILTRADO MULTIPLE (Refactorizado) ---
+function activarFiltros() {
+    const buscadorActivos = document.getElementById('buscadorActivos');
+    const botonesFiltro = document.querySelectorAll('.filter-btn');
+    const contadorActivos = document.getElementById('contadorActivos');
+    let filtroActual = 'todos';
 
-// Empezamos con el filtro "todos" por defecto
-let filtroActual = 'todos';
-
-const filtrarActivos = () => {
-    // Tomamos el texto que el usuario escribió y lo pasamos a minúsculas
-    const textoBusqueda = buscadorActivos.value.toLowerCase();
-    let activosVisibles = 0;
-
-    tarjetasActivos.forEach(tarjeta => {
-        // Obtenemos la categoría de la tarjeta (hardware, software, etc.)
-        const categoriaTarjeta = tarjeta.getAttribute('data-categoria');
+    const filtrarActivos = () => {
+        const textoBusqueda = buscadorActivos.value.toLowerCase();
+        let activosVisibles = 0;
         
-        // Obtenemos toooodo el texto dentro de la tarjeta para buscar coincidencias
-        const textoTarjeta = tarjeta.innerText.toLowerCase();
+        // Lo movemos AQUI ADENTRO para que siempre busque las tarjetas frescas de SQL
+        const tarjetasActivosDinámicas = document.querySelectorAll('.asset-card'); 
 
-        // Verificamos si cumple ambas condiciones
-        const coincideTexto = textoTarjeta.includes(textoBusqueda);
-        const coincideCategoria = (filtroActual === 'todos') || (categoriaTarjeta === filtroActual);
+        tarjetasActivosDinámicas.forEach(tarjeta => {
+            const categoriaTarjeta = tarjeta.getAttribute('data-categoria');
+            const textoTarjeta = tarjeta.innerText.toLowerCase();
 
-        if (coincideTexto && coincideCategoria) {
-            tarjeta.style.display = 'flex'; // Mostramos la tarjeta
-            activosVisibles++;
-        } else {
-            tarjeta.style.display = 'none'; // Ocultamos la tarjeta
-        }
+            const coincideTexto = textoTarjeta.includes(textoBusqueda);
+            const coincideCategoria = (filtroActual === 'todos') || (categoriaTarjeta === filtroActual);
+
+            if (coincideTexto && coincideCategoria) {
+                tarjeta.style.display = 'flex';
+                activosVisibles++;
+            } else {
+                tarjeta.style.display = 'none';
+            }
+        });
+
+        contadorActivos.textContent = `${activosVisibles} activo${activosVisibles !== 1 ? 's' : ''}`;
+    };
+
+    buscadorActivos.addEventListener('input', filtrarActivos);
+
+    botonesFiltro.forEach(boton => {
+        boton.addEventListener('click', (e) => {
+            botonesFiltro.forEach(b => b.classList.remove('active'));
+            const botonClickeado = e.currentTarget;
+            botonClickeado.classList.add('active');
+
+            filtroActual = botonClickeado.getAttribute('data-categoria');
+            filtrarActivos();
+        });
     });
 
-    // Actualizamos el número de activos encontrados (maneja singular y plural)
-    contadorActivos.textContent = `${activosVisibles} activo${activosVisibles !== 1 ? 's' : ''}`;
-};
-
-// 1. Escuchar cuando el usuario escribe en el buscador
-buscadorActivos.addEventListener('input', filtrarActivos);
-
-// 2. Escuchar cuando el usuario hace clic en los botones de filtro
-botonesFiltro.forEach(boton => {
-    boton.addEventListener('click', (e) => {
-        // Le quitamos el fondo oscuro (active) a todos los botones
-        botonesFiltro.forEach(b => b.classList.remove('active'));
-        
-        // Se lo ponemos solo al botón que acabamos de clickear
-        const botonClickeado = e.currentTarget;
-        botonClickeado.classList.add('active');
-
-        // Actualizamos nuestra variable de filtro y corremos la función
-        filtroActual = botonClickeado.getAttribute('data-categoria');
-        filtrarActivos();
-    });
-});
-
-// Ejecutamos la función una vez al inicio para que el contador arranque correcto
-filtrarActivos();
+    filtrarActivos(); 
+}

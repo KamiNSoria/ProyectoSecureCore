@@ -5,6 +5,7 @@
 // Variables globales para guardar los catálogos en memoria y no hacer múltiples peticiones
 let catalogoTipos = [];
 let catalogoEstados = [];
+let idActivoEditar = null;
 
 document.addEventListener('DOMContentLoaded', async () => {
     // Usamos 'await' para asegurar que primero bajen los catálogos antes de pintar las tarjetas
@@ -50,24 +51,40 @@ function cargarActivosDesdeSQL() {
 
             datos_sql.forEach(activo => {
                 
-                // 1. "Traducir" los IDs usando el catálogo que cargamos antes
-                // Busca en el arreglo catalogoTipos el objeto cuyo ID coincida con la llave foránea del activo
+                // 1. "Traducir" los IDs usando el catálogo
                 const tipoObjeto = catalogoTipos.find(t => t.id_tipo_activo === activo.id_tipo_activo);
                 const nombreTipoReal = tipoObjeto ? tipoObjeto.nombre_tipo : 'Desconocido';
                 const codigoTipoReal = tipoObjeto ? tipoObjeto.codigo : '';
-                
-                // 2. Asignar iconos de forma dinámica basándonos en el código de SQL Server
-                let icono = 'bx-server'; // Por defecto (Hardware)
+                const fechaFormateada = activo.fecha_registro 
+                    ? new Date(activo.fecha_registro).toLocaleDateString('es-EC', {
+                        day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
+                      })
+                    : 'N/A';
+                const fechaModFormateada = activo.fecha_modificacion 
+                    ? new Date(activo.fecha_modificacion).toLocaleDateString('es-EC', {
+                        day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
+                      })
+                    : 'Sin modificaciones';
+                // 2. Asignar iconos de forma dinámica
+                let icono = 'bx-server'; 
                 if(codigoTipoReal === 'SW') icono = 'bx-code-alt';
                 else if(codigoTipoReal === 'D') icono = 'bx-file';
                 else if(codigoTipoReal === 'S') icono = 'bx-cloud';
                 else if(codigoTipoReal === 'P') icono = 'bx-user';
                 
-                // TODO: Necesitas hacer lo mismo con id_estado_activo. Por ahora, forzamos un valor para el diseño.
                 let claseEstado = 'estado-operativo'; 
                 let nombreEstadoReal = 'Operativo';
+                if(activo.id_estado_activo === 2) {
+                    claseEstado = 'estado-mantenimiento'; // Asegúrate de tener esta clase en tu CSS si la usas
+                    nombreEstadoReal = 'En Mantenimiento';
+                } else if(activo.id_estado_activo === 3) {
+                    claseEstado = 'estado-inactivo';
+                    nombreEstadoReal = 'Inactivo / Retirado';
+                }
                 
-                // 3. Renderizar la tarjeta
+                // ==========================================
+                // 3. AQUÍ VA EL CAMBIO 2 (REEMPLAZA TU TARJETA VIEJA POR ESTA NUEVA)
+                // ==========================================
                 const tarjetaHTML = `
                     <div class="asset-card" id="activo-${activo.id_activo}" data-categoria="${codigoTipoReal.toLowerCase()}">
                         <div class="asset-card-main">
@@ -80,7 +97,7 @@ function cargarActivosDesdeSQL() {
                                     <div class="asset-tags">
                                         <span class="tag tag-tipo">${nombreTipoReal}</span>
                                         <span class="tag tag-estado ${claseEstado}">${nombreEstadoReal}</span>
-                                        <span class="tag tag-critico">Impacto: ${activo.nivel_impacto}</span>
+                                        <span class="tag tag-critico">Impacto: ${activo.nivel_impacto || activo.valor_final_max}</span>
                                     </div>
                                 </div>
                             </div>
@@ -94,14 +111,19 @@ function cargarActivosDesdeSQL() {
                             <p class="asset-description"><strong>Descripción:</strong> ${activo.descripcion || 'Sin descripción detallada.'}</p>
                             <div class="extra-grid">
                                 <div class="extra-item"><span>Sistema Involucrado:</span> ${activo.sistema_involucrado || 'N/A'}</div>
-                                <div class="extra-item"><span>Propietario:</span> ${activo.propietario_activo || 'N/A'}</div>
+                                <div class="extra-item"><span>Área de Trabajo:</span> ${activo.area_trabajo || 'N/A'}</div>
+                                <div class="extra-item"><span>Cargo Administrativo:</span> ${activo.cargo_administrative || 'N/A'}</div>
+                                <div class="extra-item"><span>Función de Seguridad:</span> ${activo.funcion_activo || 'N/A'}</div>
+                                <div class="extra-item"><span>Sensibilidad ISO:</span> Nivel ${activo.sensibilidad || 'N/A'}</div>
+                                <div class="extra-item"><span>Fecha de Registro:</span> ${fechaFormateada}</div> 
+                                <div class="extra-item"><span>Última Modificación:</span> ${fechaModFormateada}</div>
+                            </div> <div class="asset-actions">
+                                <button class="btn-modificar" onclick="prepararEditar(${activo.id_activo})"><i class='bx bx-edit-alt'></i> Modificar activo</button>
                             </div>
-                            <div class="asset-actions">
-                                <button class="btn-modificar"><i class='bx bx-edit-alt'></i> Modificar activo</button>
-                            </div>
-                        </div>
-                    </div>
+                        </div> </div>
                 `;
+                // ==========================================
+                
                 contenedor.innerHTML += tarjetaHTML;
             });
 
@@ -136,7 +158,14 @@ const btnAbrir = document.getElementById('btnAbrirModal');
 const btnCerrar = document.getElementById('btnCerrarModal');
 const btnCancelar = document.getElementById('btnCancelarModal');
 
-btnAbrir.addEventListener('click', () => { modal.classList.remove('hidden'); });
+btnAbrir.addEventListener('click', () => { 
+    idActivoEditar = null; // Nos aseguramos que esté en modo crear
+    document.querySelector('#modalNuevoActivo h2').textContent = "Registrar Nuevo Activo";
+    document.getElementById('btnGuardarActivo').textContent = "Guardar Activo";
+    document.getElementById('formNuevoActivo').reset();
+    calcularCriticidad();
+    modal.classList.remove('hidden'); 
+});
 
 const cerrarModal = () => { modal.classList.add('hidden'); };
 btnCerrar.addEventListener('click', cerrarModal);
@@ -259,57 +288,78 @@ function activarFiltros() {
 }
 
 // --- F. LÓGICA PARA GUARDAR UN NUEVO ACTIVO (POST a la API) ---
-const btnGuardarActivo = document.getElementById('btnGuardarActivo'); // ¡Cambiado para que coincida con el HTML!
+const btnGuardarActivo = document.getElementById('btnGuardarActivo');
 
 if(btnGuardarActivo) {
     btnGuardarActivo.addEventListener('click', async (e) => {
         e.preventDefault(); // Evitamos que la página se recargue
 
-        // 1. Recolectamos los datos del formulario (Asegúrate de que los IDs coincidan con tu HTML)
+        // 1. Recolectamos los datos generales tradicionales
         const nombre = document.getElementById('in-nombre').value;
         const descripcion = document.getElementById('in-desc').value;
         const sistema = document.getElementById('in-sistema').value;
-        const propietario = document.getElementById('in-propietario').value;
         const idTipoActivo = document.getElementById('in-tipo').value;
+        const idUbicacion = document.getElementById('in-ubicacion').value;
+        const idEstado = document.getElementById('in-estado').value;
+
+        // 2. NUEVOS INPUTS: Capturamos los campos agregados para la norma ISO
+        const areaTrabajo = document.getElementById('area_trabajo').value;
+        const cargoAdmin = document.getElementById('cargo_admin').value;
+        const sensibilidad = document.getElementById('sensibilidad_activo').value;
+        const funcionActivo = document.getElementById('funcion_activo').value;
         
-        // 2. Recolectamos los valores de la matriz CIA
+        // 3. Recolectamos los valores de la matriz CIA
         const conf = document.querySelector('input[name="conf"]:checked').value;
         const int = document.querySelector('input[name="int"]:checked').value;
         const disp = document.querySelector('input[name="disp"]:checked').value;
-        
-        // 3. Obtenemos los campos calculados (Valor Final y Nivel de Impacto)
         const valorFinal = document.getElementById('valor-final-num').textContent;
-        // Limpiamos el texto del badge (ej. "Impacto Crítico" -> "Alto")
-        let nivelImpacto = document.getElementById('valor-final-texto').textContent.replace('Impacto ', '');
-        if (nivelImpacto === 'Crítico') nivelImpacto = 'Alto'; // Ajuste simple para que encaje en el VARCHAR(5) de tu BD
-        if (nivelImpacto === 'Marginal') nivelImpacto = 'Bajo';
 
-        // Validaciones básicas
-        if (!nombre || !sistema || !idTipoActivo || !propietario) {
-            alert('Por favor, llena todos los campos obligatorios del activo.');
+        // Validaciones básicas de campos críticos
+        if (!nombre || !sistema || !idTipoActivo) {
+            alert('Por favor, llena los campos obligatorios del activo (Nombre, Sistema y Tipo).');
             return;
         }
 
-        // 4. Armamos el objeto JSON tal como lo espera tu API y tu modelo de Django
+        // 4. Armamos el objeto JSON exacto mapeado a tu models.py limpio
         const nuevoActivo = {
             nombre_activo: nombre,
             descripcion: descripcion,
             sistema_involucrado: sistema,
-            propietario_activo: propietario,
             id_tipo_activo: parseInt(idTipoActivo),
-            id_tipo_ubicacion: 1, // TODO: En el futuro, sacar de un select en el modal
-            id_estado_activo: 1,  // TODO: En el futuro, sacar de un select en el modal
+            id_tipo_ubicacion: parseInt(idUbicacion), 
+            id_estado_activo: parseInt(idEstado), 
+            
+            // REGLA DE INTEGRIDAD: Espera un ID de usuario de auth_user (entero)
+            // Mandamos temporalmente el ID 1 hasta que integremos tu Login real
+            id_propietario: 1, 
+            
+            // Campos nuevos de texto y números
+            area_trabajo: areaTrabajo || null,
+            cargo_administrative: cargoAdmin || null,
+            sensibilidad: sensibilidad ? parseInt(sensibilidad) : null,
+            funcion_activo: funcionActivo || null,
+            
             confidencialidad: parseInt(conf),
             integridad: parseInt(int),
             disponibilidad: parseInt(disp),
-            //valor_final_max: parseInt(valorFinal),
-            //nivel_impacto: nivelImpacto
+            
+            // Descomensamos estos campos porque tu nueva tabla los acepta como enteros (INT)
+            valor_final_max: parseInt(valorFinal),
+            nivel_impacto: parseInt(valorFinal) 
         };
 
+        let urlFinal = 'http://127.0.0.1:8000/api/activos/';
+        let metodoHttp = 'POST';
+
+        if (idActivoEditar !== null) {
+            urlFinal = `http://127.0.0.1:8000/api/activos/${idActivoEditar}/`;
+            metodoHttp = 'PUT';
+        }
+
         try {
-            // 5. Enviamos la petición POST a la API
-            const respuesta = await fetch('http://127.0.0.1:8000/api/activos/', {
-                method: 'POST',
+            // 5. Enviamos la petición a la API
+            const respuesta = await fetch(urlFinal, {
+                method: metodoHttp,
                 headers: {
                     'Content-Type': 'application/json'
                 },
@@ -317,18 +367,70 @@ if(btnGuardarActivo) {
             });
 
             if (respuesta.ok) {
-                alert('¡Activo guardado exitosamente en SQL Server!');
-                cerrarModal(); // Cerramos la ventana
-                document.querySelector('form').reset(); // Limpiamos el formulario (asumiendo que los inputs están en un <form>)
-                cargarActivosDesdeSQL(); // Recargamos la lista para ver el nuevo activo
+                alert(idActivoEditar !== null ? '¡Activo actualizado correctamente!' : '¡Activo guardado exitosamente!');
+                
+                cerrarModal(); 
+                document.getElementById('formNuevoActivo').reset(); 
+                
+                // REGLA DE LIMPIEZA: Devolvemos el modal a su estado original "Crear"
+                idActivoEditar = null;
+                document.querySelector('#modalNuevoActivo h2').textContent = "Registrar Nuevo Activo";
+                document.getElementById('btnGuardarActivo').textContent = "Guardar Activo";
+                
+                calcularCriticidad(); 
+                cargarActivosDesdeSQL(); // Refresca las tarjetas
             } else {
                 const errorData = await respuesta.json();
                 console.error('Error del servidor:', errorData);
-                alert('Hubo un error al guardar. Revisa la consola.');
+                alert('Hubo un error al procesar la solicitud.');
             }
         } catch (error) {
             console.error('Error de red:', error);
             alert('No se pudo conectar con el servidor.');
         }
     });
+}
+
+// --- G. LÓGICA PARA CARGAR DATOS EN MODO EDICIÓN ---
+async function prepararEditar(id) {
+    try {
+        const respuesta = await fetch(`http://127.0.0.1:8000/api/activos/${id}/`);
+        if (!respuesta.ok) throw new Error("No se pudo obtener el activo");
+        
+        const activo = await respuesta.json();
+        
+        // Guardamos el ID del activo que estamos editando globalmente
+        idActivoEditar = id;
+
+        // Cambiamos los textos del modal dinámicamente
+        document.querySelector('#modalNuevoActivo h2').textContent = "Modificar Activo";
+        document.getElementById('btnGuardarActivo').textContent = "Actualizar Cambios";
+
+        // Llenamos los inputs normales
+        document.getElementById('in-nombre').value = activo.nombre_activo;
+        document.getElementById('in-desc').value = activo.descripcion || '';
+        document.getElementById('in-sistema').value = activo.sistema_involucrado;
+        document.getElementById('in-tipo').value = activo.id_tipo_activo;
+        document.getElementById('in-ubicacion').value = activo.id_tipo_ubicacion;
+        document.getElementById('in-estado').value = activo.id_estado_activo;
+        document.getElementById('area_trabajo').value = activo.area_trabajo || '';
+        document.getElementById('cargo_admin').value = activo.cargo_administrative || '';
+        document.getElementById('sensibilidad_activo').value = activo.sensibilidad || '';
+        document.getElementById('funcion_activo').value = activo.funcion_activo || '';
+
+        // Marcamos los botones de radio correctos de la matriz CIA
+        document.querySelector(`input[name="conf"][value="${activo.confidencialidad}"]`).checked = true;
+        document.querySelector(`input[name="int"][value="${activo.integridad}"]`).checked = true;
+        document.querySelector(`input[name="disp"][value="${activo.disponibilidad}"]`).checked = true;
+
+        // Forzamos el recálculo visual de las etiquetas de impacto en el modal
+        calcularCriticidad();
+
+        // Abrimos el modal quitando la clase hidden
+        document.getElementById('modalNuevoActivo').classList.remove('hidden');
+
+    } catch (error) {
+        console.error("Error al preparar la edición:", error);
+        alert("No se pudieron cargar los datos del activo para editar.");
+    }
 }

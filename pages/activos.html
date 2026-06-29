@@ -177,6 +177,39 @@
                             </div>
                         </div>
 
+                        <div class="form-group-row"> <div class="form-group">
+                            <label>Área de Trabajo</label>
+                            <input type="text" id="area_trabajo" class="form-control" placeholder="Ej. Finanzas, Recursos Humanos...">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Cargo Administrativo</label>
+                            <input type="text" id="cargo_admin" class="form-control" placeholder="Ej. Gerente de TI, Analista...">
+                        </div>
+                    </div>
+
+                    <div class="form-group-row">
+                        <div class="form-group">
+                            <label>Sensibilidad del Activo (ISO 27001)</label>
+                            <select id="sensibilidad_activo" class="form-control">
+                                <option value="">Selecciona el nivel de sensibilidad...</option>
+                                <option value="3">Alto (Información Confidencial / Estratégica)</option>
+                                <option value="2">Medio (Uso Interno de la empresa)</option>
+                                <option value="1">Bajo (Información Pública)</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Función del Activo</label>
+                            <select id="funcion_activo" class="form-control">
+                                <option value="">Selecciona cómo afecta a la empresa...</option>
+                                <option value="Primaria">Primaria (Afecta el núcleo del negocio)</option>
+                                <option value="Soporte">Soporte (Apoya procesos secundarios)</option>
+                                <option value="Administrativa">Administrativa (Gestión general)</option>
+                            </select>
+                        </div>
+                    </div>
+
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="in-ubicacion">Tipo de Ubicación</label>

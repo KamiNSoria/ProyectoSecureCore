@@ -427,7 +427,7 @@ textarea.form-input { resize: vertical; min-height: 60px; font-family: inherit; 
     flex-wrap: nowrap;
     overflow-x: auto;
     gap: 10px;
-    max-width: 450px; /* Limita la cantidad de botones visibles */
+    max-width: 750px; /* Limita la cantidad de botones visibles */
     padding-bottom: 8px;
     align-items: center;
 }

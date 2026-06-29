@@ -9,6 +9,14 @@
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     <link rel="stylesheet" href="../css/global.css">
     <link rel="stylesheet" href="../css/activos.css">
+
+    <style>
+        /* Estilizamos la barra de desplazamiento para que sea súper delgada y elegante */
+        .scroll-filtros::-webkit-scrollbar { height: 6px; }
+        .scroll-filtros::-webkit-scrollbar-track { background: transparent; }
+        .scroll-filtros::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 10px; }
+        .scroll-filtros::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
+    </style>
 </head>
 <body>
 
@@ -64,42 +72,41 @@
         <section class="activos-layout">
             <div class="left-column">
                 
-            <div class="search-filter-container" style="display: flex; flex-direction: column; gap: 16px; width: 100%; max-width: 100%; overflow: hidden;">
-                
-                <div style="width: 100%; display: flex;">
-                    <div class="search-box" style="width: 100%; max-width: 450px; display: flex; align-items: center; background: white; border-radius: 25px; padding: 10px 16px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border: 1px solid #e5e7eb;">
-                        <i class='bx bx-search' style="color: #6b7280; font-size: 20px; margin-right: 8px;"></i>
-                        <input type="text" id="buscadorActivos" placeholder="Buscar por nombre..." style="width: 100%; border: none; outline: none; background: transparent; font-size: 14px; color: #374151;">
-                    </div>
-                </div>
-                
-                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                <div class="search-filter-container" style="display: flex; flex-direction: column; gap: 16px; width: 100%; max-width: 100%; overflow: hidden;">
                     
-                    <div class="filter-pills-group scroll-filtros" style="display: flex; flex-wrap: nowrap; overflow-x: auto; gap: 10px; width: 100%; padding-bottom: 8px; align-items: center;">
-                        <button class="filter-btn active" data-categoria="todos" style="flex-shrink: 0;">Todos</button>
-                        
-                        <button class="filter-btn f-info" data-categoria="d" style="flex-shrink: 0;">[D] Datos</button>
-                        <button class="filter-btn f-info" data-categoria="k" style="flex-shrink: 0;">[K] Claves</button>
-                        <button class="filter-btn f-info" data-categoria="media" style="flex-shrink: 0;">[Media] Soportes</button>
-                        
-                        <button class="filter-btn f-soft" data-categoria="sw" style="flex-shrink: 0;">[SW] Software</button>
-                        <button class="filter-btn f-soft" data-categoria="s" style="flex-shrink: 0;">[S] Servicios</button>
-                        
-                        <button class="filter-btn f-hard" data-categoria="hw" style="flex-shrink: 0;">[HW] Hardware</button>
-                        <button class="filter-btn f-hard" data-categoria="com" style="flex-shrink: 0;">[COM] Redes</button>
-                        <button class="filter-btn f-hard" data-categoria="aux" style="flex-shrink: 0;">[AUX] Auxiliar</button>
-                        
-                        <button class="filter-btn f-pers" data-categoria="p" style="flex-shrink: 0;">[P] Personal</button>
-                        <button class="filter-btn f-pers" data-categoria="l" style="flex-shrink: 0;">[L] Instalaciones</button>
-                    </div>
-
-                    <div class="assets-counter" style="flex-shrink: 0; margin-left: 20px; font-weight: 600; color: #6b7280; font-size: 14px;">
-                        <span id="contadorActivos">0 activos</span>
+                    <div style="width: 100%; display: flex;">
+                        <div class="search-box" style="width: 100%; max-width: 450px; display: flex; align-items: center; background: white; border-radius: 25px; padding: 10px 16px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border: 1px solid #e5e7eb;">
+                            <i class='bx bx-search' style="color: #6b7280; font-size: 20px; margin-right: 8px;"></i>
+                            <input type="text" id="buscadorActivos" placeholder="Buscar por nombre..." style="width: 100%; border: none; outline: none; background: transparent; font-size: 14px; color: #374151;">
+                        </div>
                     </div>
                     
-                </div>
-            </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                        
+                        <div class="filter-pills-group scroll-filtros" style="display: flex; flex-wrap: nowrap; overflow-x: auto; gap: 10px; width: 100%; padding-bottom: 8px; align-items: center;">
+                            <button class="filter-btn active" data-categoria="todos" style="flex-shrink: 0;">Todos</button>
+                            
+                            <button class="filter-btn f-info" data-categoria="d" style="flex-shrink: 0;">[D] Datos</button>
+                            <button class="filter-btn f-info" data-categoria="k" style="flex-shrink: 0;">[K] Claves</button>
+                            <button class="filter-btn f-info" data-categoria="media" style="flex-shrink: 0;">[Media] Soportes</button>
+                            
+                            <button class="filter-btn f-soft" data-categoria="sw" style="flex-shrink: 0;">[SW] Software</button>
+                            <button class="filter-btn f-soft" data-categoria="s" style="flex-shrink: 0;">[S] Servicios</button>
+                            
+                            <button class="filter-btn f-hard" data-categoria="hw" style="flex-shrink: 0;">[HW] Hardware</button>
+                            <button class="filter-btn f-hard" data-categoria="com" style="flex-shrink: 0;">[COM] Redes</button>
+                            <button class="filter-btn f-hard" data-categoria="aux" style="flex-shrink: 0;">[AUX] Auxiliar</button>
+                            
+                            <button class="filter-btn f-pers" data-categoria="p" style="flex-shrink: 0;">[P] Personal</button>
+                            <button class="filter-btn f-pers" data-categoria="l" style="flex-shrink: 0;">[L] Instalaciones</button>
+                        </div>
 
+                        <div class="assets-counter" style="flex-shrink: 0; margin-left: 20px; font-weight: 600; color: #6b7280; font-size: 14px;">
+                            <span id="contadorActivos">0 activos</span>
+                        </div>
+                        
+                    </div>
+                </div>
 
                 <div class="assets-list" id="contenedor-activos">
                     </div>
@@ -143,7 +150,7 @@
         <div class="modal-content">
             <header class="modal-header">
                 <div>
-                    <h2>Registrar Nuevo Activo</h2>
+                    <h2 id="modal-titulo">Registrar Nuevo Activo</h2>
                     <p>Ingresa la información básica y define su nivel de criticidad.</p>
                 </div>
                 <button id="btnCerrarModal" class="close-modal-btn"><i class='bx bx-x'></i></button>
@@ -151,6 +158,8 @@
 
             <div class="modal-body">
                 <form id="formNuevoActivo">
+                    <input type="hidden" id="in-id-activo" value="">
+                    
                     <div class="form-section">
                         <h4 class="section-title"><i class='bx bx-list-ul'></i> 1. DATOS GENERALES</h4>
                         
@@ -292,9 +301,13 @@
                 </form>
             </div>
 
-            <footer class="modal-footer">
-                <button type="button" id="btnCancelarModal" class="btn-secondary">Cancelar</button>
-                <button type="button" id="btnGuardarActivo" class="btn-primary">Guardar Activo</button>
+            <footer class="modal-footer" style="display: flex; justify-content: space-between;">
+                <button type="button" id="btnEliminarActivo" class="btn-secondary hidden" style="background-color: #ef4444; color: white; border: none;">Eliminar Activo</button>
+                
+                <div>
+                    <button type="button" id="btnCancelarModal" class="btn-secondary">Cancelar</button>
+                    <button type="button" id="btnGuardarActivo" class="btn-primary">Guardar Activo</button>
+                </div>
             </footer>
         </div>
     </div>

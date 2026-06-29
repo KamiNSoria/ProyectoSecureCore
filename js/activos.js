@@ -14,32 +14,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     // await cargarEstadosDeActivo(); 
     
     cargarActivosDesdeSQL();
+    cargarTiposDeActivo(); // <-- Agrega esta línea
 });
 
-// --- FUNCIÓN MEJORADA: Cargar Tipos de Activos ---
-async function cargarTiposDeActivo() {
-    try {
-        const respuesta = await fetch('http://127.0.0.1:8000/api/tipos-activo/');
-        const tipos = await respuesta.json();
-        
-        catalogoTipos = tipos; // Guardamos en la variable global
-        
-        const selectTipo = document.getElementById('in-tipo');
-        if(selectTipo) {
-            selectTipo.innerHTML = '<option value="" disabled selected>Selecciona un tipo de activo...</option>';
-            tipos.forEach(tipo => {
-                const opcionHTML = `<option value="${tipo.id_tipo_activo}">[${tipo.codigo}] ${tipo.nombre_tipo}</option>`;
-                selectTipo.innerHTML += opcionHTML;
-            });
-        }
-    } catch (error) {
-        console.error("Error al cargar los tipos de activo:", error);
-        const selectTipo = document.getElementById('in-tipo');
-        if(selectTipo) selectTipo.innerHTML = '<option value="" disabled>Error de conexión</option>';
-    }
-}
-
-// --- FUNCIÓN MEJORADA: Cargar y Pintar Activos ---
+// --- NUEVO: FUNCIÓN PARA TRAER DATOS DEL BACKEND ---
 function cargarActivosDesdeSQL() {
     fetch('http://127.0.0.1:8000/api/activos/')
         .then(respuesta => respuesta.json())
@@ -138,17 +116,29 @@ function cargarActivosDesdeSQL() {
         });
 }
 
-// Función auxiliar para dibujar las "píldoras" de la matriz CIA dinámicamente
-function generarPills(valor, tipo) {
-    let html = '';
-    for (let i = 1; i <= 5; i++) {
-        if (i <= valor) {
-            html += `<span class="pill pill-${tipo}"></span>`;
-        } else {
-            html += `<span class="pill empty"></span>`;
-        }
-    }
-    return html;
+
+// NUEVA FUNCIÓN: Trae las categorías oficiales de MAGERIT desde SQL
+function cargarTiposDeActivo() {
+    fetch('http://127.0.0.1:8000/api/tipos-activo/')
+        .then(respuesta => respuesta.json())
+        .then(tipos => {
+            const selectTipo = document.getElementById('in-tipo');
+            
+            // Limpiamos el "Cargando..." y ponemos el texto inicial
+            selectTipo.innerHTML = '<option value="" disabled selected>Selecciona un tipo de activo...</option>';
+
+            // Recorremos la tabla Param_Tipos_Activo
+            tipos.forEach(tipo => {
+                // Combinamos el código y el nombre que tienes en SQL (Ej: "[D] Datos / Información")
+                // Asegúrate de que 'id_tipo_activo', 'codigo' y 'nombre_tipo' sean los nombres exactos de tus columnas
+                const opcionHTML = `<option value="${tipo.id_tipo_activo}">[${tipo.codigo}] ${tipo.nombre_tipo}</option>`;
+                selectTipo.innerHTML += opcionHTML;
+            });
+        })
+        .catch(error => {
+            console.error("Error al cargar los tipos de activo:", error);
+            document.getElementById('in-tipo').innerHTML = '<option value="" disabled>Error de conexión</option>';
+        });
 }
 
 

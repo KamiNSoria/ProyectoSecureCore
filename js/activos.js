@@ -5,7 +5,7 @@
 // Esperamos a que la página cargue para ir a buscar los datos
 document.addEventListener('DOMContentLoaded', () => {
     cargarActivosDesdeSQL();
-    cargarTiposDeActivo(); // <-- Agrega esta línea
+    cargarTiposDeActivo(); 
 });
 
 // --- NUEVO: FUNCIÓN PARA TRAER DATOS DEL BACKEND ---
@@ -38,7 +38,8 @@ function cargarActivosDesdeSQL() {
                                     <div class="asset-tags">
                                         <span class="tag tag-tipo">${activo.tipo_activo || 'N/A'}</span>
                                         <span class="tag tag-estado ${claseEstado}">${activo.estado_activo || 'Activo'}</span>
-                                        <span class="tag tag-critico">Impacto: ${activo.nivel_impacto}</span>
+                                        
+                                        <span class="tag tag-critico">Impacto: ${activo.valor_final_max}</span>
                                     </div>
                                 </div>
                             </div>
@@ -87,8 +88,6 @@ function cargarTiposDeActivo() {
 
             // Recorremos la tabla Param_Tipos_Activo
             tipos.forEach(tipo => {
-                // Combinamos el código y el nombre que tienes en SQL (Ej: "[D] Datos / Información")
-                // Asegúrate de que 'id_tipo_activo', 'codigo' y 'nombre_tipo' sean los nombres exactos de tus columnas
                 const opcionHTML = `<option value="${tipo.id_tipo_activo}">[${tipo.codigo}] ${tipo.nombre_tipo}</option>`;
                 selectTipo.innerHTML += opcionHTML;
             });
@@ -227,3 +226,129 @@ function activarFiltros() {
 
     filtrarActivos(); 
 }
+
+
+// --- LÓGICA DEL FORMULARIO Y CONEXIÓN SQL (CREAR, EDITAR, ELIMINAR) ---
+
+const modalTitulo = document.getElementById('modal-titulo');
+const idActivoOculto = document.getElementById('in-id-activo');
+const btnEliminarActivo = document.getElementById('btnEliminarActivo');
+
+// 1. Al presionar "+ Registrar Nuevo Activo" (Modo Creación)
+document.getElementById('btnAbrirModal').addEventListener('click', () => {
+    modalTitulo.textContent = 'Registrar Nuevo Activo';
+    idActivoOculto.value = ''; // Limpiamos el ID oculto
+    btnEliminarActivo.classList.add('hidden'); // Ocultamos el botón eliminar
+    document.getElementById('formNuevoActivo').reset(); // Limpiamos campos
+    calcularCriticidad(); // Reseteamos el cálculo CIA
+    document.getElementById('modalNuevoActivo').classList.remove('hidden');
+});
+
+// 2. Al presionar "Modificar activo" en alguna tarjeta (Modo Edición)
+document.getElementById('contenedor-activos').addEventListener('click', (e) => {
+    // Verificamos si se hizo clic en el botón de modificar
+    const btnModificar = e.target.closest('.btn-modificar');
+    
+    if (btnModificar) {
+        // Obtenemos el ID de la tarjeta donde se hizo clic
+        const tarjeta = btnModificar.closest('.asset-card');
+        const idActivo = tarjeta.id.replace('activo-', '');
+        
+        // Cambiamos la interfaz del modal
+        modalTitulo.textContent = 'Modificar Activo';
+        idActivoOculto.value = idActivo;
+        btnEliminarActivo.classList.remove('hidden'); // Mostramos el botón eliminar
+        
+        // Le pedimos a SQL los datos exactos de este activo
+        fetch(`http://127.0.0.1:8000/api/activos/${idActivo}/`)
+            .then(res => res.json())
+            .then(activo => {
+                // Rellenamos el formulario con los datos de la base
+                document.getElementById('in-nombre').value = activo.nombre_activo;
+                document.getElementById('in-desc').value = activo.descripcion;
+                document.getElementById('in-sistema').value = activo.sistema_involucrado;
+                document.getElementById('in-propietario').value = activo.propietario_activo;
+                document.getElementById('in-tipo').value = activo.id_tipo_activo || "";
+                document.getElementById('in-ubicacion').value = activo.id_tipo_ubicacion || "";
+                document.getElementById('in-estado').value = activo.id_estado_activo || "";
+                
+                // Rellenamos los radios del CIA (Asegúrate que tu API devuelva estos campos)
+                if(activo.confidencialidad) document.querySelector(`input[name="conf"][value="${activo.confidencialidad}"]`).checked = true;
+                if(activo.integridad) document.querySelector(`input[name="int"][value="${activo.integridad}"]`).checked = true;
+                if(activo.disponibilidad) document.querySelector(`input[name="disp"][value="${activo.disponibilidad}"]`).checked = true;
+                
+                calcularCriticidad(); // Actualizamos el número gigante y colores
+                document.getElementById('modalNuevoActivo').classList.remove('hidden');
+            });
+    }
+});
+
+// 3. Guardar en SQL (Detecta si es CREATE o UPDATE)
+document.getElementById('btnGuardarActivo').addEventListener('click', () => {
+    const idActual = idActivoOculto.value;
+
+
+    const datosActivo = {
+        nombre_activo: document.getElementById('in-nombre').value,
+        descripcion: document.getElementById('in-desc').value,
+        sistema_involucrado: document.getElementById('in-sistema').value,
+        propietario_activo: document.getElementById('in-propietario').value,
+        id_tipo_activo: parseInt(document.getElementById('in-tipo').value),
+        id_tipo_ubicacion: parseInt(document.getElementById('in-ubicacion').value),
+        id_estado_activo: parseInt(document.getElementById('in-estado').value),
+        confidencialidad: parseInt(document.querySelector('input[name="conf"]:checked').value),
+        integridad: parseInt(document.querySelector('input[name="int"]:checked').value),
+        disponibilidad: parseInt(document.querySelector('input[name="disp"]:checked').value),
+        
+        // ¡LA SOLUCIÓN DEFINITIVA: ENVIAMOS AMBOS CAMPOS PARA QUE DJANGO NO SE QUEJE!
+        nivel_impacto: parseInt(document.getElementById('valor-final-num').textContent),
+        valor_final_max: parseInt(document.getElementById('valor-final-num').textContent)
+    };
+
+
+    // Si hay un ID, hacemos PUT (Actualizar). Si no, hacemos POST (Crear)
+    const url = idActual ? `http://127.0.0.1:8000/api/activos/${idActual}/` : 'http://127.0.0.1:8000/api/activos/';
+    const metodo = idActual ? 'PUT' : 'POST';
+
+    fetch(url, {
+        method: metodo,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(datosActivo)
+    })
+    .then(respuesta => {
+        if (respuesta.ok) {
+            // Si todo sale bien
+            cerrarModal();
+            cargarActivosDesdeSQL(); 
+            alert('¡Activo guardado exitosamente!');
+        } else {
+            // ¡AQUÍ ESTÁ LA MAGIA PARA VER EL ERROR REAL!
+            return respuesta.json().then(errores => {
+                console.error("🛑 EL BACKEND RECHAZÓ LOS DATOS POR ESTO:", errores);
+                alert('El servidor rechazó los datos. Revisa la consola (F12) para ver el motivo exacto.');
+            });
+        }
+    })
+    .catch(error => {
+        console.error("Error de conexión:", error);
+    });
+}); 
+
+// 4. Eliminar de SQL
+btnEliminarActivo.addEventListener('click', () => {
+    const idActual = idActivoOculto.value;
+    if (idActual) {
+        const confirmar = confirm("¿Estás seguro de que deseas eliminar este activo definitivamente?");
+        if (confirmar) {
+            fetch(`http://127.0.0.1:8000/api/activos/${idActual}/`, {
+                method: 'DELETE'
+            })
+            .then(respuesta => {
+                if (respuesta.ok) {
+                    cerrarModal();
+                    cargarActivosDesdeSQL(); // Recarga las tarjetas
+                }
+            });
+        }
+    }
+});

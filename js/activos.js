@@ -2,10 +2,18 @@
      Lógica interactiva para la página de Gestión de Activos (Conexión SQL)
    ========================================================================== */
 
-// Esperamos a que la página cargue para ir a buscar los datos
-document.addEventListener('DOMContentLoaded', () => {
+// Variables globales para guardar los catálogos en memoria y no hacer múltiples peticiones
+let catalogoTipos = [];
+let catalogoEstados = [];
+
+document.addEventListener('DOMContentLoaded', async () => {
+    // Usamos 'await' para asegurar que primero bajen los catálogos antes de pintar las tarjetas
+    await cargarTiposDeActivo(); 
+    // Nota: Deberías hacer un endpoint similar para ParamEstadosActivo en tu API
+    // await cargarEstadosDeActivo(); 
+    
     cargarActivosDesdeSQL();
-    cargarTiposDeActivo(); 
+    cargarTiposDeActivo(); // <-- Agrega esta línea
 });
 
 // --- NUEVO: FUNCIÓN PARA TRAER DATOS DEL BACKEND ---
@@ -14,20 +22,32 @@ function cargarActivosDesdeSQL() {
         .then(respuesta => respuesta.json())
         .then(datos_sql => {
             const contenedor = document.getElementById('contenedor-activos');
-            contenedor.innerHTML = ''; // Limpiamos las tarjetas quemadas
+            if(!contenedor) return;
+            
+            contenedor.innerHTML = ''; 
 
-            // Dibujamos las tarjetas de SQL
             datos_sql.forEach(activo => {
                 
-                // Asignamos iconos y colores según la categoría para mantener tu diseño
-                let icono = 'bx-server';
-                let claseEstado = 'estado-operativo';
+                // 1. "Traducir" los IDs usando el catálogo que cargamos antes
+                // Busca en el arreglo catalogoTipos el objeto cuyo ID coincida con la llave foránea del activo
+                const tipoObjeto = catalogoTipos.find(t => t.id_tipo_activo === activo.id_tipo_activo);
+                const nombreTipoReal = tipoObjeto ? tipoObjeto.nombre_tipo : 'Desconocido';
+                const codigoTipoReal = tipoObjeto ? tipoObjeto.codigo : '';
                 
-                if(activo.tipo_activo === 'Software') icono = 'bx-code-alt';
-                else if(activo.tipo_activo === 'Informacion') icono = 'bx-file';
+                // 2. Asignar iconos de forma dinámica basándonos en el código de SQL Server
+                let icono = 'bx-server'; // Por defecto (Hardware)
+                if(codigoTipoReal === 'SW') icono = 'bx-code-alt';
+                else if(codigoTipoReal === 'D') icono = 'bx-file';
+                else if(codigoTipoReal === 'S') icono = 'bx-cloud';
+                else if(codigoTipoReal === 'P') icono = 'bx-user';
                 
+                // TODO: Necesitas hacer lo mismo con id_estado_activo. Por ahora, forzamos un valor para el diseño.
+                let claseEstado = 'estado-operativo'; 
+                let nombreEstadoReal = 'Operativo';
+                
+                // 3. Renderizar la tarjeta
                 const tarjetaHTML = `
-                    <div class="asset-card" id="activo-${activo.id_activo}" data-categoria="${activo.tipo_activo ? activo.tipo_activo.toLowerCase() : 'hardware'}">
+                    <div class="asset-card" id="activo-${activo.id_activo}" data-categoria="${codigoTipoReal.toLowerCase()}">
                         <div class="asset-card-main">
                             <div class="asset-info-wrapper">
                                 <div class="asset-icon"><i class='bx ${icono}'></i></div>
@@ -38,15 +58,14 @@ function cargarActivosDesdeSQL() {
                                     <div class="asset-tags">
                                         <span class="tag tag-tipo">${activo.tipo_activo || 'N/A'}</span>
                                         <span class="tag tag-estado ${claseEstado}">${activo.estado_activo || 'Activo'}</span>
-                                        
-                                        <span class="tag tag-critico">Impacto: ${activo.valor_final_max}</span>
+                                        <span class="tag tag-critico">Impacto: ${activo.nivel_impacto}</span>
                                     </div>
                                 </div>
                             </div>
                             <div class="cia-metrics">
-                                <div class="cia-row"><small>C</small> <div class="pills"><span class="pill pill-c"></span><span class="pill pill-c"></span><span class="pill pill-c"></span><span class="pill empty"></span><span class="pill empty"></span></div></div>
-                                <div class="cia-row"><small>I</small> <div class="pills"><span class="pill pill-i"></span><span class="pill pill-i"></span><span class="pill pill-i"></span><span class="pill empty"></span><span class="pill empty"></span></div></div>
-                                <div class="cia-row"><small>D</small> <div class="pills"><span class="pill pill-d"></span><span class="pill pill-d"></span><span class="pill pill-d"></span><span class="pill empty"></span><span class="pill empty"></span></div></div>
+                                <div class="cia-row"><small>C</small> <div class="pills">${generarPills(activo.confidencialidad, 'c')}</div></div>
+                                <div class="cia-row"><small>I</small> <div class="pills">${generarPills(activo.integridad, 'i')}</div></div>
+                                <div class="cia-row"><small>D</small> <div class="pills">${generarPills(activo.disponibilidad, 'd')}</div></div>
                             </div>
                         </div>
                         <div class="asset-extra-info">
@@ -64,14 +83,14 @@ function cargarActivosDesdeSQL() {
                 contenedor.innerHTML += tarjetaHTML;
             });
 
-            // UNA VEZ CREADAS LAS TARJETAS, ENCENDEMOS TUS FUNCIONES
             activarTarjetasExpandibles();
             activarFiltros();
             
         })
         .catch(error => {
             console.error("Error al conectar con SQL:", error);
-            document.getElementById('contenedor-activos').innerHTML = '<p style="color:red; padding:20px;">No se pudo conectar a la base de datos SQL Server.</p>';
+            const contenedor = document.getElementById('contenedor-activos');
+            if(contenedor) contenedor.innerHTML = '<p style="color:red; padding:20px;">Error al cargar los activos.</p>';
         });
 }
 
@@ -88,6 +107,8 @@ function cargarTiposDeActivo() {
 
             // Recorremos la tabla Param_Tipos_Activo
             tipos.forEach(tipo => {
+                // Combinamos el código y el nombre que tienes en SQL (Ej: "[D] Datos / Información")
+                // Asegúrate de que 'id_tipo_activo', 'codigo' y 'nombre_tipo' sean los nombres exactos de tus columnas
                 const opcionHTML = `<option value="${tipo.id_tipo_activo}">[${tipo.codigo}] ${tipo.nombre_tipo}</option>`;
                 selectTipo.innerHTML += opcionHTML;
             });
@@ -226,129 +247,3 @@ function activarFiltros() {
 
     filtrarActivos(); 
 }
-
-
-// --- LÓGICA DEL FORMULARIO Y CONEXIÓN SQL (CREAR, EDITAR, ELIMINAR) ---
-
-const modalTitulo = document.getElementById('modal-titulo');
-const idActivoOculto = document.getElementById('in-id-activo');
-const btnEliminarActivo = document.getElementById('btnEliminarActivo');
-
-// 1. Al presionar "+ Registrar Nuevo Activo" (Modo Creación)
-document.getElementById('btnAbrirModal').addEventListener('click', () => {
-    modalTitulo.textContent = 'Registrar Nuevo Activo';
-    idActivoOculto.value = ''; // Limpiamos el ID oculto
-    btnEliminarActivo.classList.add('hidden'); // Ocultamos el botón eliminar
-    document.getElementById('formNuevoActivo').reset(); // Limpiamos campos
-    calcularCriticidad(); // Reseteamos el cálculo CIA
-    document.getElementById('modalNuevoActivo').classList.remove('hidden');
-});
-
-// 2. Al presionar "Modificar activo" en alguna tarjeta (Modo Edición)
-document.getElementById('contenedor-activos').addEventListener('click', (e) => {
-    // Verificamos si se hizo clic en el botón de modificar
-    const btnModificar = e.target.closest('.btn-modificar');
-    
-    if (btnModificar) {
-        // Obtenemos el ID de la tarjeta donde se hizo clic
-        const tarjeta = btnModificar.closest('.asset-card');
-        const idActivo = tarjeta.id.replace('activo-', '');
-        
-        // Cambiamos la interfaz del modal
-        modalTitulo.textContent = 'Modificar Activo';
-        idActivoOculto.value = idActivo;
-        btnEliminarActivo.classList.remove('hidden'); // Mostramos el botón eliminar
-        
-        // Le pedimos a SQL los datos exactos de este activo
-        fetch(`http://127.0.0.1:8000/api/activos/${idActivo}/`)
-            .then(res => res.json())
-            .then(activo => {
-                // Rellenamos el formulario con los datos de la base
-                document.getElementById('in-nombre').value = activo.nombre_activo;
-                document.getElementById('in-desc').value = activo.descripcion;
-                document.getElementById('in-sistema').value = activo.sistema_involucrado;
-                document.getElementById('in-propietario').value = activo.propietario_activo;
-                document.getElementById('in-tipo').value = activo.id_tipo_activo || "";
-                document.getElementById('in-ubicacion').value = activo.id_tipo_ubicacion || "";
-                document.getElementById('in-estado').value = activo.id_estado_activo || "";
-                
-                // Rellenamos los radios del CIA (Asegúrate que tu API devuelva estos campos)
-                if(activo.confidencialidad) document.querySelector(`input[name="conf"][value="${activo.confidencialidad}"]`).checked = true;
-                if(activo.integridad) document.querySelector(`input[name="int"][value="${activo.integridad}"]`).checked = true;
-                if(activo.disponibilidad) document.querySelector(`input[name="disp"][value="${activo.disponibilidad}"]`).checked = true;
-                
-                calcularCriticidad(); // Actualizamos el número gigante y colores
-                document.getElementById('modalNuevoActivo').classList.remove('hidden');
-            });
-    }
-});
-
-// 3. Guardar en SQL (Detecta si es CREATE o UPDATE)
-document.getElementById('btnGuardarActivo').addEventListener('click', () => {
-    const idActual = idActivoOculto.value;
-
-
-    const datosActivo = {
-        nombre_activo: document.getElementById('in-nombre').value,
-        descripcion: document.getElementById('in-desc').value,
-        sistema_involucrado: document.getElementById('in-sistema').value,
-        propietario_activo: document.getElementById('in-propietario').value,
-        id_tipo_activo: parseInt(document.getElementById('in-tipo').value),
-        id_tipo_ubicacion: parseInt(document.getElementById('in-ubicacion').value),
-        id_estado_activo: parseInt(document.getElementById('in-estado').value),
-        confidencialidad: parseInt(document.querySelector('input[name="conf"]:checked').value),
-        integridad: parseInt(document.querySelector('input[name="int"]:checked').value),
-        disponibilidad: parseInt(document.querySelector('input[name="disp"]:checked').value),
-        
-        // ¡LA SOLUCIÓN DEFINITIVA: ENVIAMOS AMBOS CAMPOS PARA QUE DJANGO NO SE QUEJE!
-        nivel_impacto: parseInt(document.getElementById('valor-final-num').textContent),
-        valor_final_max: parseInt(document.getElementById('valor-final-num').textContent)
-    };
-
-
-    // Si hay un ID, hacemos PUT (Actualizar). Si no, hacemos POST (Crear)
-    const url = idActual ? `http://127.0.0.1:8000/api/activos/${idActual}/` : 'http://127.0.0.1:8000/api/activos/';
-    const metodo = idActual ? 'PUT' : 'POST';
-
-    fetch(url, {
-        method: metodo,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(datosActivo)
-    })
-    .then(respuesta => {
-        if (respuesta.ok) {
-            // Si todo sale bien
-            cerrarModal();
-            cargarActivosDesdeSQL(); 
-            alert('¡Activo guardado exitosamente!');
-        } else {
-            // ¡AQUÍ ESTÁ LA MAGIA PARA VER EL ERROR REAL!
-            return respuesta.json().then(errores => {
-                console.error("🛑 EL BACKEND RECHAZÓ LOS DATOS POR ESTO:", errores);
-                alert('El servidor rechazó los datos. Revisa la consola (F12) para ver el motivo exacto.');
-            });
-        }
-    })
-    .catch(error => {
-        console.error("Error de conexión:", error);
-    });
-}); 
-
-// 4. Eliminar de SQL
-btnEliminarActivo.addEventListener('click', () => {
-    const idActual = idActivoOculto.value;
-    if (idActual) {
-        const confirmar = confirm("¿Estás seguro de que deseas eliminar este activo definitivamente?");
-        if (confirmar) {
-            fetch(`http://127.0.0.1:8000/api/activos/${idActual}/`, {
-                method: 'DELETE'
-            })
-            .then(respuesta => {
-                if (respuesta.ok) {
-                    cerrarModal();
-                    cargarActivosDesdeSQL(); // Recarga las tarjetas
-                }
-            });
-        }
-    }
-});

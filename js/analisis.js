@@ -396,3 +396,88 @@ async function eliminarRiesgo(id) {
 
 // --- 7. INICIALIZACIÓN ---
 actualizarEvaluacionRiesgo();
+
+/* ==========================================================================
+   MEJORAS CONCEPTUALES: Banner de riesgo activo + Controles ISO sugeridos
+   ========================================================================= */
+
+// Mapeo Amenaza (por ID de tu catálogo) -> Controles ISO recomendados
+const mapeoAmenazaControlesISO = {
+    1: ['5.15', '5.16', '5.17', '5.18', '8.2', '8.5'],   // Acceso no autorizado
+    2: ['8.7', '8.8', '8.13', '5.26'],                    // Malware / Ransomware
+    3: ['6.3', '5.26', '8.23'],                           // Phishing / Ingeniería social
+    4: ['7.8', '7.13', '8.13', '8.14'],                   // Falla de hardware
+    5: ['7.5', '5.29', '5.30', '8.14'],                   // Desastre natural
+    6: ['6.3', '5.37', '8.32']                            // Error humano
+};
+
+let catalogoISOparaAnalisis = [];
+
+async function cargarCatalogoISOparaAnalisis() {
+    try {
+        const res = await fetch(`${API_BASE}/catalogo-iso/`);
+        catalogoISOparaAnalisis = await res.json();
+    } catch (e) {
+        console.error('Error cargando catálogo ISO:', e);
+    }
+}
+
+function actualizarControlesRecomendados() {
+    const box = document.getElementById('controles-recomendados-box');
+    const lista = document.getElementById('recomendados-lista');
+    const selAmenaza = document.getElementById('in-riesgo-amenaza').value;
+
+    if (!selAmenaza || selAmenaza === 'otro' || catalogoISOparaAnalisis.length === 0) {
+        box.classList.add('hidden');
+        return;
+    }
+
+    const idsRecomendados = mapeoAmenazaControlesISO[parseInt(selAmenaza)];
+    if (!idsRecomendados) {
+        box.classList.add('hidden');
+        return;
+    }
+
+    const controles = catalogoISOparaAnalisis.filter(c => idsRecomendados.includes(c.id_control));
+    lista.innerHTML = controles.map(c =>
+        `<span class="chip-recomendado">${c.id_control} - ${c.titulo_control}</span>`
+    ).join('');
+
+    box.classList.remove('hidden');
+}
+
+function actualizarBannerRiesgo() {
+    const nombre = document.getElementById('in-riesgo-nombre').value.trim();
+    const banner = document.getElementById('banner-riesgo-actual');
+    const nombreSpan = document.getElementById('banner-riesgo-nombre');
+
+    if (nombre.length > 0) {
+        nombreSpan.textContent = nombre;
+        banner.classList.remove('hidden');
+    } else {
+        banner.classList.add('hidden');
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    cargarCatalogoISOparaAnalisis();
+
+    document.getElementById('in-riesgo-nombre').addEventListener('input', actualizarBannerRiesgo);
+    document.getElementById('in-riesgo-amenaza').addEventListener('change', actualizarControlesRecomendados);
+    document.getElementById('in-riesgo-vulnerabilidad').addEventListener('change', actualizarControlesRecomendados);
+});
+
+// Nos aseguramos de que al abrir "Editar" también se actualice el banner
+const _prepararEditarRiesgoOriginal = prepararEditarRiesgo;
+prepararEditarRiesgo = async function (id) {
+    await _prepararEditarRiesgoOriginal(id);
+    actualizarBannerRiesgo();
+    actualizarControlesRecomendados();
+};
+
+const _resetFormularioRiesgoOriginal = resetFormularioRiesgo;
+resetFormularioRiesgo = function () {
+    _resetFormularioRiesgoOriginal();
+    document.getElementById('banner-riesgo-actual').classList.add('hidden');
+    document.getElementById('controles-recomendados-box').classList.add('hidden');
+};

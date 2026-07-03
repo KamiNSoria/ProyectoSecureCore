@@ -223,14 +223,36 @@ function pintarSelectControlLib() {
         selectControlLib.innerHTML = '<option value="" disabled selected>Crea un control en "Biblioteca de Controles" primero</option>';
         return;
     }
+
+    // Detectamos la amenaza del riesgo seleccionado para recomendar controles
+    const riesgo = catalogoRiesgosTrat.find(r => r.id_riesgo === parseInt(selectRiesgo.value));
+    const idsRecomendados = (riesgo && mapeoAmenazaControlesISO[riesgo.id_amenaza]) || [];
+
+    const ordenados = [...bibliotecaControles].sort((a, b) => {
+        const aRec = idsRecomendados.includes(a.id_iso_padre) ? 0 : 1;
+        const bRec = idsRecomendados.includes(b.id_iso_padre) ? 0 : 1;
+        return aRec - bRec;
+    });
+
     let html = '';
-    bibliotecaControles.forEach(c => {
+    ordenados.forEach(c => {
         const eficaciaDecimal = (parseFloat(c.eficacia_porcentaje) / 100).toFixed(2);
-        html += `<option value="${c.id_control_emp}" data-eficacia="${eficaciaDecimal}">${c.nombre_control} (Eficacia ${c.eficacia_porcentaje}%)</option>`;
+        const esRecomendado = idsRecomendados.includes(c.id_iso_padre);
+        html += `<option value="${c.id_control_emp}" data-eficacia="${eficaciaDecimal}">${esRecomendado ? '⭐ ' : ''}${c.nombre_control} (Eficacia ${c.eficacia_porcentaje}%)</option>`;
     });
     selectControlLib.innerHTML = html;
     calcularResidual();
 }
+
+// Mapeo compartido con analisis.js (Amenaza -> Controles ISO recomendados)
+const mapeoAmenazaControlesISO = {
+    1: ['5.15', '5.16', '5.17', '5.18', '8.2', '8.5'],
+    2: ['8.7', '8.8', '8.13', '5.26'],
+    3: ['6.3', '5.26', '8.23'],
+    4: ['7.8', '7.13', '8.13', '8.14'],
+    5: ['7.5', '5.29', '5.30', '8.14'],
+    6: ['6.3', '5.37', '8.32']
+};  
 
 // --- 7. CÁLCULO DE RIESGO RESIDUAL (Pestaña 2) ---
 const selectRiesgo = document.getElementById('select-riesgo');
@@ -246,22 +268,54 @@ function nivelYClasePorScoreTrat(score) {
 }
 
 const calcularResidual = () => {
-    if (!selectRiesgo || !selectControlLib || !resScore || !resLabel) return null;
+    if (!selectRiesgo || !resScore || !resLabel) return null;
     const riesgo = catalogoRiesgosTrat.find(r => r.id_riesgo === parseInt(selectRiesgo.value));
-    const opcionControl = selectControlLib.selectedOptions[0];
-    if (!riesgo || !opcionControl || !opcionControl.dataset.eficacia) return null;
+    if (!riesgo) return null;
 
     const inherente = scoreInherenteDe(riesgo);
-    const eficaciaControl = parseFloat(opcionControl.dataset.eficacia);
-    const residual = Math.max(1, Math.round(inherente * (1 - eficaciaControl)));
+    const estrategiaActual = document.querySelector('input[name="estrategia_plan"]:checked').value;
+    const wrapperControl = document.getElementById('wrapper-control-lib');
+    const mensajeSinControl = document.getElementById('mensaje-sin-control');
+
+    let residual, opcionControl = null;
+
+    if (estrategiaActual === 'aceptar') {
+        // Aceptar: no se reduce el riesgo, la organización lo asume conscientemente
+        wrapperControl.classList.add('hidden');
+        mensajeSinControl.classList.remove('hidden');
+        mensajeSinControl.innerHTML = '<i class="bx bx-info-circle"></i> Al "Aceptar" el riesgo, no se aplica un control técnico — el riesgo residual queda igual al inherente, pero queda documentada la decisión.';
+        residual = inherente;
+    } else if (estrategiaActual === 'evitar') {
+        // Evitar: se elimina la fuente del riesgo (se descontinúa el proceso/activo que lo genera)
+        wrapperControl.classList.add('hidden');
+        mensajeSinControl.classList.remove('hidden');
+        mensajeSinControl.innerHTML = '<i class="bx bx-info-circle"></i> Al "Evitar" el riesgo, se elimina la actividad o condición que lo origina — el riesgo residual se considera prácticamente nulo.';
+        residual = 1;
+    } else {
+        // Mitigar o Transferir: requieren un control vinculado
+        wrapperControl.classList.remove('hidden');
+        mensajeSinControl.classList.add('hidden');
+
+        opcionControl = selectControlLib.selectedOptions[0];
+        if (!opcionControl || !opcionControl.dataset.eficacia) {
+            resScore.textContent = '-';
+            resLabel.textContent = 'Selecciona un control';
+            resLabel.className = 'badge-impacto';
+            return null;
+        }
+        const eficaciaControl = parseFloat(opcionControl.dataset.eficacia);
+        residual = Math.max(1, Math.round(inherente * (1 - eficaciaControl)));
+    }
 
     resScore.textContent = residual;
     const nivel = nivelYClasePorScoreTrat(residual);
     resLabel.className = `badge-impacto ${nivel.clase}`;
     resLabel.textContent = nivel.texto;
 
-    return { riesgo, residual, opcionControl };
+    return { riesgo, residual, opcionControl, estrategia: estrategiaActual };
 };
+
+document.querySelectorAll('input[name="estrategia_plan"]').forEach(r => r.addEventListener('change', calcularResidual));
 
 if (selectRiesgo) selectRiesgo.addEventListener('change', calcularResidual);
 if (selectControlLib) selectControlLib.addEventListener('change', calcularResidual);
@@ -285,7 +339,7 @@ if (btnFinalizarPlan) {
     btnFinalizarPlan.addEventListener('click', async () => {
         const resultado = calcularResidual();
         if (!resultado) {
-            alert('Selecciona un riesgo y un control de la biblioteca antes de finalizar.');
+            alert('Completa la selección de riesgo (y control, si la estrategia lo requiere) antes de finalizar.');
             return;
         }
 
@@ -301,7 +355,7 @@ if (btnFinalizarPlan) {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     id_riesgo: resultado.riesgo.id_riesgo,
-                    id_control_emp: parseInt(resultado.opcionControl.value),
+                    id_control_emp: resultado.opcionControl ? parseInt(resultado.opcionControl.value) : null,
                     estrategia: estrategia,
                     probabilidad_residual: prob,
                     impacto_residual: impacto,

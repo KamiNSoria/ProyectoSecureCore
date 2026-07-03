@@ -122,3 +122,15 @@
     border-top: 1px dashed #e2e8f0;
     padding-top: 10px;
 }
+.mensaje-estrategia {
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    color: #1e40af;
+    font-size: 13px;
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}

@@ -115,10 +115,25 @@
                                     <input type="text" id="in-riesgo-vulnerabilidad-otro" class="form-input hidden" placeholder="Describe la vulnerabilidad...">
                                 </div>
                             </div>
+                            <div id="controles-recomendados-box" class="recomendados-box hidden mb-24">
+                                <div class="recomendados-header">
+                                    <i class='bx bx-bulb'></i> <strong>Controles ISO 27002 sugeridos para esta combinación</strong>
+                                </div>
+                                <div id="recomendados-lista"></div>
+                                <p class="recomendados-nota">Estos controles se aplican formalmente en el módulo <strong>Tratamiento</strong>. Esta es solo una referencia rápida.</p>
+                            </div>
+
+                            <div id="banner-riesgo-actual" class="banner-riesgo hidden">
+                                <i class='bx bx-target-lock'></i>
+                                <div>
+                                    <small>ESTÁS CALIFICANDO EL RIESGO (no la amenaza en sí):</small>
+                                    <strong id="banner-riesgo-nombre">-</strong>
+                                </div>
+                            </div>
 
                             <div class="accordion-wrapper mb-16">
                                 <div class="collapsible-trigger" data-target="content-impacto">
-                                    <label class="icon-label"><i class='bx bx-error-alt'></i> 1. Variables de impacto para calificar (Promedio)</label>
+                                    <label class="icon-label"><i class='bx bx-error-alt'></i> 1. Impacto de ESTE RIESGO si se materializa (Promedio)</label>
                                     <i class='bx bx-chevron-down arrow-icon'></i>
                                 </div>
                                 
@@ -200,7 +215,7 @@
 
                             <div class="accordion-wrapper mb-24">
                                 <div class="collapsible-trigger" data-target="content-probabilidad">
-                                    <label class="icon-label"><i class='bx bx-git-branch'></i> 2. Calificar frecuencia del riesgo</label>
+                                    <label class="icon-label"><i class='bx bx-git-branch'></i> 2. Probabilidad de que ESTE RIESGO ocurra</label>
                                     <i class='bx bx-chevron-down arrow-icon'></i>
                                 </div>
                                 

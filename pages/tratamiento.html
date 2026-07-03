@@ -90,7 +90,7 @@
                                     <option value="respaldos">Garantizar que la información no se pierda (Backups)</option>
                                 </select>
                             </div>
-                            
+
                             <div class="form-group mb-24">
                                 <label>2. Control Sugerido por el Sistema (ISO 27002)</label>
                                 <select class="form-input form-select" id="ctrl_iso" disabled>
@@ -166,10 +166,7 @@
                             
                             <div class="form-group mb-16">
                                 <label>Seleccionar Riesgo para Tratar</label>
-                                <select class="form-input form-select" id="select-riesgo">
-                                    <option value="12">Fuga de Datos por Inyección SQL - Inherente: 12</option>
-                                    <option value="9">Caída de Servicio por Tráfico - Inherente: 9</option>
-                                </select>
+                                <select class="form-input form-select" id="select-riesgo"></select>
                             </div>
 
                             <div class="form-group mb-16">
@@ -182,13 +179,11 @@
                                 </div>
                             </div>
 
-                            <div class="form-group mb-24">
-                                <label>Vincular Control de Biblioteca Creada</label>
-                                <select class="form-input form-select" id="select-control-lib">
-                                    <option value="0.85">Firewall de Aplicaciones (Eficacia 85%)</option>
-                                    <option value="0.50">Capacitación en OWASP (Eficacia 50%)</option>
-                                </select>
+                            <div class="form-group mb-24" id="wrapper-control-lib">
+                                <label>Vincular Control de Biblioteca (⭐ = recomendado para este riesgo)</label>
+                                 <select class="form-input form-select" id="select-control-lib"></select>
                             </div>
+                            <div id="mensaje-sin-control" class="mensaje-estrategia hidden"></div>
 
                             <div class="calculo-inline mb-24">
                                 <span>Riesgo Residual Calculado:</span>

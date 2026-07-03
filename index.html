@@ -25,19 +25,15 @@
             <a href="#" class="nav-item active"> 
                 <i class='bx bx-grid-alt'></i> Panel
             </a>
-            
             <a href="pages/activos.html" class="nav-item">
                 <i class='bx bx-server'></i> Activos
             </a>
-            
             <a href="pages/analisis.html" class="nav-item">
                 <i class='bx bx-line-chart-down'></i> Riesgos
             </a>
-            
             <a href="pages/tratamiento.html" class="nav-item">
                 <i class='bx bx-check-shield'></i> Tratamiento
             </a>
-            
             <a href="pages/cumplimiento.html" class="nav-item">
                 <i class='bx bx-file'></i> Cumplimiento
             </a>
@@ -56,82 +52,68 @@
     <main class="main-content">
         <header class="top-header">
             <h1>Gestión de Riesgos Cibernéticos</h1>
-            <p>Monitoreo de amenazas y análisis de riesgos en tiempo real</p>
+            <p>Monitoreo de riesgos y controles en tiempo real</p>
         </header>
 
         <section class="dashboard-top-grid">
             <div class="card map-card">
                 <div class="card-header">
-                    <h3>Mapa de Calor de Riesgos</h3>
-                    <p>Dominios de seguridad por nivel de severidad</p>
+                    <h3>Mapa de Calor de Riesgos por Amenaza</h3>
+                    <p>Distribución de riesgos registrados según su origen</p>
                 </div>
-                
-                <div class="heat-grid">
-                    <div class="heat-item critico"><span>Red</span><strong>3</strong><small>CRÍTICO</small></div>
-                    <div class="heat-item alto"><span>Acceso</span><strong>7</strong><small>ALTO</small></div>
-                    <div class="heat-item medio"><span>Datos</span><strong>12</strong><small>MEDIO</small></div>
-                    <div class="heat-item bajo"><span>Físico</span><strong>2</strong><small>BAJO</small></div>
-                    
-                    <div class="heat-item alto"><span>Terminales</span><strong>5</strong><small>ALTO</small></div>
-                    <div class="heat-item critico"><span>Nube</span><strong>4</strong><small>CRÍTICO</small></div>
-                    <div class="heat-item medio"><span>Apps</span><strong>8</strong><small>MEDIO</small></div>
-                    <div class="heat-item bajo"><span>Cadena de Sum.</span><strong>3</strong><small>BAJO</small></div>
-                    
-                    <div class="heat-item medio"><span>Identidad</span><strong>6</strong><small>MEDIO</small></div>
-                    <div class="heat-item alto"><span>Cumplimiento</span><strong>9</strong><small>ALTO</small></div>
-                    <div class="heat-item bajo"><span>Social</span><strong>4</strong><small>BAJO</small></div>
-                    <div class="heat-item critico"><span>Infraestructura</span><strong>2</strong><small>CRÍTICO</small></div>
+                <div class="heat-grid" id="heat-grid-real">
+                    <p style="color:#94a3b8; font-size:13px; grid-column: 1/-1;">Cargando...</p>
                 </div>
             </div>
 
             <div class="card residual-card">
                 <div class="card-header">
-                    <h3>Riesgo Residual</h3>
-                    <p>Nivel de exposición actual</p>
+                    <h3>Riesgo Residual Promedio</h3>
+                    <p>Nivel de exposición actual de la organización</p>
                 </div>
                 <div class="chart-container">
-                    <div class="donut-chart">
+                    <div class="donut-chart" id="donut-chart">
                         <div class="donut-inner">
-                            <strong>68</strong>
+                            <strong id="donut-puntaje">-</strong>
                             <span>Puntaje</span>
                         </div>
                     </div>
-                    <div class="badge-elevado">Nivel Elevado</div>
+                    <div class="badge-elevado" id="badge-nivel-residual">Cargando...</div>
                 </div>
             </div>
         </section>
 
         <section class="kpi-row">
             <div class="kpi-card">
-                <div class="kpi-icon blue">〽️</div>
+                <div class="kpi-icon blue"><i class='bx bx-server'></i></div>
                 <div class="kpi-data">
-                    <small>Amenazas Activas</small>
-                    <strong>247</strong>
-                    <span class="trend blue-trend">↗ +12% desde la semana pasada</span>
+                    <small>Activos Registrados</small>
+                    <strong id="kpi-activos">0</strong>
+                    <span class="trend blue-trend" id="kpi-activos-detalle">Cargando...</span>
                 </div>
             </div>
             <div class="kpi-card">
-                <div class="kpi-icon green">👥</div>
+                <div class="kpi-icon yellow"><i class='bx bx-error-alt'></i></div>
                 <div class="kpi-data">
-                    <small>Activos Protegidos</small>
-                    <strong>1,854</strong>
-                    <span class="trend green-trend">↗ Todos los sistemas seguros</span>
+                    <small>Riesgos Registrados</small>
+                    <strong id="kpi-riesgos">0</strong>
+                    <span class="trend yellow-trend" id="kpi-riesgos-detalle">Cargando...</span>
                 </div>
             </div>
             <div class="kpi-card">
-                <div class="kpi-icon yellow">⚠️</div>
+                <div class="kpi-icon green"><i class='bx bx-list-check'></i></div>
                 <div class="kpi-data">
-                    <small>Vulnerabilidades</small>
-                    <strong>42</strong>
-                    <span class="trend yellow-trend">⚠️ 18 parches críticos pendientes</span>
+                    <small>Controles ISO Aplicados</small>
+                    <strong id="kpi-controles">0</strong>
+                    <span class="trend green-trend" id="kpi-controles-detalle">Cargando...</span>
                 </div>
             </div>
             <div class="kpi-card">
-                <div class="kpi-icon purple">〽️</div>
+                <div class="kpi-icon purple"><i class='bx bx-trending-down'></i></div>
                 <div class="kpi-data">
-                    <small>Tiempo de Respuesta</small>
-                    <strong>4.2m</strong>
-                    <span class="trend blue-trend">↙ -23% de mejora</span>
+                    <small>Reducción Promedio de Riesgo</small>
+                    <strong id="kpi-reduccion">0%</strong>
+                    <span class="trend blue-trend" id="kpi-reduccion-detalle">Cargando...</span>
                 </div>
             </div>
         </section>
@@ -139,93 +121,27 @@
             
             <div class="card alerts-card">
                 <div class="card-header">
-                    <h3>Alertas Recientes</h3>
-                    <p>Últimos eventos de seguridad</p>
+                    <h3>Actividad Reciente</h3>
+                    <p>Últimos registros en la plataforma</p>
                 </div>
-                <div class="alerts-list">
-                    <div class="alert-item alert-red">
-                        <div class="alert-icon">!</div>
-                        <div class="alert-info">
-                            <strong>Intento de acceso no autorizado</strong>
-                            <span>Firewall • Hace 2 min</span>
-                        </div>
-                    </div>
-                    <div class="alert-item alert-yellow">
-                        <div class="alert-icon">⚠️</div>
-                        <div class="alert-info">
-                            <strong>Patrón de tráfico inusual</strong>
-                            <span>IDS • Hace 15 min</span>
-                        </div>
-                    </div>
-                    <div class="alert-item alert-red">
-                        <div class="alert-icon">!</div>
-                        <div class="alert-info">
-                            <strong>Múltiples intentos fallidos de login</strong>
-                            <span>Servidor de Auth • Hace 32 min</span>
-                        </div>
-                    </div>
-                    <div class="alert-item alert-blue">
-                        <div class="alert-icon">i</div>
-                        <div class="alert-info">
-                            <strong>Parche de seguridad desplegado</strong>
-                            <span>Gestor de Updates • Hace 1 hr</span>
-                        </div>
-                    </div>
-                    <div class="alert-item alert-yellow">
-                        <div class="alert-icon">⚠️</div>
-                        <div class="alert-info">
-                            <strong>Ejecución de archivo sospechosa bloqueada</strong>
-                            <span>Seguridad Endpoint • Hace 2 hr</span>
-                        </div>
-                    </div>
-                    <div class="alert-item alert-blue">
-                        <div class="alert-icon">i</div>
-                        <div class="alert-info">
-                            <strong>Respaldo completado</strong>
-                            <span>Sistema de Respaldo • Hace 3 hr</span>
-                        </div>
-                    </div>
-                    <div class="alert-item alert-yellow">
-                        <div class="alert-icon">⚠️</div>
-                        <div class="alert-info">
-                            <strong>Cambio de configuración detectado</strong>
-                            <span>Monitor de Config • Hace 4 hr</span>
-                        </div>
-                    </div>
+                <div class="alerts-list" id="actividad-reciente-list">
+                    <p style="color:#94a3b8; font-size:13px;">Cargando...</p>
                 </div>
             </div>
 
             <div class="card threat-card">
                 <div class="card-header">
-                    <h3>Resumen de Inteligencia de Amenazas</h3>
-                    <p>Hallazgos clave de las últimas 24 horas</p>
+                    <h3>Resumen General</h3>
+                    <p>Indicadores clave de tu programa de seguridad</p>
                 </div>
-                <div class="threat-grid">
-                    <div class="threat-item threat-red">
-                        <span class="threat-title">Intentos DDoS</span>
-                        <strong>156</strong>
-                        <small>Bloqueados con éxito</small>
-                    </div>
-                    <div class="threat-item threat-purple">
-                        <span class="threat-title">Malware Detectado</span>
-                        <strong>23</strong>
-                        <small>En cuarentena y eliminado</small>
-                    </div>
-                    <div class="threat-item threat-green">
-                        <span class="threat-title">Escaneos de Seguridad</span>
-                        <strong>1,247</strong>
-                        <small>Completados hoy</small>
-                    </div>
+                <div class="threat-grid" id="resumen-general-grid">
+                    <p style="color:#94a3b8; font-size:13px; grid-column: 1/-1;">Cargando...</p>
                 </div>
             </div>
 
         </section>
-
-
-
-
-
     </main>
 
+    <script src="js/dashboard.js"></script>
 </body>
 </html>

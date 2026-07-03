@@ -17,103 +17,131 @@ document.addEventListener('DOMContentLoaded', async () => {
     cargarTiposDeActivo(); // <-- Agrega esta línea
 });
 
-// --- NUEVO: FUNCIÓN PARA TRAER DATOS DEL BACKEND ---
+// --- FUNCIÓN MEJORADA: Cargar y Pintar Activos ---
 function cargarActivosDesdeSQL() {
     fetch('http://127.0.0.1:8000/api/activos/')
-        .then(respuesta => respuesta.json())
+        .then(respuesta => {
+            if(!respuesta.ok) throw new Error("Fallo en la red");
+            return respuesta.json();
+        })
         .then(datos_sql => {
+            activosGlobal = datos_sql; // <-- AGREGA ESTA LÍNEA
             const contenedor = document.getElementById('contenedor-activos');
             if(!contenedor) return;
             
             contenedor.innerHTML = ''; 
 
             datos_sql.forEach(activo => {
-                
-                // 1. "Traducir" los IDs usando el catálogo
-                const tipoObjeto = catalogoTipos.find(t => t.id_tipo_activo === activo.id_tipo_activo);
-                const nombreTipoReal = tipoObjeto ? tipoObjeto.nombre_tipo : 'Desconocido';
-                const codigoTipoReal = tipoObjeto ? tipoObjeto.codigo : '';
-                const fechaFormateada = activo.fecha_registro 
-                    ? new Date(activo.fecha_registro).toLocaleDateString('es-EC', {
-                        day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
-                      })
-                    : 'N/A';
-                const fechaModFormateada = activo.fecha_modificacion 
-                    ? new Date(activo.fecha_modificacion).toLocaleDateString('es-EC', {
-                        day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
-                      })
-                    : 'Sin modificaciones';
-                // 2. Asignar iconos de forma dinámica
-                let icono = 'bx-server'; 
-                if(codigoTipoReal === 'SW') icono = 'bx-code-alt';
-                else if(codigoTipoReal === 'D') icono = 'bx-file';
-                else if(codigoTipoReal === 'S') icono = 'bx-cloud';
-                else if(codigoTipoReal === 'P') icono = 'bx-user';
-                
-                let claseEstado = 'estado-operativo'; 
-                let nombreEstadoReal = 'Operativo';
-                if(activo.id_estado_activo === 2) {
-                    claseEstado = 'estado-mantenimiento'; // Asegúrate de tener esta clase en tu CSS si la usas
-                    nombreEstadoReal = 'En Mantenimiento';
-                } else if(activo.id_estado_activo === 3) {
-                    claseEstado = 'estado-inactivo';
-                    nombreEstadoReal = 'Inactivo / Retirado';
-                }
-                
-                // ==========================================
-                // 3. AQUÍ VA EL CAMBIO 2 (REEMPLAZA TU TARJETA VIEJA POR ESTA NUEVA)
-                // ==========================================
-                const tarjetaHTML = `
-                    <div class="asset-card" id="activo-${activo.id_activo}" data-categoria="${codigoTipoReal.toLowerCase()}">
-                        <div class="asset-card-main">
-                            <div class="asset-info-wrapper">
-                                <div class="asset-icon"><i class='bx ${icono}'></i></div>
-                                <div class="asset-details">
-                                    <strong class="toggle-desc" title="Haz clic para ver detalles" style="cursor:pointer;">
-                                        <span class="asset-id">#ACT-${activo.id_activo}</span> ${activo.nombre_activo} <i class='bx bx-chevron-down'></i>
-                                    </strong>
-                                    <div class="asset-tags">
-                                        <span class="tag tag-tipo">${nombreTipoReal}</span>
-                                        <span class="tag tag-estado ${claseEstado}">${nombreEstadoReal}</span>
-                                        <span class="tag tag-critico">Impacto: ${activo.nivel_impacto || activo.valor_final_max}</span>
+                try { // Envolvemos cada tarjeta en un try-catch por si una sola falla, las demás sigan cargando
+                    
+                    // 1. "Traducir" los IDs usando el catálogo
+                    const tipoObjeto = catalogoTipos.find(t => t.id_tipo_activo === activo.id_tipo_activo);
+                    const nombreTipoReal = tipoObjeto ? tipoObjeto.nombre_tipo : 'Desconocido';
+                    const codigoTipoReal = tipoObjeto ? tipoObjeto.codigo : 'OTRO';
+                    
+                    // PROTECCIÓN DE FECHAS: Solo formatear si realmente existe un valor válido
+                    let fechaFormateada = 'N/A';
+                    if(activo.fecha_registro) {
+                        fechaFormateada = new Date(activo.fecha_registro).toLocaleDateString('es-EC', {
+                            day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
+                        });
+                    }
+
+                    let fechaModFormateada = 'Sin modificaciones';
+                    if(activo.fecha_modificacion) {
+                        fechaModFormateada = new Date(activo.fecha_modificacion).toLocaleDateString('es-EC', {
+                            day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
+                        });
+                    }
+
+                    // 2. Asignar iconos de forma dinámica
+                    let icono = 'bx-server'; 
+                    if(codigoTipoReal === 'SW') icono = 'bx-code-alt';
+                    else if(codigoTipoReal === 'D') icono = 'bx-file';
+                    else if(codigoTipoReal === 'S') icono = 'bx-cloud';
+                    else if(codigoTipoReal === 'P') icono = 'bx-user';
+                    
+                    let claseEstado = 'estado-operativo'; 
+                    let nombreEstadoReal = 'Operativo';
+                    if(activo.id_estado_activo === 2) {
+                        claseEstado = 'estado-mantenimiento'; 
+                        nombreEstadoReal = 'En Mantenimiento';
+                    } else if(activo.id_estado_activo === 3) {
+                        claseEstado = 'estado-inactivo';
+                        nombreEstadoReal = 'Inactivo / Retirado';
+                    }
+                    
+                    // 3. Renderizar la tarjeta
+                    const tarjetaHTML = `
+                        <div class="asset-card" id="activo-${activo.id_activo}" data-categoria="${codigoTipoReal.toLowerCase()}">
+                            <div class="asset-card-main">
+                                <div class="asset-info-wrapper">
+                                    <div class="asset-icon"><i class='bx ${icono}'></i></div>
+                                    <div class="asset-details">
+                                        <strong class="toggle-desc" title="Haz clic para ver detalles" style="cursor:pointer;">
+                                            <span class="asset-id">#ACT-${activo.id_activo}</span> ${activo.nombre_activo || 'Sin Nombre'} <i class='bx bx-chevron-down'></i>
+                                        </strong>
+                                        <div class="asset-tags">
+                                            <span class="tag tag-tipo">${nombreTipoReal}</span>
+                                            <span class="tag tag-estado ${claseEstado}">${nombreEstadoReal}</span>
+                                            <span class="tag tag-critico">Impacto: ${activo.nivel_impacto || activo.valor_final_max || '0'}</span>
+                                        </div>
                                     </div>
                                 </div>
+                                <div class="cia-metrics">
+                                    <div class="cia-row"><small>C</small> <div class="pills">${generarPills(activo.confidencialidad || 0, 'c')}</div></div>
+                                    <div class="cia-row"><small>I</small> <div class="pills">${generarPills(activo.integridad || 0, 'i')}</div></div>
+                                    <div class="cia-row"><small>D</small> <div class="pills">${generarPills(activo.disponibilidad || 0, 'd')}</div></div>
+                                </div>
                             </div>
-                            <div class="cia-metrics">
-                                <div class="cia-row"><small>C</small> <div class="pills">${generarPills(activo.confidencialidad, 'c')}</div></div>
-                                <div class="cia-row"><small>I</small> <div class="pills">${generarPills(activo.integridad, 'i')}</div></div>
-                                <div class="cia-row"><small>D</small> <div class="pills">${generarPills(activo.disponibilidad, 'd')}</div></div>
-                            </div>
+                            <div class="asset-extra-info">
+                                <p class="asset-description"><strong>Descripción:</strong> ${activo.descripcion || 'Sin descripción detallada.'}</p>
+                                <div class="extra-grid">
+                                    <div class="extra-item"><span>Sistema Involucrado:</span> ${activo.sistema_involucrado || 'N/A'}</div>
+                                    <div class="extra-item"><span>Área de Trabajo:</span> ${activo.area_trabajo || 'N/A'}</div>
+                                    <div class="extra-item"><span>Cargo Administrativo:</span> ${activo.cargo_administrative || 'N/A'}</div>
+                                    <div class="extra-item"><span>Función de Seguridad:</span> ${activo.funcion_activo || 'N/A'}</div>
+                                    <div class="extra-item"><span>Sensibilidad ISO:</span> Nivel ${activo.sensibilidad || 'N/A'}</div>
+                                    <div class="extra-item"><span>Fecha de Registro:</span> ${fechaFormateada}</div> 
+                                    <div class="extra-item"><span>Última Modificación:</span> ${fechaModFormateada}</div> 
+                                </div>
+                                <div class="asset-actions">
+                                    <button class="btn-modificar" onclick="prepararEditar(${activo.id_activo})"><i class='bx bx-edit-alt'></i> Modificar activo</button>
+                                </div>
+                            </div> 
                         </div>
-                        <div class="asset-extra-info">
-                            <p class="asset-description"><strong>Descripción:</strong> ${activo.descripcion || 'Sin descripción detallada.'}</p>
-                            <div class="extra-grid">
-                                <div class="extra-item"><span>Sistema Involucrado:</span> ${activo.sistema_involucrado || 'N/A'}</div>
-                                <div class="extra-item"><span>Área de Trabajo:</span> ${activo.area_trabajo || 'N/A'}</div>
-                                <div class="extra-item"><span>Cargo Administrativo:</span> ${activo.cargo_administrative || 'N/A'}</div>
-                                <div class="extra-item"><span>Función de Seguridad:</span> ${activo.funcion_activo || 'N/A'}</div>
-                                <div class="extra-item"><span>Sensibilidad ISO:</span> Nivel ${activo.sensibilidad || 'N/A'}</div>
-                                <div class="extra-item"><span>Fecha de Registro:</span> ${fechaFormateada}</div> 
-                                <div class="extra-item"><span>Última Modificación:</span> ${fechaModFormateada}</div>
-                            </div> <div class="asset-actions">
-                                <button class="btn-modificar" onclick="prepararEditar(${activo.id_activo})"><i class='bx bx-edit-alt'></i> Modificar activo</button>
-                            </div>
-                        </div> </div>
-                `;
-                // ==========================================
-                
-                contenedor.innerHTML += tarjetaHTML;
+                    `;
+                    
+                    contenedor.innerHTML += tarjetaHTML;
+
+                } catch (errTarjeta) {
+                    // Si falla una tarjeta en específico, lo avisamos pero no rompemos el resto
+                    console.error("Fallo al pintar el activo ID:", activo.id_activo, errTarjeta);
+                }
             });
 
             activarTarjetasExpandibles();
             activarFiltros();
+            actualizarResumenCriticidad(datos_sql); // <-- AGREGA ESTA LÍNEA
             
         })
         .catch(error => {
-            console.error("Error al conectar con SQL:", error);
+            console.error("Error definitivo al conectar con SQL:", error);
             const contenedor = document.getElementById('contenedor-activos');
             if(contenedor) contenedor.innerHTML = '<p style="color:red; padding:20px;">Error al cargar los activos.</p>';
         });
+}
+
+function generarPills(valor, tipo) {
+    let html = '';
+    for (let i = 1; i <= 5; i++) {
+        if (i <= valor) {
+            html += `<span class="pill pill-${tipo}"></span>`;
+        } else {
+            html += `<span class="pill empty"></span>`;
+        }
+    }
+    return html;
 }
 
 
@@ -153,6 +181,7 @@ btnAbrir.addEventListener('click', () => {
     document.querySelector('#modalNuevoActivo h2').textContent = "Registrar Nuevo Activo";
     document.getElementById('btnGuardarActivo').textContent = "Guardar Activo";
     document.getElementById('formNuevoActivo').reset();
+    document.getElementById('btnEliminarActivo').classList.add('hidden'); 
     calcularCriticidad();
     modal.classList.remove('hidden'); 
 });
@@ -415,6 +444,10 @@ async function prepararEditar(id) {
 
         // Forzamos el recálculo visual de las etiquetas de impacto en el modal
         calcularCriticidad();
+        const btnEliminar = document.getElementById('btnEliminarActivo');
+        btnEliminar.classList.remove('hidden');
+        btnEliminar.onclick = () => eliminarActivo(id);
+        document.getElementById('modalNuevoActivo').classList.remove('hidden'); 
 
         // Abrimos el modal quitando la clase hidden
         document.getElementById('modalNuevoActivo').classList.remove('hidden');
@@ -423,4 +456,224 @@ async function prepararEditar(id) {
         console.error("Error al preparar la edición:", error);
         alert("No se pudieron cargar los datos del activo para editar.");
     }
+}
+
+/* ==========================================================================
+   NUEVO: Guardar activos en memoria + Resumen dinámico + Eliminar + Reporte
+   ========================================================================== */
+
+let activosGlobal = []; // Guardamos la última carga para el resumen y el reporte
+
+// --- H. RESUMEN DE CRITICIDAD DINÁMICO ---
+function actualizarResumenCriticidad(datos) {
+    const niveles = {
+        5: { label: 'Nivel Crítico (Nivel 5)', clase: 'fill-red', count: 0 },
+        4: { label: 'Nivel Alto (Nivel 4)', clase: 'fill-orange', count: 0 },
+        3: { label: 'Nivel Medio (Nivel 3)', clase: 'fill-yellow', count: 0 },
+        2: { label: 'Nivel Bajo (Nivel 2)', clase: 'fill-green', count: 0 },
+        1: { label: 'Nivel Marginal (Nivel 1)', clase: 'fill-gray', count: 0 }
+    };
+
+    datos.forEach(activo => {
+        const nivel = activo.nivel_impacto || activo.valor_final_max || 0;
+        if (niveles[nivel]) niveles[nivel].count++;
+    });
+
+    const numCriticos = document.getElementById('numCriticos');
+    if (numCriticos) numCriticos.textContent = niveles[5].count;
+
+    const contenedor = document.getElementById('riskBreakdownContainer');
+    if (!contenedor) return;
+
+    if (datos.length === 0) {
+        contenedor.innerHTML = '<p style="color:#9ca3af; font-size:13px;">Aún no hay activos registrados.</p>';
+        return;
+    }
+
+    const maxCount = Math.max(...Object.values(niveles).map(n => n.count), 1);
+    let html = '';
+
+    Object.keys(niveles).sort((a, b) => b - a).forEach(key => {
+        const nivel = niveles[key];
+        if (nivel.count === 0) return; // Solo mostramos niveles que realmente existen
+        const porcentaje = Math.round((nivel.count / maxCount) * 100);
+        html += `
+            <div class="progress-item">
+                <div class="progress-labels"><span>${nivel.label}</span><span>${nivel.count}</span></div>
+                <div class="progress-track"><div class="progress-fill ${nivel.clase}" style="width: ${porcentaje}%;"></div></div>
+            </div>
+        `;
+    });
+
+    contenedor.innerHTML = html;
+}
+
+// --- I. ELIMINAR ACTIVO ---
+async function eliminarActivo(id) {
+    const confirmar = confirm('¿Estás seguro de eliminar este activo? Esta acción no se puede deshacer y también eliminará los riesgos asociados a él.');
+    if (!confirmar) return;
+
+    try {
+        const respuesta = await fetch(`http://127.0.0.1:8000/api/activos/${id}/`, {
+            method: 'DELETE'
+        });
+
+        if (respuesta.ok) {
+            alert('Activo eliminado correctamente.');
+            document.getElementById('modalNuevoActivo').classList.add('hidden');
+            document.getElementById('formNuevoActivo').reset();
+            idActivoEditar = null;
+            cargarActivosDesdeSQL();
+        } else {
+            alert('No se pudo eliminar el activo (puede tener riesgos asociados que lo bloqueen).');
+        }
+    } catch (error) {
+        console.error('Error al eliminar el activo:', error);
+        alert('Error de conexión al intentar eliminar el activo.');
+    }
+}
+
+// --- J. GENERAR REPORTE COMPLETO (Vista + Descarga Excel) ---
+function generarReporte() {
+    if (!activosGlobal || activosGlobal.length === 0) {
+        alert('No hay activos registrados para generar el reporte.');
+        return;
+    }
+
+    const niveles = { 5: 'Crítico', 4: 'Alto', 3: 'Medio', 2: 'Bajo', 1: 'Marginal' };
+    const fecha = new Date().toLocaleDateString('es-EC', { day: '2-digit', month: 'long', year: 'numeric' });
+
+    let filas = '';
+    activosGlobal.forEach(activo => {
+        const nivel = activo.nivel_impacto || activo.valor_final_max || 0;
+        const tipoObjeto = catalogoTipos.find(t => t.id_tipo_activo === activo.id_tipo_activo);
+        const nombreTipo = tipoObjeto ? `[${tipoObjeto.codigo}] ${tipoObjeto.nombre_tipo}` : 'N/A';
+
+        let fechaReg = 'N/A';
+        if (activo.fecha_registro) {
+            fechaReg = new Date(activo.fecha_registro).toLocaleDateString('es-EC', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+        }
+
+        filas += `
+            <tr>
+                <td>#ACT-${activo.id_activo}</td>
+                <td>${activo.nombre_activo}</td>
+                <td>${nombreTipo}</td>
+                <td>${activo.descripcion || 'N/A'}</td>
+                <td>${activo.sistema_involucrado || 'N/A'}</td>
+                <td>${activo.area_trabajo || 'N/A'}</td>
+                <td>${activo.cargo_administrative || 'N/A'}</td>
+                <td>${activo.funcion_activo || 'N/A'}</td>
+                <td>${activo.sensibilidad || 'N/A'}</td>
+                <td>${activo.confidencialidad}</td>
+                <td>${activo.integridad}</td>
+                <td>${activo.disponibilidad}</td>
+                <td><strong>${nivel} - ${niveles[nivel] || 'N/A'}</strong></td>
+                <td>${fechaReg}</td>
+            </tr>
+        `;
+    });
+
+    const ventana = window.open('', '_blank');
+    ventana.document.write(`
+        <html>
+        <head>
+            <title>Reporte de Criticidad de Activos - SecureCore</title>
+            <style>
+                body { font-family: Arial, sans-serif; padding: 40px; color: #1f2937; }
+                h1 { color: #4f46e5; margin-bottom: 4px; }
+                p.fecha { color: #6b7280; margin-top: 0; }
+                table { width: 100%; border-collapse: collapse; margin-top: 24px; font-size: 12px; }
+                th, td { border: 1px solid #e5e7eb; padding: 6px 8px; text-align: left; }
+                th { background: #f3f4f6; }
+                .botones { margin-top: 20px; display: flex; gap: 12px; }
+                button { padding: 10px 20px; border-radius: 6px; border: none; cursor: pointer; font-weight: 600; }
+                .btn-print { background: #e5e7eb; color: #1f2937; }
+                .btn-excel { background: #16a34a; color: white; }
+                @media print { .botones { display: none; } }
+            </style>
+        </head>
+        <body>
+            <h1>Reporte de Gestión de Activos</h1>
+            <p class="fecha">Generado el ${fecha} — SecureCore Plataforma de Riesgo</p>
+            <p>Total de activos registrados: <strong>${activosGlobal.length}</strong></p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th><th>Nombre</th><th>Tipo</th><th>Descripción</th><th>Sistema</th>
+                        <th>Área</th><th>Cargo Admin.</th><th>Función</th><th>Sensibilidad</th>
+                        <th>C</th><th>I</th><th>D</th><th>Nivel Impacto</th><th>Fecha Registro</th>
+                    </tr>
+                </thead>
+                <tbody>${filas}</tbody>
+            </table>
+            <div class="botones">
+                <button class="btn-print" onclick="window.print()">🖨️ Imprimir / Guardar como PDF</button>
+            </div>
+        </body>
+        </html>
+    `);
+    ventana.document.close();
+
+    // Descarga automática del Excel también
+    descargarExcelActivos();
+}
+
+// --- K. DESCARGAR REPORTE COMO EXCEL (.xlsx) ---
+function descargarExcelActivos() {
+    if (typeof XLSX === 'undefined') {
+        alert('No se pudo cargar la librería de Excel. Verifica tu conexión a internet.');
+        return;
+    }
+
+    const niveles = { 5: 'Crítico', 4: 'Alto', 3: 'Medio', 2: 'Bajo', 1: 'Marginal' };
+
+    const datosExcel = activosGlobal.map(activo => {
+        const nivel = activo.nivel_impacto || activo.valor_final_max || 0;
+        const tipoObjeto = catalogoTipos.find(t => t.id_tipo_activo === activo.id_tipo_activo);
+        const nombreTipo = tipoObjeto ? `[${tipoObjeto.codigo}] ${tipoObjeto.nombre_tipo}` : 'N/A';
+
+        let fechaReg = 'N/A';
+        if (activo.fecha_registro) {
+            fechaReg = new Date(activo.fecha_registro).toLocaleDateString('es-EC', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+        }
+
+        return {
+            'ID': `#ACT-${activo.id_activo}`,
+            'Nombre': activo.nombre_activo,
+            'Tipo': nombreTipo,
+            'Descripción': activo.descripcion || 'N/A',
+            'Sistema Involucrado': activo.sistema_involucrado || 'N/A',
+            'Área de Trabajo': activo.area_trabajo || 'N/A',
+            'Cargo Administrativo': activo.cargo_administrative || 'N/A',
+            'Función': activo.funcion_activo || 'N/A',
+            'Sensibilidad ISO': activo.sensibilidad || 'N/A',
+            'Confidencialidad': activo.confidencialidad,
+            'Integridad': activo.integridad,
+            'Disponibilidad': activo.disponibilidad,
+            'Nivel de Impacto': `${nivel} - ${niveles[nivel] || 'N/A'}`,
+            'Fecha de Registro': fechaReg
+        };
+    });
+
+    const hoja = XLSX.utils.json_to_sheet(datosExcel);
+    hoja['!cols'] = [
+        { wch: 8 }, { wch: 30 }, { wch: 20 }, { wch: 40 }, { wch: 25 },
+        { wch: 18 }, { wch: 22 }, { wch: 15 }, { wch: 14 }, { wch: 14 },
+        { wch: 12 }, { wch: 14 }, { wch: 16 }, { wch: 20 }
+    ];
+
+    const libro = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(libro, hoja, 'Activos');
+
+    const fechaArchivo = new Date().toISOString().slice(0, 10);
+    XLSX.writeFile(libro, `Reporte_Activos_SecureCore_${fechaArchivo}.xlsx`);
+}
+
+const linkReporte = document.getElementById('btnVerReporte');
+if (linkReporte) {
+    linkReporte.addEventListener('click', (e) => {
+        e.preventDefault();
+        generarReporte();
+    });
 }

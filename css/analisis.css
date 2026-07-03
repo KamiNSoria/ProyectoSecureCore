@@ -1,5 +1,5 @@
 /* ==========================================================================
-   ANALISIS.CSS - Versión Limpia y Reordenada
+   ANALISIS.CSS - Versión Completa (Original + Lista/Formulario Colapsable)
    ========================================================================== */
 
 /* --- 1. GLOBALES Y LAYOUT --- */
@@ -9,10 +9,11 @@
 .mt-24 { margin-top: 24px; }
 .w-100 { width: 100%; }
 .flex-2 { flex: 2 !important; }
+.hidden { display: none !important; }
 
 .analisis-layout {
     display: grid;
-    grid-template-columns: 1.3fr 1fr; /* Formulario Izquierda (Más ancho), Matriz Derecha */
+    grid-template-columns: 1.3fr 1fr;
     gap: 24px;
     align-items: start;
 }
@@ -26,7 +27,7 @@
 .card {
     background: #ffffff;
     border-radius: 12px;
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-color, #e2e8f0);
     padding: 24px;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
 }
@@ -37,6 +38,7 @@
     gap: 8px;
     margin-bottom: 24px;
     color: #6366f1;
+    position: relative;
 }
 
 .card-header h3 { font-size: 16px; color: #0f172a; margin: 0; font-weight: 700; }
@@ -62,6 +64,8 @@
     outline: none;
     transition: all 0.2s ease;
     background: #f8fafc;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .form-input:focus {
@@ -147,7 +151,6 @@ textarea.form-input { resize: vertical; font-family: inherit; line-height: 1.5; 
     font-weight: 600;
 }
 
-/* Variables de Impacto Compactas */
 .rating-options-compact { display: flex; gap: 6px; width: 100%; }
 .rating-options-compact span {
     display: flex;
@@ -320,7 +323,7 @@ textarea.form-input { resize: vertical; font-family: inherit; line-height: 1.5; 
 .hm-r-5 { grid-row: 1; } .hm-r-4 { grid-row: 2; } .hm-r-3 { grid-row: 3; } .hm-r-2 { grid-row: 4; } .hm-r-1 { grid-row: 5; }
 .hm-c-1 { grid-column: 1; } .hm-c-2 { grid-column: 2; } .hm-c-3 { grid-column: 3; } .hm-c-4 { grid-column: 4; } .hm-c-5 { grid-column: 5; }
 
-/* --- 8. SWITCH BCP --- */
+/* --- 8. SWITCH BCP (legado, ya no se usa pero no estorba) --- */
 .switch-group {
     flex-direction: row !important;
     align-items: center;
@@ -338,20 +341,18 @@ input:checked + .slider { background-color: #10b981; }
 input:checked + .slider:before { transform: translateX(20px); }
 .switch-label-text { font-size: 12px; font-weight: 600; color: #64748b; }
 
-/* --- 9. RIESGOS GUARDADOS --- */
+/* --- 9. RIESGOS GUARDADOS (LISTA) --- */
 .saved-risks-list { display: flex; flex-direction: column; gap: 12px; }
 .saved-risk-item {
     display: flex; justify-content: space-between; align-items: center;
-    padding: 12px 16px; background: #f8fafc; border: 1px solid #e2e8f0;
-    border-radius: 8px; transition: background-color 0.2s ease;
+    padding: 14px 16px; background: #f8fafc; border: 1px solid #e2e8f0;
+    border-radius: 8px; transition: background-color 0.2s ease, transform 0.2s ease;
 }
-.saved-risk-item:hover { background-color: #f1f5f9; }
+.saved-risk-item:hover { background-color: #f1f5f9; transform: translateY(-1px); }
 .sr-info { display: flex; flex-direction: column; gap: 4px; }
-.sr-info strong { font-size: 13px; color: #0f172a; }
-.sr-info span { font-size: 11px; color: #64748b; font-weight: 500; }
-.sr-score { font-size: 11px; font-weight: 700; padding: 6px 10px; border-radius: 6px; text-transform: uppercase; white-space: nowrap; }
-.sr-score.impacto-critico { background: #fee2e2; color: #dc2626; }
-.sr-score.impacto-medio { background: #fefce8; color: #ca8a04; }
+.sr-info strong { font-size: 14px; color: #0f172a; }
+.sr-info span { font-size: 12px; color: #64748b; font-weight: 500; }
+.sr-score { font-size: 12px; font-weight: 700; padding: 6px 12px; border-radius: 8px; text-transform: uppercase; white-space: nowrap; }
 
 /* --- 10. BOTONES --- */
 .btn-primary-solid {
@@ -367,6 +368,18 @@ input:checked + .slider:before { transform: translateX(20px); }
 }
 .btn-primary-solid:hover { background-color: #4f46e5; transform: translateY(-2px); }
 
+.btn-secondary {
+    background: #f1f5f9;
+    color: #334155;
+    border: 1px solid #e2e8f0;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+}
+.btn-secondary:hover { background: #e2e8f0; }
+
 /* --- NUEVOS AJUSTES DE UNIFICACIÓN --- */
 .section-divider {
     border: 0;
@@ -379,4 +392,65 @@ input:checked + .slider:before { transform: translateX(20px); }
     align-items: center;
     gap: 16px;
     padding: 8px 0;
+}
+
+/* --- 11. LISTA ARRIBA + FORMULARIO COLAPSABLE --- */
+.risks-list-section { margin-bottom: 24px; }
+
+.risk-count-badge {
+    margin-left: auto;
+    font-size: 12px;
+    font-weight: 700;
+    color: #6366f1;
+    background: #eef2ff;
+    padding: 4px 10px;
+    border-radius: 12px;
+}
+
+.form-riesgo-wrapper { animation: fadeInForm 0.3s ease; }
+
+@keyframes fadeInForm {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.form-footer-actions {
+    display: flex;
+    align-items: center;
+    margin-top: 8px;
+}
+
+.sr-actions { display: flex; align-items: center; gap: 12px; }
+
+.btn-tratamiento {
+    background: #eef2ff;
+    color: #4f46e5;
+    border: 1px solid #c7d2fe;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+.btn-tratamiento:hover { background: #6366f1; color: white; border-color: #6366f1; }
+
+.badge-tratado {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 10px;
+    font-weight: 700;
+    color: #16a34a;
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    padding: 2px 8px;
+    border-radius: 10px;
+    margin-left: 8px;
+    text-transform: uppercase;
+    vertical-align: middle;
 }

@@ -63,7 +63,8 @@
         <div class="tabs-container">
             <div class="tab-btn active" onclick="switchTab(event, 'tab-biblioteca')">Biblioteca de Controles</div>
             <div class="tab-btn" onclick="switchTab(event, 'tab-plan')">Plan de Tratamiento (Residual)</div>
-        </div>
+            <div class="tab-btn" onclick="switchTab(event, 'tab-historial')">Historial de Tratamientos</div>
+        </div> 
 
         <section id="tab-biblioteca" class="tab-content active">
             <div class="analisis-layout">
@@ -230,6 +231,20 @@
                     </div>
                 </div>
                 
+            </div>
+        </section>
+        <section id="tab-historial" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <i class='bx bx-history'></i>
+                    <h3>Historial de Tratamientos Aplicados</h3>
+                    <span id="contador-historial" class="risk-count-badge">0 tratamientos</span>
+                </div>
+                <div class="card-body" style="padding-top:0;">
+                    <div id="lista-historial-tratamientos">
+                        <p style="color:#94a3b8; font-size:13px;">Cargando historial...</p>
+                    </div>
+                </div>
             </div>
         </section>
     </main>

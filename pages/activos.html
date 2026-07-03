@@ -7,6 +7,7 @@
     
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link rel="stylesheet" href="../css/global.css">
     <link rel="stylesheet" href="../css/activos.css">
 
@@ -120,28 +121,19 @@
                 <div class="critical-alert-box">
                     <div class="alert-header">
                         <span class="icon-danger"><i class='bx bx-error'></i></span>
-                        <span class="number-danger">4</span>
+                        <span class="number-danger" id="numCriticos">0</span>
                     </div>
                     <strong>Activos Críticos</strong>
                     <p>Requieren monitoreo constante. Presentan niveles de confidencialidad o disponibilidad máximos.</p>
                 </div>
                 
                 <div class="risk-breakdown">
-                    <small class="breakdown-title">DESGLOSE DE RIESGO</small>
-                    <div class="progress-item">
-                        <div class="progress-labels"><span>Nivel Crítico (Nivel 5)</span><span>4</span></div>
-                        <div class="progress-track"><div class="progress-fill fill-red" style="width: 80%;"></div></div>
+                        <small class="breakdown-title">DESGLOSE DE RIESGO</small>
+                        <div id="riskBreakdownContainer">
+                        </div>
                     </div>
-                    <div class="progress-item">
-                        <div class="progress-labels"><span>Nivel Alto (Nivel 4)</span><span>2</span></div>
-                        <div class="progress-track"><div class="progress-fill fill-orange" style="width: 40%;"></div></div>
-                    </div>
-                    <div class="progress-item">
-                        <div class="progress-labels"><span>Nivel Medio (Nivel 3)</span><span>1</span></div>
-                        <div class="progress-track"><div class="progress-fill fill-yellow" style="width: 20%;"></div></div>
-                    </div>
+                    <a href="#" id="btnVerReporte" class="view-report-link">Ver Reporte Completo</a>    
                 </div>
-                <a href="#" class="view-report-link">Ver Reporte Completo</a>
             </div> 
         </section>
     </main>

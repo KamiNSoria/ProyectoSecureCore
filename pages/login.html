@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Iniciar sesión - SecureCore</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/boxicons@2.1.4/css/boxicons.min.css">
+
+<!-- Ajusta estas rutas si login.html no queda en la misma carpeta "pages" que el resto -->
+<link rel="stylesheet" href="../css/global.css">
+<link rel="stylesheet" href="../css/login.css">
+</head>
+<body class="login-body">
+
+  <div class="login-shell">
+
+    <aside class="login-brand">
+      <div class="brand-mark"><i class='bx bx-shield-quarter'></i> SecureCore</div>
+
+      <h1>La seguridad no se improvisa,<br>se mide.</h1>
+      <p>Gestión de activos, riesgos y controles ISO 27001 en un solo lugar.</p>
+
+      <div class="risk-signature" aria-hidden="true">
+        <div class="risk-row">
+          <span class="risk-chip bajo"></span><span class="risk-chip bajo"></span><span class="risk-chip medio"></span><span class="risk-chip medio"></span><span class="risk-chip alto"></span>
+        </div>
+        <div class="risk-row">
+          <span class="risk-chip bajo"></span><span class="risk-chip medio"></span><span class="risk-chip medio"></span><span class="risk-chip alto"></span><span class="risk-chip critico"></span>
+        </div>
+        <div class="risk-row">
+          <span class="risk-chip medio"></span><span class="risk-chip medio"></span><span class="risk-chip alto"></span><span class="risk-chip critico"></span><span class="risk-chip critico"></span>
+        </div>
+      </div>
+      <span class="brand-foot">Matriz de riesgo · probabilidad × impacto</span>
+    </aside>
+
+    <main class="login-panel">
+      <form id="form-login" class="login-form" novalidate>
+        <div class="login-form-head">
+          <h2>Inicia sesión</h2>
+          <p>Ingresa tus credenciales para acceder al panel.</p>
+        </div>
+
+        <div id="login-alert" class="login-alert" role="alert" hidden></div>
+
+        <label class="field">
+          <span>Usuario</span>
+          <input type="text" id="username" name="username" autocomplete="username" required>
+        </label>
+
+        <label class="field">
+          <span>Contraseña</span>
+          <div class="password-wrap">
+            <input type="password" id="password" name="password" autocomplete="current-password" required>
+            <button type="button" id="toggle-password" aria-label="Mostrar contraseña">
+              <i class='bx bx-hide'></i>
+            </button>
+          </div>
+        </label>
+
+        <button type="submit" class="btn-login" id="btn-login">
+          <span class="btn-text">Ingresar</span>
+          <i class='bx bx-loader-alt btn-spinner' hidden></i>
+        </button>
+      </form>
+    </main>
+
+  </div>
+
+  <script src="../js/login.js"></script>
+</body>
+</html>

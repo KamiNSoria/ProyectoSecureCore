@@ -6,12 +6,14 @@
     <title>SecureCore - Gestión de Tratamiento y Controles</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link rel="stylesheet" href="../css/global.css">
-    <link rel="stylesheet" href="../css/analisis.css"> 
-    <link rel="stylesheet" href="../css/tratamiento.css"> </head>
+    <link rel="stylesheet" href="../css/analisis.css">
+    <link rel="stylesheet" href="../css/tratamiento.css">
+</head>
 <body>
 
-    <aside class="sidebar">
+    <header class="sidebar">
         <div class="logo-area">
             <div class="logo-icon"><i class='bx bx-shield'></i></div>
             <div>
@@ -49,7 +51,7 @@
                 <span>Analista de Seguridad</span>
             </div>
         </div>
-    </aside>
+    </header>
 
     <main class="main-content">
         
@@ -67,94 +69,135 @@
         </div> 
 
         <section id="tab-biblioteca" class="tab-content active">
-            <div class="analisis-layout">
-                
-                <div class="data-entry-column">
-                    <div class="card form-card">
-                        <div class="card-header"><i class='bx bx-plus-circle'></i> <h3>Crear Nuevo Control Maestro</h3></div>
-                        <div class="card-body">
-                            
-                            <div class="form-group mb-16">
-                                <label>Nombre del Control</label>
-                                <input type="text" class="form-input" id="ctrl_name" placeholder="Ej. Implementación de WAF Corporativo">
-                            </div>
+            <section class="biblioteca-layout">
 
-                            <div class="form-group mb-16">
-                                <label>1. ¿Qué busca lograr este control?</label>
-                                <select class="form-input form-select" id="intencion_usuario">
-                                    <option value="">Selecciona el objetivo principal...</option>
-                                    <option value="accesos">Controlar quién entra al sistema (Usuarios, Contraseñas)</option>
-                                    <option value="tecnologia">Proteger redes, servidores o equipos (Antivirus, WAF)</option>
-                                    <option value="personas">Capacitar o gestionar empleados (Entrenamientos, Contratos)</option>
-                                    <option value="fisico">Proteger oficinas y hardware (Cámaras, Guardias, Candados)</option>
-                                    <option value="respaldos">Garantizar que la información no se pierda (Backups)</option>
-                                </select>
-                            </div>
+                <aside class="card filtros-sidebar">
+                    <h3 class="filtros-titulo"><i class='bx bx-filter-alt'></i> Filtrar por</h3>
 
-                            <div class="form-group mb-24">
-                                <label>2. Control Sugerido por el Sistema (ISO 27002)</label>
-                                <select class="form-input form-select" id="ctrl_iso" disabled>
-                                    <option value="">Primero selecciona el objetivo arriba...</option>
-                                </select>
-                            </div>
-
-                            <hr class="section-divider" style="margin: 24px 0;">
-
-                            <div class="flex-between mb-16">
-                                <label class="icon-label"><i class='bx bx-slider-alt'></i> 3. Características del Diseño</label>
-                                <span class="control-score-badge" id="ctrl-strength-percent">Fuerza: 0%</span>
-                            </div>
-
-                            <div class="impact-table mb-24">
-                                <div class="impact-row">
-                                    <div class="impact-row-header"><label>Naturaleza</label><small id="lbl-c-tipo">No definido</small></div>
-                                    <div class="rating-options-compact">
-                                        <label><input type="radio" name="c_tipo" value="100"><span>P</span></label>
-                                        <label><input type="radio" name="c_tipo" value="60"><span>D</span></label>
-                                        <label><input type="radio" name="c_tipo" value="30"><span>C</span></label>
-                                    </div>
-                                </div>
-                                <div class="impact-row">
-                                    <div class="impact-row-header"><label>Ejecución</label><small id="lbl-c-exec">No definido</small></div>
-                                    <div class="rating-options-compact">
-                                        <label><input type="radio" name="c_exec" value="100"><span>A</span></label>
-                                        <label><input type="radio" name="c_exec" value="50"><span>S</span></label>
-                                        <label><input type="radio" name="c_exec" value="20"><span>M</span></label>
-                                    </div>
-                                </div>
-                                <div class="impact-row">
-                                    <div class="impact-row-header"><label>Documentación</label><small id="lbl-c-doc">No definido</small></div>
-                                    <div class="rating-options-compact">
-                                        <label><input type="radio" name="c_doc" value="100"><span>F</span></label>
-                                        <label><input type="radio" name="c_doc" value="50"><span>P</span></label>
-                                        <label><input type="radio" name="c_doc" value="0"><span>N</span></label>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <button class="btn-primary-solid w-100">Guardar en Biblioteca</button>
+                    <div class="filtro-grupo">
+                        <span class="filtro-grupo-titulo">Estado de Vínculo</span>
+                        <div id="filtrosVinculo" class="filtro-lista">
+                            <label class="filtro-radio-item">
+                                <input type="radio" name="filtro-vinculo" value="todos" checked>
+                                <span class="filtro-radio-label">Todos</span>
+                            </label>
+                            <label class="filtro-radio-item">
+                                <input type="radio" name="filtro-vinculo" value="si">
+                                <span class="filtro-radio-label">Vinculado</span>
+                                <span class="filtro-radio-count" id="count-vinculo-si">(0)</span>
+                            </label>
+                            <label class="filtro-radio-item">
+                                <input type="radio" name="filtro-vinculo" value="no">
+                                <span class="filtro-radio-label">No Vinculado</span>
+                                <span class="filtro-radio-count" id="count-vinculo-no">(0)</span>
+                            </label>
                         </div>
                     </div>
-                </div>
 
-                <div class="visual-column">
-                    <div class="card">
-                        <div class="card-header"><i class='bx bx-list-ul'></i> <h3>Controles en Biblioteca</h3></div>
-                        <div class="card-body">
-                            <div class="saved-risks-list" id="library-list">
-                                <div class="saved-risk-item">
-                                    <div class="sr-info">
-                                        <strong>Firewall de Aplicaciones (WAF)</strong>
-                                        <span>ISO 8.12 - Eficacia: 85%</span>
-                                    </div>
-                                    <div class="sr-score impacto-bajo">VINCULADO</div>
-                                </div>
+                    <div class="filtro-grupo">
+                        <span class="filtro-grupo-titulo">Eficacia mínima</span>
+                        <div class="filtro-slider-wrapper">
+                            <input type="range" id="filtroEficaciaMin" class="filtro-slider" min="0" max="100" step="5" value="0">
+                            <span class="filtro-slider-valor" id="filtroEficaciaMinValor">0%</span>
+                        </div>
+                    </div>
+
+                    <a href="#" id="btnVerReporteControles" class="view-report-link">Generar Reporte de Controles</a>
+                </aside>
+
+                <section class="card">
+                    <div class="card-header">
+                        <i class='bx bx-list-ul'></i> <h3>Controles en Biblioteca</h3>
+                        <span id="contador-biblioteca" class="risk-count-badge">0 controles</span>
+                        <button id="btnAbrirModalControl" class="btn-primary" style="margin-left:12px;">+ Nuevo Control</button>
+                    </div>
+                    <div class="card-body">
+                        <div class="saved-risks-list" id="library-list">
+                        </div>
+                    </div>
+                </section>
+
+                <aside class="card">
+                    <div class="card-header"><i class='bx bx-history'></i> <h3>Historial de Vínculos</h3></div>
+                    <div class="card-body" id="historial-vinculos-container">
+                        <p style="color:#94a3b8; font-size:13px;">Cargando...</p>
+                    </div>
+                </aside>
+
+            </section>
+        </section>
+
+        <div id="modalNuevoControl" class="modal-overlay hidden">
+            <div class="modal-content" style="width: 560px;">
+                <header class="modal-header">
+                    <div>
+                        <h2>Crear Nuevo Control Maestro</h2>
+                        <p>Define el objetivo, el control ISO y la fuerza del diseño.</p>
+                    </div>
+                    <button id="btnCerrarModalControl" class="close-modal-btn"><i class='bx bx-x'></i></button>
+                </header>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>Nombre del Control</label>
+                        <input type="text" class="form-input" id="ctrl_name" placeholder="Ej. Implementación de WAF Corporativo">
+                    </div>
+
+                    <div class="form-group">
+                        <label>1. ¿Qué busca lograr este control?</label>
+                        <select class="form-input form-select" id="intencion_usuario">
+                            <option value="">Selecciona el dominio del control...</option>
+                            <option value="Organizacional">Organizacional (Políticas, roles, proveedores, incidentes, cumplimiento legal)</option>
+                            <option value="Personas">Personas (Contratación, capacitación, confidencialidad, trabajo remoto)</option>
+                            <option value="Físico">Físico (Oficinas, equipos, cableado, áreas seguras)</option>
+                            <option value="Tecnológico">Tecnológico (Redes, malware, criptografía, desarrollo seguro, backups)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>2. Control Específico (ISO 27002:2022)</label>
+                        <select class="form-input form-select" id="ctrl_iso" disabled>
+                            <option value="">Primero selecciona el objetivo arriba...</option>
+                        </select>
+                    </div>
+
+                    <hr class="section-divider">
+
+                    <div class="flex-between">
+                        <label class="icon-label"><i class='bx bx-slider-alt'></i> 3. Características del Diseño</label>
+                        <span class="control-score-badge" id="ctrl-strength-percent">Fuerza: 0%</span>
+                    </div>
+
+                    <div class="impact-table">
+                        <div class="impact-row">
+                            <div class="impact-row-header"><label>Naturaleza</label><small id="lbl-c-tipo">No definido</small></div>
+                            <div class="rating-options-compact">
+                                <label><input type="radio" name="c_tipo" value="100"><span>P</span></label>
+                                <label><input type="radio" name="c_tipo" value="60"><span>D</span></label>
+                                <label><input type="radio" name="c_tipo" value="30"><span>C</span></label>
+                            </div>
+                        </div>
+                        <div class="impact-row">
+                            <div class="impact-row-header"><label>Ejecución</label><small id="lbl-c-exec">No definido</small></div>
+                            <div class="rating-options-compact">
+                                <label><input type="radio" name="c_exec" value="100"><span>A</span></label>
+                                <label><input type="radio" name="c_exec" value="50"><span>S</span></label>
+                                <label><input type="radio" name="c_exec" value="20"><span>M</span></label>
+                            </div>
+                        </div>
+                        <div class="impact-row">
+                            <div class="impact-row-header"><label>Documentación</label><small id="lbl-c-doc">No definido</small></div>
+                            <div class="rating-options-compact">
+                                <label><input type="radio" name="c_doc" value="100"><span>F</span></label>
+                                <label><input type="radio" name="c_doc" value="50"><span>P</span></label>
+                                <label><input type="radio" name="c_doc" value="0"><span>N</span></label>
                             </div>
                         </div>
                     </div>
+
+                    <button class="btn-primary-solid w-100">Guardar en Biblioteca</button>
                 </div>
             </div>
-        </section>
+        </div>
 
         <section id="tab-plan" class="tab-content">
             <div class="analisis-layout">
@@ -222,25 +265,70 @@
                                     <div class="hm-cell hm-r-1 hm-c-1 hm-low">1</div><div class="hm-cell hm-r-1 hm-c-2 hm-low">2</div><div class="hm-cell hm-r-1 hm-c-3 hm-low">3</div><div class="hm-cell hm-r-1 hm-c-4 hm-low">4</div><div class="hm-cell hm-r-1 hm-c-5 hm-med">5</div>
                                 </div>
                             </div>
+                            <div class="heatmap-leyenda">
+                                <span class="heatmap-leyenda-item"><span class="heatmap-leyenda-punto heatmap-leyenda-antes"></span> Antes del tratamiento</span>
+                                <span class="heatmap-leyenda-item"><span class="heatmap-leyenda-punto heatmap-leyenda-despues"></span> Después del tratamiento</span>
+                            </div>
                         </div>
                     </div>
                 </div>
-                
+
             </div>
         </section>
         <section id="tab-historial" class="tab-content">
-            <div class="card">
-                <div class="card-header">
-                    <i class='bx bx-history'></i>
-                    <h3>Historial de Tratamientos Aplicados</h3>
-                    <span id="contador-historial" class="risk-count-badge">0 tratamientos</span>
-                </div>
-                <div class="card-body" style="padding-top:0;">
-                    <div id="lista-historial-tratamientos">
-                        <p style="color:#94a3b8; font-size:13px;">Cargando historial...</p>
+            <section class="historial-layout">
+
+                <aside class="card filtros-sidebar">
+                    <h3 class="filtros-titulo"><i class='bx bx-filter-alt'></i> Filtrar por</h3>
+
+                    <div class="filtro-grupo">
+                        <span class="filtro-grupo-titulo">Filtro de Fecha</span>
+                        <div class="filtro-lista">
+                            <label class="filtro-radio-item">
+                                <input type="radio" name="filtro-tipo-fecha" value="todas" checked>
+                                <span class="filtro-radio-label">Todas las fechas</span>
+                            </label>
+                            <label class="filtro-radio-item">
+                                <input type="radio" name="filtro-tipo-fecha" value="exacta">
+                                <span class="filtro-radio-label">Fecha exacta</span>
+                            </label>
+                            <label class="filtro-radio-item">
+                                <input type="radio" name="filtro-tipo-fecha" value="rango">
+                                <span class="filtro-radio-label">Rango de fechas</span>
+                            </label>
+                        </div>
                     </div>
-                </div>
-            </div>
+
+                    <div class="filtro-grupo hidden" id="wrapper-fecha-exacta">
+                        <span class="filtro-grupo-titulo">Fecha exacta</span>
+                        <input type="date" id="filtroFechaExacta" class="form-input">
+                    </div>
+
+                    <div class="filtro-grupo hidden" id="wrapper-fecha-rango">
+                        <span class="filtro-grupo-titulo">Rango de fechas</span>
+                        <label class="filtro-fecha-label">Desde</label>
+                        <input type="date" id="filtroFechaDesde" class="form-input" style="margin-bottom:8px;">
+                        <label class="filtro-fecha-label">Hasta</label>
+                        <input type="date" id="filtroFechaHasta" class="form-input">
+                    </div>
+
+                    <a href="#" id="btnVerReporteHistorial" class="view-report-link">Generar Reporte de Historial</a>
+                </aside>
+
+                <section class="card">
+                    <div class="card-header">
+                        <i class='bx bx-history'></i>
+                        <h3>Historial de Tratamientos Aplicados</h3>
+                        <span id="contador-historial" class="risk-count-badge">0 tratamientos</span>
+                    </div>
+                    <div class="card-body" style="padding-top:0;">
+                        <div id="lista-historial-tratamientos">
+                            <p style="color:#94a3b8; font-size:13px;">Cargando historial...</p>
+                        </div>
+                    </div>
+                </section>
+
+            </section>
         </section>
     </main>
 

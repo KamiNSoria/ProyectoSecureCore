@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="../css/cumplimiento.css">
 </head>
 <body>
-    <aside class="sidebar">
+    <header class="sidebar">
         <div class="logo-area">
             <div class="logo-icon"><i class='bx bx-shield'></i></div>
             <div><h2>SecureCore</h2><p>Plataforma de Riesgo</p></div>
@@ -36,7 +36,15 @@
                 <i class='bx bx-file'></i> Cumplimiento
             </a>
         </nav>
-    </aside>
+
+        <div class="user-profile">
+            <div class="avatar">UA</div>
+            <div class="user-info">
+                <strong>Usuario Admin</strong>
+                <span>Analista de Seguridad</span>
+            </div>
+        </div>
+    </header>
 
     <main class="main-content">
         <header class="top-header header-flex">
@@ -69,36 +77,25 @@
         </section>
 
         <section class="card mt-24">
-            <div class="card-header"><i class='bx bx-book-content'></i> <h3>Mapeo de Cumplimiento Legal y Ético (RC4)</h3></div>
+            <div class="card-header">
+                <i class='bx bx-book-content'></i>
+                <div>
+                    <h3>Mapeo de Cumplimiento Legal y Ético</h3>
+                    <span class="rc4-subtitulo">Basado en los controles ISO 27002 realmente aplicados en tu Biblioteca de Controles</span>
+                </div>
+            </div>
             <div class="card-body" style="padding: 0;">
                 <table class="monitoring-table">
                     <thead>
                         <tr>
                             <th>Cuerpo Normativo</th>
-                            <th>Requisito Legal</th>
+                            <th>Requisito / Control Relacionado</th>
                             <th>Afectación Social</th>
                             <th>Estado</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        <tr>
-                            <td><strong>LOPDP (Ecuador)</strong></td>
-                            <td>Art. 38 - Medidas de seguridad</td>
-                            <td>Privacidad de ciudadanos</td>
-                            <td><span class="status-badge status-ok">CUMPLE</span></td>
-                        </tr>
-                        <tr>
-                            <td><strong>Código Ética Profesional</strong></td>
-                            <td>Responsabilidad de Ingeniería</td>
-                            <td>Impacto en confianza pública</td>
-                            <td><span class="status-badge status-ok">CUMPLE</span></td>
-                        </tr>
-                        <tr>
-                            <td><strong>ISO 27001:2022</strong></td>
-                            <td>A.5.17 Relación con proveedores</td>
-                            <td>Economía de la cadena de valor</td>
-                            <td><span class="status-badge status-late">BRECHA DETECTADA</span></td>
-                        </tr>
+                    <tbody id="rc4-mapeo-container">
+                        <tr><td colspan="4" style="color:#94a3b8; font-size:13px;">Cargando...</td></tr>
                     </tbody>
                 </table>
             </div>

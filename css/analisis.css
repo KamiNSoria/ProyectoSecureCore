@@ -11,6 +11,14 @@
 .flex-2 { flex: 2 !important; }
 .hidden { display: none !important; }
 
+.riesgos-layout {
+    display: grid;
+    grid-template-columns: 240px 1.6fr 1fr;
+    gap: 24px;
+    align-items: start;
+}
+
+/* Usado por la pestaña "Plan de Tratamiento" en tratamiento.html */
 .analisis-layout {
     display: grid;
     grid-template-columns: 1.3fr 1fr;
@@ -258,6 +266,51 @@ textarea.form-input { resize: vertical; font-family: inherit; line-height: 1.5; 
 .impacto-bajo { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
 .impacto-marginal { background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; }
 
+/* --- 6b. VISTA PREVIA MINI DE LA MATRIZ (dentro del modal de registro) --- */
+.calculo-preview-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+.calculo-preview-row .calculo-inline { flex: 1; margin: 0; }
+
+.heatmap-mini-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+}
+.heatmap-mini-titulo {
+    font-size: 10px;
+    font-weight: 700;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.heatmap-mini-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    grid-template-rows: repeat(5, 1fr);
+    gap: 2px;
+    width: 90px;
+    height: 90px;
+    border-radius: 6px;
+}
+
+.hm-mini-cell {
+    border-radius: 2px;
+    opacity: 0.35;
+    border: 1px solid transparent;
+    transition: all 0.2s ease;
+}
+.hm-mini-cell.cell-active {
+    opacity: 1;
+    border-color: #0f172a;
+    box-shadow: 0 0 0 1px #0f172a;
+}
+
 /* --- 7. MATRIZ DE CALOR INTERACTIVA --- */
 .heatmap-card-body { display: flex; justify-content: center; padding: 10px; }
 
@@ -300,18 +353,30 @@ textarea.form-input { resize: vertical; font-family: inherit; line-height: 1.5; 
     font-weight: 700;
     color: rgba(0,0,0,0.6);
     border-radius: 4px;
-    opacity: 0.4;
-    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    opacity: 0.3;
+    transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     border: 2px solid transparent;
-    cursor: default;
+    cursor: pointer;
 }
 
-.hm-cell.cell-active {
+/* Las casillas con riesgos registrados se ven vivas; el resto quedan opacas */
+.hm-cell.tiene-riesgos {
+    opacity: 1;
+}
+
+.hm-cell:hover {
+    transform: scale(1.1);
+    z-index: 8;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+}
+
+/* Celda seleccionada como filtro para la lista de riesgos */
+.hm-cell.hm-cell-seleccionada {
     opacity: 1;
     transform: scale(1.15);
     z-index: 10;
     border-color: #0f172a;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.25);
     font-size: 16px;
 }
 
@@ -395,8 +460,6 @@ input:checked + .slider:before { transform: translateX(20px); }
 }
 
 /* --- 11. LISTA ARRIBA + FORMULARIO COLAPSABLE --- */
-.risks-list-section { margin-bottom: 24px; }
-
 .risk-count-badge {
     margin-left: auto;
     font-size: 12px;
@@ -405,13 +468,6 @@ input:checked + .slider:before { transform: translateX(20px); }
     background: #eef2ff;
     padding: 4px 10px;
     border-radius: 12px;
-}
-
-.form-riesgo-wrapper { animation: fadeInForm 0.3s ease; }
-
-@keyframes fadeInForm {
-    from { opacity: 0; transform: translateY(-10px); }
-    to { opacity: 1; transform: translateY(0); }
 }
 
 .form-footer-actions {

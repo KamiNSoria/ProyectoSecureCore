@@ -6,12 +6,13 @@
     <title>SecureCore - Análisis de Riesgos</title> 
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link rel="stylesheet" href="../css/global.css">
-    <link rel="stylesheet" href="../css/analisis.css"> 
+    <link rel="stylesheet" href="../css/analisis.css">
 </head>
 <body>
 
-    <aside class="sidebar">
+    <header class="sidebar">
         <div class="logo-area">
             <div class="logo-icon"><i class='bx bx-shield'></i></div>
             <div>
@@ -45,7 +46,7 @@
                 <span>Analista de Seguridad</span>
             </div>
         </div>
-    </aside>
+    </header>
 
     <main class="main-content">
         
@@ -57,251 +58,309 @@
             <button id="btnNuevoRiesgo" class="btn-primary">+ Registrar Nuevo Riesgo</button>
         </header>
 
-        <section class="risks-list-section">
-            <div class="card">
-                <div class="card-header">
-                    <i class='bx bx-list-check'></i>
-                    <h3>Riesgos Registrados</h3>
-                    <span id="contadorRiesgos" class="risk-count-badge">0 riesgos</span>
-                </div>
-                <div class="card-body" style="padding-top: 0;">
-                    <div id="lista-riesgos-container" class="saved-risks-list">
-                        <p style="color:#94a3b8; font-size:13px;">Cargando riesgos...</p>
+        <section class="riesgos-layout">
+
+            <aside class="card filtros-sidebar">
+                <h3 class="filtros-titulo"><i class='bx bx-filter-alt'></i> Filtrar por</h3>
+
+                <div class="filtro-grupo">
+                    <span class="filtro-grupo-titulo">Estado de Tratamiento</span>
+                    <div id="filtrosTratado" class="filtro-lista">
+                        <label class="filtro-radio-item">
+                            <input type="radio" name="filtro-tratado" value="todos" checked>
+                            <span class="filtro-radio-label">Todos</span>
+                        </label>
+                        <label class="filtro-radio-item">
+                            <input type="radio" name="filtro-tratado" value="si">
+                            <span class="filtro-radio-label">Tratado</span>
+                            <span class="filtro-radio-count" id="count-tratado-si">(0)</span>
+                        </label>
+                        <label class="filtro-radio-item">
+                            <input type="radio" name="filtro-tratado" value="no">
+                            <span class="filtro-radio-label">No Tratado</span>
+                            <span class="filtro-radio-count" id="count-tratado-no">(0)</span>
+                        </label>
                     </div>
                 </div>
-            </div>
+            </aside>
+
+            <section class="risks-list-section">
+                <div class="card">
+                    <div class="card-header">
+                        <i class='bx bx-list-check'></i>
+                        <h3>Riesgos Registrados</h3>
+                        <span id="contadorRiesgos" class="risk-count-badge">0 riesgos</span>
+                    </div>
+                    <div class="card-body" style="padding-top: 0;">
+                        <div id="lista-riesgos-container" class="saved-risks-list">
+                            <p style="color:#94a3b8; font-size:13px;">Cargando riesgos...</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <aside class="card heatmap-card">
+                <div class="card-header"><i class='bx bx-grid-alt'></i> <h3>Matriz de Riesgo</h3></div>
+                <div class="card-body heatmap-card-body">
+                    <div class="heatmap-container">
+                        <div class="axis-label y-axis">Impacto →</div>
+                        <div class="axis-label x-axis">← Probabilidad</div>
+
+                        <div class="heatmap-grid" id="heatmap-grid">
+                            <div class="hm-cell hm-r-5 hm-c-1 hm-med">0</div>
+                            <div class="hm-cell hm-r-5 hm-c-2 hm-high">0</div>
+                            <div class="hm-cell hm-r-5 hm-c-3 hm-crit">0</div>
+                            <div class="hm-cell hm-r-5 hm-c-4 hm-crit">0</div>
+                            <div class="hm-cell hm-r-5 hm-c-5 hm-crit">0</div>
+                            <div class="hm-cell hm-r-4 hm-c-1 hm-med">0</div>
+                            <div class="hm-cell hm-r-4 hm-c-2 hm-med">0</div>
+                            <div class="hm-cell hm-r-4 hm-c-3 hm-high">0</div>
+                            <div class="hm-cell hm-r-4 hm-c-4 hm-crit">0</div>
+                            <div class="hm-cell hm-r-4 hm-c-5 hm-crit">0</div>
+                            <div class="hm-cell hm-r-3 hm-c-1 hm-low">0</div>
+                            <div class="hm-cell hm-r-3 hm-c-2 hm-med">0</div>
+                            <div class="hm-cell hm-r-3 hm-c-3 hm-med">0</div>
+                            <div class="hm-cell hm-r-3 hm-c-4 hm-high">0</div>
+                            <div class="hm-cell hm-r-3 hm-c-5 hm-crit">0</div>
+                            <div class="hm-cell hm-r-2 hm-c-1 hm-low">0</div>
+                            <div class="hm-cell hm-r-2 hm-c-2 hm-low">0</div>
+                            <div class="hm-cell hm-r-2 hm-c-3 hm-med">0</div>
+                            <div class="hm-cell hm-r-2 hm-c-4 hm-med">0</div>
+                            <div class="hm-cell hm-r-2 hm-c-5 hm-high">0</div>
+                            <div class="hm-cell hm-r-1 hm-c-1 hm-low">0</div>
+                            <div class="hm-cell hm-r-1 hm-c-2 hm-low">0</div>
+                            <div class="hm-cell hm-r-1 hm-c-3 hm-low">0</div>
+                            <div class="hm-cell hm-r-1 hm-c-4 hm-low">0</div>
+                            <div class="hm-cell hm-r-1 hm-c-5 hm-med">0</div>
+                        </div>
+                    </div>
+                </div>
+                <a href="#" id="btnVerReporteRiesgos" class="view-report-link">Generar Reporte de Riesgos</a>
+            </aside>
+
         </section>
 
-        <section id="form-riesgo-wrapper" class="form-riesgo-wrapper hidden">
-            <div class="analisis-layout">
-                
-                <div class="data-entry-column">
-                    <div class="card form-card">
-                        <div class="card-header">
-                            <i class='bx bx-edit'></i> 
-                            <h3 id="form-riesgo-titulo">Ingreso de Datos del Riesgo</h3>
+        <div id="modalNuevoRiesgo" class="modal-overlay hidden">
+            <div class="modal-content" style="width: 720px;">
+                <header class="modal-header">
+                    <div>
+                        <h2 id="form-riesgo-titulo">Ingreso de Datos del Riesgo</h2>
+                        <p>Evalúa el impacto y probabilidad de este riesgo sobre el activo.</p>
+                    </div>
+                    <button id="btnCerrarModalRiesgo" class="close-modal-btn"><i class='bx bx-x'></i></button>
+                </header>
+
+                <div class="modal-body">
+                    <input type="hidden" id="in-id-riesgo" value="">
+
+                    <div class="form-group">
+                        <label>Activo Afectado</label>
+                        <select id="in-riesgo-activo" class="form-input form-select">
+                            <option value="" disabled selected>Cargando activos...</option>
+                        </select>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="icon-label"><i class='bx bx-skull'></i> Amenaza</label>
+                            <select id="in-riesgo-amenaza" class="form-input form-select">
+                                <option value="" disabled selected>Cargando...</option>
+                                <option value="otro">Otro (especificar)</option>
+                            </select>
+                            <input type="text" id="in-riesgo-amenaza-otro" class="form-input hidden" placeholder="Describe la amenaza...">
                         </div>
-                        
-                        <div class="card-body">
-                            <input type="hidden" id="in-id-riesgo" value="">
+                        <div class="form-group">
+                            <label class="icon-label"><i class='bx bx-bug'></i> Vulnerabilidad</label>
+                            <select id="in-riesgo-vulnerabilidad" class="form-input form-select">
+                                <option value="" disabled selected>Cargando...</option>
+                                <option value="otro">Otro (especificar)</option>
+                            </select>
+                            <input type="text" id="in-riesgo-vulnerabilidad-otro" class="form-input hidden" placeholder="Describe la vulnerabilidad...">
+                        </div>
+                    </div>
 
-                            <div class="form-group mb-16">
-                                <label>Nombre del Riesgo (Tipificado)</label>
-                                <input type="text" id="in-riesgo-nombre" class="form-input" placeholder="Ej. Acceso no autorizado a credenciales">
-                            </div>
-                            
-                            <div class="form-group mb-24">
-                                <label>Activo Afectado</label>
-                                <select id="in-riesgo-activo" class="form-input form-select">
-                                    <option value="" disabled selected>Cargando activos...</option>
-                                </select>
-                            </div>
+                    <div id="controles-recomendados-box" class="recomendados-box hidden">
+                        <div class="recomendados-header">
+                            <i class='bx bx-bulb'></i> <strong>Controles ISO 27002 sugeridos para esta combinación</strong>
+                        </div>
+                        <div id="recomendados-lista"></div>
+                        <p class="recomendados-nota">Estos controles se aplican formalmente en el módulo <strong>Tratamiento</strong>. Esta es solo una referencia rápida.</p>
+                    </div>
 
-                            <div class="form-row mb-16">
-                                <div class="form-group">
-                                    <label class="icon-label"><i class='bx bx-skull'></i> Amenaza</label>
-                                    <select id="in-riesgo-amenaza" class="form-input form-select">
-                                        <option value="" disabled selected>Cargando...</option>
-                                        <option value="otro">Otro (especificar)</option>
-                                    </select>
-                                    <input type="text" id="in-riesgo-amenaza-otro" class="form-input hidden" placeholder="Describe la amenaza...">
+                    <div class="form-group">
+                        <label>Nombre del Riesgo (Tipificado)</label>
+                        <input type="text" id="in-riesgo-nombre" class="form-input" placeholder="Ej. Acceso no autorizado a credenciales">
+                    </div>
+
+                    <div id="banner-riesgo-actual" class="banner-riesgo hidden">
+                        <i class='bx bx-target-lock'></i>
+                        <div>
+                            <small>ESTÁS CALIFICANDO EL RIESGO (no la amenaza en sí):</small>
+                            <strong id="banner-riesgo-nombre">-</strong>
+                        </div>
+                    </div>
+
+                    <div class="accordion-wrapper">
+                        <div class="collapsible-trigger" data-target="content-impacto">
+                            <label class="icon-label"><i class='bx bx-error-alt'></i> 1. Impacto de ESTE RIESGO si se materializa (Promedio)</label>
+                            <i class='bx bx-chevron-down arrow-icon'></i>
+                        </div>
+
+                        <div class="collapsible-content" id="content-impacto">
+                            <div class="impact-table mt-16">
+                                <div class="impact-header">
+                                    <span>Tipo de impacto</span>
+                                    <span>Calificación (1-5)</span>
                                 </div>
-                                <div class="form-group">
-                                    <label class="icon-label"><i class='bx bx-bug'></i> Vulnerabilidad</label>
-                                    <select id="in-riesgo-vulnerabilidad" class="form-input form-select">
-                                        <option value="" disabled selected>Cargando...</option>
-                                        <option value="otro">Otro (especificar)</option>
-                                    </select>
-                                    <input type="text" id="in-riesgo-vulnerabilidad-otro" class="form-input hidden" placeholder="Describe la vulnerabilidad...">
+
+                                <div class="impact-row">
+                                    <div class="impact-row-header">
+                                        <label>Legal (L)</label>
+                                        <small id="lbl-imp-legal">3 - Moderado (60%)</small>
+                                    </div>
+                                    <div class="rating-options-compact impact-calc-group">
+                                        <label><input type="radio" name="impact_legal" value="1"><span>1</span></label>
+                                        <label><input type="radio" name="impact_legal" value="2"><span>2</span></label>
+                                        <label><input type="radio" name="impact_legal" value="3" checked><span>3</span></label>
+                                        <label><input type="radio" name="impact_legal" value="4"><span>4</span></label>
+                                        <label><input type="radio" name="impact_legal" value="5"><span>5</span></label>
+                                    </div>
                                 </div>
-                            </div>
-                            <div id="controles-recomendados-box" class="recomendados-box hidden mb-24">
-                                <div class="recomendados-header">
-                                    <i class='bx bx-bulb'></i> <strong>Controles ISO 27002 sugeridos para esta combinación</strong>
+
+                                <div class="impact-row">
+                                    <div class="impact-row-header">
+                                        <label>Reputacional (R)</label>
+                                        <small id="lbl-imp-reputational">3 - Moderado (60%)</small>
+                                    </div>
+                                    <div class="rating-options-compact impact-calc-group">
+                                        <label><input type="radio" name="impact_reputational" value="1"><span>1</span></label>
+                                        <label><input type="radio" name="impact_reputational" value="2"><span>2</span></label>
+                                        <label><input type="radio" name="impact_reputational" value="3" checked><span>3</span></label>
+                                        <label><input type="radio" name="impact_reputational" value="4"><span>4</span></label>
+                                        <label><input type="radio" name="impact_reputational" value="5"><span>5</span></label>
+                                    </div>
                                 </div>
-                                <div id="recomendados-lista"></div>
-                                <p class="recomendados-nota">Estos controles se aplican formalmente en el módulo <strong>Tratamiento</strong>. Esta es solo una referencia rápida.</p>
-                            </div>
 
-                            <div id="banner-riesgo-actual" class="banner-riesgo hidden">
-                                <i class='bx bx-target-lock'></i>
-                                <div>
-                                    <small>ESTÁS CALIFICANDO EL RIESGO (no la amenaza en sí):</small>
-                                    <strong id="banner-riesgo-nombre">-</strong>
+                                <div class="impact-row">
+                                    <div class="impact-row-header">
+                                        <label>Operacional (O)</label>
+                                        <small id="lbl-imp-operational">3 - Moderado (60%)</small>
+                                    </div>
+                                    <div class="rating-options-compact impact-calc-group">
+                                        <label><input type="radio" name="impact_operational" value="1"><span>1</span></label>
+                                        <label><input type="radio" name="impact_operational" value="2"><span>2</span></label>
+                                        <label><input type="radio" name="impact_operational" value="3" checked><span>3</span></label>
+                                        <label><input type="radio" name="impact_operational" value="4"><span>4</span></label>
+                                        <label><input type="radio" name="impact_operational" value="5"><span>5</span></label>
+                                    </div>
                                 </div>
-                            </div>
 
-                            <div class="accordion-wrapper mb-16">
-                                <div class="collapsible-trigger" data-target="content-impacto">
-                                    <label class="icon-label"><i class='bx bx-error-alt'></i> 1. Impacto de ESTE RIESGO si se materializa (Promedio)</label>
-                                    <i class='bx bx-chevron-down arrow-icon'></i>
+                                <div class="impact-row">
+                                    <div class="impact-row-header">
+                                        <label>Financiero (F)</label>
+                                        <small id="lbl-imp-financial">3 - Moderado (60%)</small>
+                                    </div>
+                                    <div class="rating-options-compact impact-calc-group">
+                                        <label><input type="radio" name="impact_financial" value="1"><span>1</span></label>
+                                        <label><input type="radio" name="impact_financial" value="2"><span>2</span></label>
+                                        <label><input type="radio" name="impact_financial" value="3" checked><span>3</span></label>
+                                        <label><input type="radio" name="impact_financial" value="4"><span>4</span></label>
+                                        <label><input type="radio" name="impact_financial" value="5"><span>5</span></label>
+                                    </div>
                                 </div>
-                                
-                                <div class="collapsible-content" id="content-impacto">
-                                    <div class="impact-table mt-16">
-                                        <div class="impact-header">
-                                            <span>Tipo de impacto</span>
-                                            <span>Calificación (1-5)</span>
-                                        </div>
-                                        
-                                        <div class="impact-row">
-                                            <div class="impact-row-header">
-                                                <label>Legal (L)</label>
-                                                <small id="lbl-imp-legal">3 - Moderado (60%)</small>
-                                            </div>
-                                            <div class="rating-options-compact impact-calc-group">
-                                                <label><input type="radio" name="impact_legal" value="1"><span>1</span></label>
-                                                <label><input type="radio" name="impact_legal" value="2"><span>2</span></label>
-                                                <label><input type="radio" name="impact_legal" value="3" checked><span>3</span></label>
-                                                <label><input type="radio" name="impact_legal" value="4"><span>4</span></label>
-                                                <label><input type="radio" name="impact_legal" value="5"><span>5</span></label>
-                                            </div>
-                                        </div>
 
-                                        <div class="impact-row">
-                                            <div class="impact-row-header">
-                                                <label>Reputacional (R)</label>
-                                                <small id="lbl-imp-reputational">3 - Moderado (60%)</small>
-                                            </div>
-                                            <div class="rating-options-compact impact-calc-group">
-                                                <label><input type="radio" name="impact_reputational" value="1"><span>1</span></label>
-                                                <label><input type="radio" name="impact_reputational" value="2"><span>2</span></label>
-                                                <label><input type="radio" name="impact_reputational" value="3" checked><span>3</span></label>
-                                                <label><input type="radio" name="impact_reputational" value="4"><span>4</span></label>
-                                                <label><input type="radio" name="impact_reputational" value="5"><span>5</span></label>
-                                            </div>
-                                        </div>
-
-                                        <div class="impact-row">
-                                            <div class="impact-row-header">
-                                                <label>Operacional (O)</label>
-                                                <small id="lbl-imp-operational">3 - Moderado (60%)</small>
-                                            </div>
-                                            <div class="rating-options-compact impact-calc-group">
-                                                <label><input type="radio" name="impact_operational" value="1"><span>1</span></label>
-                                                <label><input type="radio" name="impact_operational" value="2"><span>2</span></label>
-                                                <label><input type="radio" name="impact_operational" value="3" checked><span>3</span></label>
-                                                <label><input type="radio" name="impact_operational" value="4"><span>4</span></label>
-                                                <label><input type="radio" name="impact_operational" value="5"><span>5</span></label>
-                                            </div>
-                                        </div>
-
-                                        <div class="impact-row">
-                                            <div class="impact-row-header">
-                                                <label>Financiero (F)</label>
-                                                <small id="lbl-imp-financial">3 - Moderado (60%)</small>
-                                            </div>
-                                            <div class="rating-options-compact impact-calc-group">
-                                                <label><input type="radio" name="impact_financial" value="1"><span>1</span></label>
-                                                <label><input type="radio" name="impact_financial" value="2"><span>2</span></label>
-                                                <label><input type="radio" name="impact_financial" value="3" checked><span>3</span></label>
-                                                <label><input type="radio" name="impact_financial" value="4"><span>4</span></label>
-                                                <label><input type="radio" name="impact_financial" value="5"><span>5</span></label>
-                                            </div>
-                                        </div>
-                                        
-                                        <div class="impact-footer">
-                                            <div class="impact-footer-text">
-                                                <strong>Calificación final de impacto</strong>
-                                            </div>
-                                            <div class="impact-average-result">
-                                                <span id="impact-avg-text" class="badge-impacto impacto-medio">Moderado</span>
-                                                <strong id="impact-avg-number">3</strong>
-                                            </div>
-                                        </div>
+                                <div class="impact-footer">
+                                    <div class="impact-footer-text">
+                                        <strong>Calificación final de impacto</strong>
+                                    </div>
+                                    <div class="impact-average-result">
+                                        <span id="impact-avg-text" class="badge-impacto impacto-medio">Moderado</span>
+                                        <strong id="impact-avg-number">3</strong>
                                     </div>
                                 </div>
                             </div>
-
-                            <div class="accordion-wrapper mb-24">
-                                <div class="collapsible-trigger" data-target="content-probabilidad">
-                                    <label class="icon-label"><i class='bx bx-git-branch'></i> 2. Probabilidad de que ESTE RIESGO ocurra</label>
-                                    <i class='bx bx-chevron-down arrow-icon'></i>
-                                </div>
-                                
-                                <div class="collapsible-content" id="content-probabilidad">
-                                    <div class="segmented-picker mt-16">
-                                        <div class="rating-header">
-                                            <span>← Probabilidad →</span>
-                                            <small id="lbl-prob">3 - Ocasional (60%)</small>
-                                        </div>
-                                        <div class="rating-options dark-options" id="prob_radio_group">
-                                            <label><input type="radio" name="prob_radio" value="1"><span>1</span></label>
-                                            <label><input type="radio" name="prob_radio" value="2"><span>2</span></label>
-                                            <label><input type="radio" name="prob_radio" value="3" checked><span>3</span></label>
-                                            <label><input type="radio" name="prob_radio" value="4"><span>4</span></label>
-                                            <label><input type="radio" name="prob_radio" value="5"><span>5</span></label>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="calculo-inline mb-24">
-                                <span>Riesgo Inherente (P x I):</span>
-                                <strong id="risk-score-inline">9</strong>
-                                <span id="risk-label-inline" class="badge-impacto impacto-medio">Nivel Medio</span>
-                            </div>
-
-                            <hr class="section-divider" style="margin: 24px 0 24px 0;">
-
-                            <div class="form-group mb-24">
-                                <label>Descripción Detallada y Escenario</label>
-                                <textarea id="in-riesgo-descripcion" class="form-input" rows="2" placeholder="Describe cómo ocurriría el evento y las consecuencias inmediatas..."></textarea>
-                            </div>
-
-                            <footer class="form-footer-actions">
-                                <button type="button" id="btnEliminarRiesgo" class="btn-secondary hidden" style="background-color:#ef4444; color:white; border:none;">Eliminar Riesgo</button>
-                                <div style="margin-left:auto; display:flex; gap:10px;">
-                                    <button type="button" id="btnCancelarRiesgo" class="btn-secondary">Cancelar</button>
-                                    <button type="button" id="btnGuardarRiesgo" class="btn-primary-solid">Guardar Evaluación de Riesgo</button>
-                                </div>
-                            </footer>
                         </div>
                     </div>
-                </div>
 
-                <div class="visual-column">
-                    <div class="card heatmap-card">
-                        <div class="card-header"><i class='bx bx-grid-alt'></i> <h3>Matriz de Riesgo</h3></div>
-                        <div class="card-body heatmap-card-body">
-                            <div class="heatmap-container">
-                                <div class="axis-label y-axis">Impacto →</div>
-                                <div class="axis-label x-axis">← Probabilidad</div>
+                    <div class="accordion-wrapper">
+                        <div class="collapsible-trigger" data-target="content-probabilidad">
+                            <label class="icon-label"><i class='bx bx-git-branch'></i> 2. Probabilidad de que ESTE RIESGO ocurra</label>
+                            <i class='bx bx-chevron-down arrow-icon'></i>
+                        </div>
 
-                                <div class="heatmap-grid" id="heatmap-grid">
-                                    <div class="hm-cell hm-r-5 hm-c-1 hm-med">5</div>
-                                    <div class="hm-cell hm-r-5 hm-c-2 hm-high">10</div>
-                                    <div class="hm-cell hm-r-5 hm-c-3 hm-crit">15</div>
-                                    <div class="hm-cell hm-r-5 hm-c-4 hm-crit">20</div>
-                                    <div class="hm-cell hm-r-5 hm-c-5 hm-crit">25</div>
-                                    <div class="hm-cell hm-r-4 hm-c-1 hm-med">4</div>
-                                    <div class="hm-cell hm-r-4 hm-c-2 hm-med">8</div>
-                                    <div class="hm-cell hm-r-4 hm-c-3 hm-high">12</div>
-                                    <div class="hm-cell hm-r-4 hm-c-4 hm-crit">16</div>
-                                    <div class="hm-cell hm-r-4 hm-c-5 hm-crit">20</div>
-                                    <div class="hm-cell hm-r-3 hm-c-1 hm-low">3</div>
-                                    <div class="hm-cell hm-r-3 hm-c-2 hm-med">6</div>
-                                    <div class="hm-cell hm-r-3 hm-c-3 hm-med">9</div>
-                                    <div class="hm-cell hm-r-3 hm-c-4 hm-high">12</div>
-                                    <div class="hm-cell hm-r-3 hm-c-5 hm-crit">15</div>
-                                    <div class="hm-cell hm-r-2 hm-c-1 hm-low">2</div>
-                                    <div class="hm-cell hm-r-2 hm-c-2 hm-low">4</div>
-                                    <div class="hm-cell hm-r-2 hm-c-3 hm-med">6</div>
-                                    <div class="hm-cell hm-r-2 hm-c-4 hm-med">8</div>
-                                    <div class="hm-cell hm-r-2 hm-c-5 hm-high">10</div>
-                                    <div class="hm-cell hm-r-1 hm-c-1 hm-low">1</div>
-                                    <div class="hm-cell hm-r-1 hm-c-2 hm-low">2</div>
-                                    <div class="hm-cell hm-r-1 hm-c-3 hm-low">3</div>
-                                    <div class="hm-cell hm-r-1 hm-c-4 hm-low">4</div>
-                                    <div class="hm-cell hm-r-1 hm-c-5 hm-med">5</div>
+                        <div class="collapsible-content" id="content-probabilidad">
+                            <div class="segmented-picker mt-16">
+                                <div class="rating-header">
+                                    <span>← Probabilidad →</span>
+                                    <small id="lbl-prob">3 - Ocasional (60%)</small>
+                                </div>
+                                <div class="rating-options dark-options" id="prob_radio_group">
+                                    <label><input type="radio" name="prob_radio" value="1"><span>1</span></label>
+                                    <label><input type="radio" name="prob_radio" value="2"><span>2</span></label>
+                                    <label><input type="radio" name="prob_radio" value="3" checked><span>3</span></label>
+                                    <label><input type="radio" name="prob_radio" value="4"><span>4</span></label>
+                                    <label><input type="radio" name="prob_radio" value="5"><span>5</span></label>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
 
+                    <div class="calculo-preview-row">
+                        <div class="calculo-inline">
+                            <span>Riesgo Inherente (P x I):</span>
+                            <strong id="risk-score-inline">9</strong>
+                            <span id="risk-label-inline" class="badge-impacto impacto-medio">Nivel Medio</span>
+                        </div>
+
+                        <div class="heatmap-mini-wrapper">
+                            <small class="heatmap-mini-titulo">Vista previa en la matriz</small>
+                            <div class="heatmap-mini-grid" id="heatmap-mini-grid">
+                                <div class="hm-mini-cell hm-r-5 hm-c-1 hm-med"></div>
+                                <div class="hm-mini-cell hm-r-5 hm-c-2 hm-high"></div>
+                                <div class="hm-mini-cell hm-r-5 hm-c-3 hm-crit"></div>
+                                <div class="hm-mini-cell hm-r-5 hm-c-4 hm-crit"></div>
+                                <div class="hm-mini-cell hm-r-5 hm-c-5 hm-crit"></div>
+                                <div class="hm-mini-cell hm-r-4 hm-c-1 hm-med"></div>
+                                <div class="hm-mini-cell hm-r-4 hm-c-2 hm-med"></div>
+                                <div class="hm-mini-cell hm-r-4 hm-c-3 hm-high"></div>
+                                <div class="hm-mini-cell hm-r-4 hm-c-4 hm-crit"></div>
+                                <div class="hm-mini-cell hm-r-4 hm-c-5 hm-crit"></div>
+                                <div class="hm-mini-cell hm-r-3 hm-c-1 hm-low"></div>
+                                <div class="hm-mini-cell hm-r-3 hm-c-2 hm-med"></div>
+                                <div class="hm-mini-cell hm-r-3 hm-c-3 hm-med"></div>
+                                <div class="hm-mini-cell hm-r-3 hm-c-4 hm-high"></div>
+                                <div class="hm-mini-cell hm-r-3 hm-c-5 hm-crit"></div>
+                                <div class="hm-mini-cell hm-r-2 hm-c-1 hm-low"></div>
+                                <div class="hm-mini-cell hm-r-2 hm-c-2 hm-low"></div>
+                                <div class="hm-mini-cell hm-r-2 hm-c-3 hm-med"></div>
+                                <div class="hm-mini-cell hm-r-2 hm-c-4 hm-med"></div>
+                                <div class="hm-mini-cell hm-r-2 hm-c-5 hm-high"></div>
+                                <div class="hm-mini-cell hm-r-1 hm-c-1 hm-low"></div>
+                                <div class="hm-mini-cell hm-r-1 hm-c-2 hm-low"></div>
+                                <div class="hm-mini-cell hm-r-1 hm-c-3 hm-low"></div>
+                                <div class="hm-mini-cell hm-r-1 hm-c-4 hm-low"></div>
+                                <div class="hm-mini-cell hm-r-1 hm-c-5 hm-med"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="section-divider">
+
+                    <div class="form-group">
+                        <label>Descripción Detallada y Escenario</label>
+                        <textarea id="in-riesgo-descripcion" class="form-input" rows="2" placeholder="Describe cómo ocurriría el evento y las consecuencias inmediatas..."></textarea>
+                    </div>
+
+                    <footer class="form-footer-actions">
+                        <button type="button" id="btnEliminarRiesgo" class="btn-secondary hidden" style="background-color:#ef4444; color:white; border:none;">Eliminar Riesgo</button>
+                        <div style="margin-left:auto; display:flex; gap:10px;">
+                            <button type="button" id="btnCancelarRiesgo" class="btn-secondary">Cancelar</button>
+                            <button type="button" id="btnGuardarRiesgo" class="btn-primary-solid">Guardar Evaluación de Riesgo</button>
+                        </div>
+                    </footer>
+                </div>
             </div>
-        </section>
+        </div>
     </main>
 
     <script src="../js/analisis.js"></script>

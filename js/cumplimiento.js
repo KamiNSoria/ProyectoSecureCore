@@ -16,11 +16,87 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         pintarMadurezGeneral(controlesEmpresa, catalogoIso);
         pintarGapAnalysis(controlesEmpresa, catalogoIso);
+        pintarMapeoRC4(controlesEmpresa, catalogoIso);
 
     } catch (error) {
         console.error('Error al cargar cumplimiento:', error);
     }
 });
+
+// --- 3. MAPEO DE CUMPLIMIENTO LEGAL Y ÉTICO (dinámico, basado en controles ISO realmente aplicados) ---
+// Cada fila vincula un marco legal/ético con uno o más controles ISO 27002:2022 relacionados.
+// El estado (CUMPLE / BRECHA) se calcula en vivo según si ya existe un Control de Empresa vinculado a esa norma.
+const mapeoLegalEtico = [
+    {
+        marco: 'LOPDP (Ecuador)',
+        requisito: 'Privacidad y Protección de Datos Personales (PII)',
+        afectacion: 'Privacidad de los ciudadanos',
+        idsControlIso: ['5.34']
+    },
+    {
+        marco: 'LOPDP (Ecuador)',
+        requisito: 'Transferencia y Clasificación de Información',
+        afectacion: 'Privacidad de los ciudadanos',
+        idsControlIso: ['5.12', '5.14']
+    },
+    {
+        marco: 'Código de Ética Profesional',
+        requisito: 'Acuerdos de Confidencialidad',
+        afectacion: 'Confianza pública e institucional',
+        idsControlIso: ['6.6']
+    },
+    {
+        marco: 'ISO/IEC 27001:2022',
+        requisito: 'Cumplimiento de Requisitos Legales y Contractuales',
+        afectacion: 'Marco regulatorio de la organización',
+        idsControlIso: ['5.31']
+    },
+    {
+        marco: 'ISO/IEC 27001:2022',
+        requisito: 'Seguridad en Relación con Proveedores',
+        afectacion: 'Economía de la cadena de valor',
+        idsControlIso: ['5.19', '5.20', '5.21']
+    },
+    {
+        marco: 'ISO/IEC 27001:2022',
+        requisito: 'Derechos de Propiedad Intelectual',
+        afectacion: 'Derechos de autor y licenciamiento',
+        idsControlIso: ['5.32']
+    }
+];
+
+function pintarMapeoRC4(controlesEmpresa, catalogoIso) {
+    const contenedor = document.getElementById('rc4-mapeo-container');
+    if (!contenedor) return;
+
+    const idsAplicados = new Set(controlesEmpresa.map(c => c.id_iso_padre));
+
+    let html = '';
+    mapeoLegalEtico.forEach(fila => {
+        const cumple = fila.idsControlIso.some(id => idsAplicados.has(id));
+        const titulosControles = fila.idsControlIso
+            .map(id => {
+                const iso = catalogoIso.find(c => c.id_control === id);
+                return iso ? `${id} ${iso.titulo_control}` : id;
+            })
+            .join(' / ');
+
+        html += `
+            <tr class="${cumple ? '' : 'fila-brecha'}" ${cumple ? '' : 'onclick="window.location.href=\'tratamiento.html\'"'}>
+                <td><strong>${fila.marco}</strong></td>
+                <td>${fila.requisito}<br><small style="color:#94a3b8;">${titulosControles}</small></td>
+                <td>${fila.afectacion}</td>
+                <td>
+                    <span class="status-badge ${cumple ? 'status-ok' : 'status-late'}">
+                        ${cumple ? 'CUMPLE' : 'BRECHA DETECTADA'}
+                    </span>
+                </td>
+            </tr>
+        `;
+    });
+
+    contenedor.innerHTML = html;
+}
 
 // --- 1. MADUREZ GENERAL (Dona) ---
 function pintarMadurezGeneral(controlesEmpresa, catalogoIso) {

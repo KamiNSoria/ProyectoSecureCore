@@ -23,10 +23,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         const amenazas = await resAmenazas.json();
 
         pintarKPIs(activos, riesgos, tratamientos, controles, catalogoIso);
+        pintarPanelMonitoreo(riesgos, tratamientos);
         pintarDonutResidual(riesgos, tratamientos);
         pintarMapaCalorAmenazas(riesgos, amenazas);
         pintarActividadReciente(activos, riesgos, tratamientos);
         pintarResumenGeneral(activos, riesgos, tratamientos, controles);
+        pintarTop5Riesgos(riesgos, activos, amenazas, tratamientos);
 
     } catch (error) {
         console.error('Error al cargar el dashboard:', error);
@@ -89,6 +91,36 @@ function pintarKPIs(activos, riesgos, tratamientos, controles, catalogoIso) {
     }
 }
 
+// --- 1b. Panel de Monitoreo y Supervisión (coberturas) ---
+function pintarPanelMonitoreo(riesgos, tratamientos) {
+    const totalRiesgos = riesgos.length;
+
+    // Cobertura de Tratamientos: cuántos riesgos ya tienen una estrategia aplicada (cualquiera)
+    const idsTratados = new Set(tratamientos.map(t => t.id_riesgo));
+    const riesgosTratados = idsTratados.size;
+    const pctTratamientos = totalRiesgos > 0 ? Math.round((riesgosTratados / totalRiesgos) * 100) : 0;
+
+    // Cobertura de Riesgo Residual: cuántos riesgos tienen una reducción real medida (no solo "Aceptar"/"Evitar")
+    let riesgosConReduccionReal = 0;
+    tratamientos.forEach(t => {
+        const riesgo = riesgos.find(r => r.id_riesgo === t.id_riesgo);
+        if (riesgo && t.score_residual < scoreInherente(riesgo)) riesgosConReduccionReal++;
+    });
+    const pctResidual = totalRiesgos > 0 ? Math.round((riesgosConReduccionReal / totalRiesgos) * 100) : 0;
+
+    document.getElementById('cobertura-tratamientos-pct').textContent = `${pctTratamientos}%`;
+    document.getElementById('cobertura-tratamientos-fill').style.width = `${pctTratamientos}%`;
+    document.getElementById('cobertura-tratamientos-detalle').textContent = totalRiesgos > 0
+        ? `${pctTratamientos}% — ${riesgosTratados} de ${totalRiesgos} riesgos tratados`
+        : 'Sin riesgos registrados';
+
+    document.getElementById('cobertura-residual-pct').textContent = `${pctResidual}%`;
+    document.getElementById('cobertura-residual-fill').style.width = `${pctResidual}%`;
+    document.getElementById('cobertura-residual-detalle').textContent = totalRiesgos > 0
+        ? `${pctResidual}% — ${riesgosConReduccionReal} de ${totalRiesgos} con residual calculado`
+        : 'Sin riesgos registrados';
+}
+
 // --- 2. Dona de Riesgo Residual ---
 function pintarDonutResidual(riesgos, tratamientos) {
     let scorePromedio = 0;
@@ -139,7 +171,7 @@ function pintarMapaCalorAmenazas(riesgos, amenazas) {
         const nivel = nivelPorScore(scorePromedio);
 
         html += `
-            <div class="heat-item ${nivel.clase}">
+            <div class="heat-item ${nivel.clase}" onclick="window.location.href='pages/analisis.html'">
                 <span>${amenaza.nombre_amenaza}</span>
                 <strong>${riesgosDeEstaAmenaza.length}</strong>
                 <small>${nivel.texto}</small>
@@ -148,6 +180,40 @@ function pintarMapaCalorAmenazas(riesgos, amenazas) {
     });
 
     contenedor.innerHTML = html || '<p style="color:#94a3b8; font-size:13px; grid-column: 1/-1;">Todos tus riesgos usan amenazas personalizadas ("otro"), no hay agrupación por catálogo.</p>';
+}
+
+// --- 3b. Top 5 Riesgos por Nivel ---
+function pintarTop5Riesgos(riesgos, activos, amenazas, tratamientos) {
+    const contenedor = document.getElementById('top5-riesgos-container');
+    if (!contenedor) return;
+
+    if (riesgos.length === 0) {
+        contenedor.innerHTML = '<tr><td colspan="4" style="color:#94a3b8; font-size:13px; padding:16px;">Aún no hay riesgos registrados.</td></tr>';
+        return;
+    }
+
+    const idsTratados = new Set(tratamientos.map(t => t.id_riesgo));
+    const top5 = [...riesgos].sort((a, b) => scoreInherente(b) - scoreInherente(a)).slice(0, 5);
+
+    let html = '';
+    top5.forEach(r => {
+        const activo = activos.find(a => a.id_activo === r.id_activo);
+        const amenaza = amenazas.find(a => a.id_amenaza === r.id_amenaza);
+        const score = scoreInherente(r);
+        const nivel = nivelPorScore(score);
+        const tratado = idsTratados.has(r.id_riesgo);
+
+        html += `
+            <tr onclick="window.location.href='pages/analisis.html'">
+                <td><strong>${activo ? activo.nombre_activo : `#ACT-${r.id_activo}`}</strong></td>
+                <td>${amenaza ? amenaza.nombre_amenaza : (r.amenaza_otro || 'N/A')}</td>
+                <td><span class="nivel-badge ${nivel.clase}">${score}</span></td>
+                <td><span class="estado-badge ${tratado ? 'estado-tratado' : 'estado-pendiente'}">${tratado ? 'Tratado' : 'Sin Tratar'}</span></td>
+            </tr>
+        `;
+    });
+
+    contenedor.innerHTML = html;
 }
 
 // --- 4. Actividad Reciente ---
@@ -174,9 +240,9 @@ function pintarActividadReciente(activos, riesgos, tratamientos) {
     }
 
     const iconos = {
-        activo: { clase: 'alert-blue', icono: '<i class="bx bx-server"></i>' },
-        riesgo: { clase: 'alert-yellow', icono: '<i class="bx bx-error-alt"></i>' },
-        tratamiento: { clase: 'alert-red', icono: '<i class="bx bx-check-shield"></i>' }
+        activo: { clase: 'alert-blue', icono: '<i class="bx bx-server"></i>', destino: 'pages/activos.html' },
+        riesgo: { clase: 'alert-yellow', icono: '<i class="bx bx-error-alt"></i>', destino: 'pages/analisis.html' },
+        tratamiento: { clase: 'alert-red', icono: '<i class="bx bx-check-shield"></i>', destino: 'pages/tratamiento.html?tab=historial' }
     };
 
     let html = '';
@@ -184,7 +250,7 @@ function pintarActividadReciente(activos, riesgos, tratamientos) {
         const meta = iconos[e.tipo];
         const fecha = new Date(e.fecha).toLocaleDateString('es-EC', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
         html += `
-            <div class="alert-item ${meta.clase}">
+            <div class="alert-item ${meta.clase}" onclick="window.location.href='${meta.destino}'">
                 <div class="alert-icon">${meta.icono}</div>
                 <div class="alert-info">
                     <strong>${e.texto}</strong>
@@ -207,17 +273,17 @@ function pintarResumenGeneral(activos, riesgos, tratamientos, controles) {
         : 0;
 
     contenedor.innerHTML = `
-        <div class="threat-item threat-red">
+        <div class="threat-item threat-red" onclick="window.location.href='pages/activos.html'">
             <span class="threat-title">Activos Críticos</span>
             <strong>${activosCriticos}</strong>
             <small>De ${activos.length} activos totales</small>
         </div>
-        <div class="threat-item threat-purple">
+        <div class="threat-item threat-purple" onclick="window.location.href='pages/analisis.html'">
             <span class="threat-title">Riesgos Alto/Crítico</span>
             <strong>${riesgosAltos}</strong>
             <small>De ${riesgos.length} riesgos totales</small>
         </div>
-        <div class="threat-item threat-green">
+        <div class="threat-item threat-green" onclick="window.location.href='pages/tratamiento.html?tab=biblioteca'">
             <span class="threat-title">Eficacia Prom. de Controles</span>
             <strong>${eficaciaPromedio}%</strong>
             <small>Basado en ${controles.length} control${controles.length !== 1 ? 'es' : ''}</small>

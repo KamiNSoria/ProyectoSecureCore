@@ -11,6 +11,7 @@ let bibliotecaControles = []; // ControlEmpresa reales desde SQL
 
 document.addEventListener('DOMContentLoaded', async () => {
     await Promise.all([cargarCatalogoISOTrat(), cargarActivosTrat(), cargarRiesgosTrat()]);
+    activarFiltrosBiblioteca();
     await cargarBiblioteca();
 
     // Si venimos desde "+ Aplicar Tratamiento" de un riesgo específico
@@ -20,6 +21,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         selectRiesgo.value = riesgoPreseleccionado;
         document.querySelector('.tab-btn[onclick*="tab-plan"]')?.click();
         calcularResidual();
+    }
+
+    // Acceso directo desde el Panel: tratamiento.html?tab=biblioteca|plan|historial abre esa pestaña
+    const tabSolicitada = params.get('tab');
+    if (tabSolicitada) {
+        document.querySelector(`.tab-btn[onclick*="tab-${tabSolicitada}"]`)?.click();
     }
 });
 
@@ -31,55 +38,58 @@ function switchTab(evt, tabId) {
     evt.currentTarget.classList.add('active');
 }
 
-// --- 2. MAPEO POR INTENCIÓN (Diccionario UX a ISO 27002) ---
-const diccionarioAmigable = {
-    accesos: [
-        { id: "5.15", texto: "Gestión de Permisos y Cuentas (ISO 5.15 Control de acceso)" },
-        { id: "8.2", texto: "Accesos de Administrador (ISO 8.2 Derechos de acceso privilegiado)" },
-        { id: "8.5", texto: "Autenticación Segura / MFA (ISO 8.5 Autenticación segura)" }
-    ],
-    tecnologia: [
-        { id: "8.8", texto: "Antivirus y Parches de Software (ISO 8.8 Gestión de vulnerabilidades)" },
-        { id: "8.12", texto: "Bloqueo de fuga de datos o WAF (ISO 8.12 Prevención de fuga de datos)" },
-        { id: "8.1", texto: "Proteger Laptops/Móviles de la empresa (ISO 8.1 Dispositivos finales)" }
-    ],
-    personas: [
-        { id: "6.3", texto: "Charlas de seguridad y Phishing (ISO 6.3 Concienciación y formación)" },
-        { id: "6.1", texto: "Revisión de antecedentes al contratar (ISO 6.1 Investigación de antecedentes)" }
-    ],
-    fisico: [
-        { id: "7.1", texto: "Seguridad en puertas y edificios (ISO 7.1 Perímetros de seguridad física)" },
-        { id: "7.4", texto: "Cámaras y Monitoreo de oficinas (ISO 7.4 Monitoreo de seguridad física)" }
-    ],
-    respaldos: [
-        { id: "8.13", texto: "Copias de Seguridad en Nube/Local (ISO 8.13 Copias de seguridad)" },
-        { id: "5.29", texto: "Plan de recuperación ante desastres (ISO 5.29 Seguridad durante interrupciones)" }
-    ]
-};
+// --- 2. SELECCIÓN POR DOMINIO ISO 27002:2022 (cubre las 93 normas reales del catálogo) ---
+// Ordena "5.1, 5.2, ... 5.10, 5.11" correctamente (no alfabéticamente) al comparar mayor.menor por separado
+function compararIdControlIso(idA, idB) {
+    const [mayorA, menorA] = idA.split('.').map(Number);
+    const [mayorB, menorB] = idB.split('.').map(Number);
+    return mayorA !== mayorB ? mayorA - mayorB : menorA - menorB;
+}
 
 const selectIntencion = document.getElementById('intencion_usuario');
 const selectControlEspecifico = document.getElementById('ctrl_iso');
 
 if (selectIntencion && selectControlEspecifico) {
     selectIntencion.addEventListener('change', function () {
-        const intencionElegida = this.value;
-        selectControlEspecifico.innerHTML = '<option value="">Selecciona la opción que mejor describa tu control...</option>';
-        if (intencionElegida === "") {
+        const dominioElegido = this.value;
+        selectControlEspecifico.innerHTML = '<option value="">Selecciona el control ISO 27002 específico...</option>';
+        if (dominioElegido === "") {
             selectControlEspecifico.disabled = true;
-        } else {
-            selectControlEspecifico.disabled = false;
-            diccionarioAmigable[intencionElegida].forEach(control => {
+            return;
+        }
+        selectControlEspecifico.disabled = false;
+
+        catalogoISOTrat
+            .filter(c => c.dominio === dominioElegido)
+            .sort((a, b) => compararIdControlIso(a.id_control, b.id_control))
+            .forEach(control => {
                 const opt = document.createElement('option');
-                opt.value = control.id;
-                opt.textContent = control.texto;
+                opt.value = control.id_control;
+                opt.textContent = `${control.id_control} - ${control.titulo_control}`;
                 selectControlEspecifico.appendChild(opt);
             });
-        }
+    });
+}
+
+// --- 2b. ABRIR/CERRAR MODAL "CREAR NUEVO CONTROL" ---
+const modalControl = document.getElementById('modalNuevoControl');
+const btnAbrirModalControl = document.getElementById('btnAbrirModalControl');
+const btnCerrarModalControl = document.getElementById('btnCerrarModalControl');
+
+if (btnAbrirModalControl && modalControl) {
+    btnAbrirModalControl.addEventListener('click', () => modalControl.classList.remove('hidden'));
+}
+if (btnCerrarModalControl && modalControl) {
+    btnCerrarModalControl.addEventListener('click', () => modalControl.classList.add('hidden'));
+}
+if (modalControl) {
+    modalControl.addEventListener('click', (e) => {
+        if (e.target === modalControl) modalControl.classList.add('hidden');
     });
 }
 
 // --- 3. CÁLCULO DE FUERZA DEL CONTROL (Pestaña 1) ---
-const radiosControl = document.querySelectorAll('#tab-biblioteca input[type="radio"]');
+const radiosControl = document.querySelectorAll('#modalNuevoControl input[type="radio"]');
 const strengthLabel = document.getElementById('ctrl-strength-percent');
 
 const calcularFuerzaControl = () => {
@@ -141,7 +151,7 @@ function pintarSelectRiesgos() {
 }
 
 // --- 5. GUARDAR CONTROL EN BIBLIOTECA (POST real a SQL) ---
-const btnGuardarBiblioteca = document.querySelector('#tab-biblioteca .btn-primary-solid');
+const btnGuardarBiblioteca = document.querySelector('#modalNuevoControl .btn-primary-solid');
 
 if (btnGuardarBiblioteca) {
     btnGuardarBiblioteca.addEventListener('click', async () => {
@@ -174,8 +184,9 @@ if (btnGuardarBiblioteca) {
                 document.getElementById('intencion_usuario').selectedIndex = 0;
                 document.getElementById('ctrl_iso').innerHTML = '<option value="">Primero selecciona el objetivo arriba...</option>';
                 document.getElementById('ctrl_iso').disabled = true;
-                document.querySelectorAll('#tab-biblioteca input[type="radio"]').forEach(r => r.checked = false);
+                document.querySelectorAll('#modalNuevoControl input[type="radio"]').forEach(r => r.checked = false);
                 strengthLabel.textContent = 'Fuerza: 0%';
+                if (modalControl) modalControl.classList.add('hidden');
                 cargarBiblioteca();
             } else {
                 const err = await res.json();
@@ -190,24 +201,47 @@ if (btnGuardarBiblioteca) {
 }
 
 // --- 6. CARGAR Y PINTAR BIBLIOTECA REAL ---
+let vinculosPorControlGlobal = {}; // id_control_emp -> [nombres de activos vinculados]
+
 async function cargarBiblioteca() {
-    const res = await fetch(`${API_BASE}/controles-empresa/`);
-    bibliotecaControles = await res.json();
+    const [resControles, resTratamientos] = await Promise.all([
+        fetch(`${API_BASE}/controles-empresa/`),
+        fetch(`${API_BASE}/tratamientos/`)
+    ]);
+    bibliotecaControles = await resControles.json();
+    const tratamientos = await resTratamientos.json();
+
+    // Cruzamos tratamiento -> riesgo -> activo para saber a qué activo quedó vinculado cada control
+    const vinculosPorControl = {};
+    tratamientos.forEach(t => {
+        if (!t.id_control_emp) return;
+        const riesgo = catalogoRiesgosTrat.find(r => r.id_riesgo === t.id_riesgo);
+        const activo = riesgo ? catalogoActivosTrat.find(a => a.id_activo === riesgo.id_activo) : null;
+        const nombreActivo = activo ? activo.nombre_activo : (riesgo ? `#ACT-${riesgo.id_activo}` : 'Activo desconocido');
+        if (!vinculosPorControl[t.id_control_emp]) vinculosPorControl[t.id_control_emp] = [];
+        vinculosPorControl[t.id_control_emp].push(nombreActivo);
+    });
+    vinculosPorControlGlobal = vinculosPorControl;
 
     const contenedor = document.getElementById('library-list');
+    const contadorBiblioteca = document.getElementById('contador-biblioteca');
+    if (contadorBiblioteca) {
+        contadorBiblioteca.textContent = `${bibliotecaControles.length} control${bibliotecaControles.length !== 1 ? 'es' : ''}`;
+    }
+
     if (bibliotecaControles.length === 0) {
-        contenedor.innerHTML = '<p style="color:#94a3b8; font-size:13px;">Aún no hay controles en la biblioteca. Crea uno en el formulario de la izquierda.</p>';
+        contenedor.innerHTML = '<p style="color:#94a3b8; font-size:13px;">Aún no hay controles en la biblioteca. Crea uno con "+ Nuevo Control".</p>';
     } else {
         let html = '';
         bibliotecaControles.forEach(c => {
-            const iso = catalogoISOTrat.find(i => i.id_control === c.id_iso_padre);
+            const vinculado = !!vinculosPorControl[c.id_control_emp];
             html += `
-                <div class="saved-risk-item">
+                <div class="saved-risk-item" data-vinculado="${vinculado ? 'si' : 'no'}" data-eficacia="${c.eficacia_porcentaje}">
                     <div class="sr-info">
                         <strong>${c.nombre_control}</strong>
                         <span>ISO ${c.id_iso_padre} - Eficacia: ${c.eficacia_porcentaje}%</span>
                     </div>
-                    <div class="sr-score impacto-bajo">VINCULADO</div>
+                    <div class="sr-score ${vinculado ? 'impacto-bajo' : 'impacto-critico'}">${vinculado ? 'VINCULADO' : 'NO VINCULADO'}</div>
                 </div>
             `;
         });
@@ -215,6 +249,78 @@ async function cargarBiblioteca() {
     }
 
     pintarSelectControlLib();
+    pintarHistorialVinculos();
+    actualizarConteosVinculo();
+    aplicarFiltrosBiblioteca();
+}
+
+// --- FILTROS: ESTADO DE VÍNCULO + EFICACIA MÍNIMA (COLUMNA IZQUIERDA) ---
+let filtroVinculo = 'todos'; // 'todos' | 'si' | 'no'
+let filtroEficaciaMin = 0;
+
+function aplicarFiltrosBiblioteca() {
+    document.querySelectorAll('#library-list .saved-risk-item').forEach(item => {
+        const coincideVinculo = (filtroVinculo === 'todos') || (item.getAttribute('data-vinculado') === filtroVinculo);
+        const coincideEficacia = parseFloat(item.getAttribute('data-eficacia')) >= filtroEficaciaMin;
+        item.style.display = (coincideVinculo && coincideEficacia) ? 'flex' : 'none';
+    });
+}
+
+function activarFiltrosBiblioteca() {
+    document.querySelectorAll('input[name="filtro-vinculo"]').forEach(radio => {
+        radio.addEventListener('change', (e) => {
+            filtroVinculo = e.target.value;
+            aplicarFiltrosBiblioteca();
+        });
+    });
+
+    const slider = document.getElementById('filtroEficaciaMin');
+    const sliderValor = document.getElementById('filtroEficaciaMinValor');
+    if (slider) {
+        slider.addEventListener('input', (e) => {
+            filtroEficaciaMin = parseInt(e.target.value);
+            sliderValor.textContent = `${filtroEficaciaMin}%`;
+            aplicarFiltrosBiblioteca();
+        });
+    }
+}
+
+function actualizarConteosVinculo() {
+    let si = 0, no = 0;
+    document.querySelectorAll('#library-list .saved-risk-item').forEach(item => {
+        if (item.getAttribute('data-vinculado') === 'si') si++; else no++;
+    });
+    const spanSi = document.getElementById('count-vinculo-si');
+    const spanNo = document.getElementById('count-vinculo-no');
+    if (spanSi) spanSi.textContent = `(${si})`;
+    if (spanNo) spanNo.textContent = `(${no})`;
+}
+
+// --- HISTORIAL DE VÍNCULOS (COLUMNA DERECHA): control -> activo(s) al que fue vinculado ---
+function pintarHistorialVinculos() {
+    const contenedor = document.getElementById('historial-vinculos-container');
+    if (!contenedor) return;
+
+    const controlesConVinculo = bibliotecaControles.filter(c => vinculosPorControlGlobal[c.id_control_emp]);
+
+    if (controlesConVinculo.length === 0) {
+        contenedor.innerHTML = '<p style="color:#94a3b8; font-size:13px;">Aún no hay controles vinculados a ningún activo.</p>';
+        return;
+    }
+
+    let html = '';
+    controlesConVinculo.forEach(c => {
+        const activos = vinculosPorControlGlobal[c.id_control_emp];
+        html += `
+            <div class="historial-vinculo-item">
+                <strong>${c.nombre_control}</strong>
+                <div class="historial-vinculo-activos">
+                    ${activos.map(nombre => `<span class="historial-vinculo-activo"><i class='bx bx-server'></i> ${nombre}</span>`).join('')}
+                </div>
+            </div>
+        `;
+    });
+    contenedor.innerHTML = html;
 }
 
 function pintarSelectControlLib() {
@@ -267,10 +373,28 @@ function nivelYClasePorScoreTrat(score) {
     return { clase: 'impacto-critico', texto: 'Nivel Crítico' };
 }
 
+// Resalta en la Matriz de Riesgo Residual la casilla "antes" (riesgo inherente) y "después" (riesgo residual)
+function actualizarMatrizResidual(antes, despues) {
+    document.querySelectorAll('#heatmap-grid-residual .hm-cell').forEach(c => {
+        c.classList.remove('hm-antes', 'hm-despues');
+    });
+    if (antes) {
+        const celdaAntes = document.querySelector(`#heatmap-grid-residual .hm-r-${antes.imp}.hm-c-${antes.prob}`);
+        if (celdaAntes) celdaAntes.classList.add('hm-antes');
+    }
+    if (despues) {
+        const celdaDespues = document.querySelector(`#heatmap-grid-residual .hm-r-${despues.imp}.hm-c-${despues.prob}`);
+        if (celdaDespues) celdaDespues.classList.add('hm-despues');
+    }
+}
+
 const calcularResidual = () => {
     if (!selectRiesgo || !resScore || !resLabel) return null;
     const riesgo = catalogoRiesgosTrat.find(r => r.id_riesgo === parseInt(selectRiesgo.value));
-    if (!riesgo) return null;
+    if (!riesgo) {
+        actualizarMatrizResidual(null, null);
+        return null;
+    }
 
     const inherente = scoreInherenteDe(riesgo);
     const estrategiaActual = document.querySelector('input[name="estrategia_plan"]:checked').value;
@@ -301,6 +425,7 @@ const calcularResidual = () => {
             resScore.textContent = '-';
             resLabel.textContent = 'Selecciona un control';
             resLabel.className = 'badge-impacto';
+            actualizarMatrizResidual({ prob: riesgo.nivel_probabilidad, imp: riesgo.nivel_vulnerabilidad }, null);
             return null;
         }
         const eficaciaControl = parseFloat(opcionControl.dataset.eficacia);
@@ -311,6 +436,10 @@ const calcularResidual = () => {
     const nivel = nivelYClasePorScoreTrat(residual);
     resLabel.className = `badge-impacto ${nivel.clase}`;
     resLabel.textContent = nivel.texto;
+
+    const antesCelda = { prob: riesgo.nivel_probabilidad, imp: riesgo.nivel_vulnerabilidad };
+    const despuesDescompuesto = descomponerScore(residual);
+    actualizarMatrizResidual(antesCelda, { prob: despuesDescompuesto.prob, imp: despuesDescompuesto.impacto });
 
     return { riesgo, residual, opcionControl, estrategia: estrategiaActual };
 };
@@ -383,6 +512,8 @@ if (btnFinalizarPlan) {
 }
 
 // --- 9. HISTORIAL DE TRATAMIENTOS (Antes vs Después) ---
+let historialEnriquecidoGlobal = []; // Cache usado por el filtro de fechas y el reporte
+
 async function cargarHistorialTratamientos() {
     const contenedor = document.getElementById('lista-historial-tratamientos');
     if (!contenedor) return;
@@ -404,6 +535,7 @@ async function cargarHistorialTratamientos() {
             `${tratamientos.length} tratamiento${tratamientos.length !== 1 ? 's' : ''}`;
 
         if (tratamientos.length === 0) {
+            historialEnriquecidoGlobal = [];
             contenedor.innerHTML = '<p style="color:#94a3b8; font-size:13px;">Aún no se han aplicado tratamientos. Ve a "Plan de Tratamiento" para crear el primero.</p>';
             return;
         }
@@ -412,6 +544,8 @@ async function cargarHistorialTratamientos() {
         tratamientos.sort((a, b) => new Date(b.fecha_actualizacion) - new Date(a.fecha_actualizacion));
 
         let html = '';
+        historialEnriquecidoGlobal = [];
+
         tratamientos.forEach(t => {
             const riesgo = riesgos.find(r => r.id_riesgo === t.id_riesgo);
             const control = controles.find(c => c.id_control_emp === t.id_control_emp);
@@ -421,6 +555,7 @@ async function cargarHistorialTratamientos() {
             const nivelInherente = riesgo ? nivelYClasePorScoreTrat(inherente) : { clase: '', texto: 'N/A' };
             const nivelResidual = nivelYClasePorScoreTrat(t.score_residual);
 
+            const fechaISO = t.fecha_actualizacion ? t.fecha_actualizacion.slice(0, 10) : '';
             const fecha = t.fecha_actualizacion
                 ? new Date(t.fecha_actualizacion).toLocaleDateString('es-EC', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
                 : 'N/A';
@@ -429,14 +564,28 @@ async function cargarHistorialTratamientos() {
                 ? Math.round(((inherente - t.score_residual) / inherente) * 100)
                 : 0;
 
+            historialEnriquecidoGlobal.push({
+                nombreRiesgo: riesgo ? riesgo.nombre_riesgo : 'Riesgo eliminado',
+                nombreControl: control ? control.nombre_control : 'Control no encontrado',
+                estrategia: t.estrategia,
+                inherente, residual: t.score_residual,
+                nivelInherente: nivelInherente.texto, nivelResidual: nivelResidual.texto,
+                reduccion, fecha, observaciones: t.observaciones || ''
+            });
+
             html += `
-                <div class="historial-item">
+                <div class="historial-item" data-fecha="${fechaISO}">
                     <div class="historial-item-top">
                         <div>
                             <strong>${riesgo ? riesgo.nombre_riesgo : 'Riesgo eliminado'}</strong>
                             <span class="historial-meta">${control ? control.nombre_control : 'Control no encontrado'} ${iso ? `(ISO ${iso.id_control})` : ''}</span>
                         </div>
-                        <span class="tratamiento-estrategia-tag">${t.estrategia}</span>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <span class="tratamiento-estrategia-tag">${t.estrategia}</span>
+                            <button class="btn-eliminar-historial" onclick="eliminarTratamiento(${t.id_tratamiento})" title="Eliminar tratamiento (revertir)">
+                                <i class='bx bx-trash'></i>
+                            </button>
+                        </div>
                     </div>
 
                     <div class="historial-comparativa">
@@ -464,14 +613,80 @@ async function cargarHistorialTratamientos() {
         });
 
         contenedor.innerHTML = html;
+        aplicarFiltroFechaHistorial();
     } catch (e) {
         console.error('Error al cargar historial:', e);
         contenedor.innerHTML = '<p style="color:red; font-size:13px;">Error al cargar el historial de tratamientos.</p>';
     }
 }
 
+// --- ELIMINAR UN TRATAMIENTO (revertir, por si quedó mal aplicado) ---
+async function eliminarTratamiento(id) {
+    if (!confirm('¿Eliminar este tratamiento? El riesgo volverá a quedar sin tratar. Esta acción no se puede deshacer.')) return;
+    try {
+        const res = await fetch(`${API_BASE}/tratamientos/${id}/`, { method: 'DELETE' });
+        if (res.ok) {
+            alert('Tratamiento eliminado correctamente.');
+            cargarHistorialTratamientos();
+        } else {
+            alert('No se pudo eliminar el tratamiento.');
+        }
+    } catch (e) {
+        console.error('Error al eliminar tratamiento:', e);
+        alert('Error de conexión al eliminar el tratamiento.');
+    }
+}
+
+// --- FILTRO POR FECHA (EXACTA O RANGO) EN EL HISTORIAL ---
+let filtroTipoFecha = 'todas'; // 'todas' | 'exacta' | 'rango'
+
+function aplicarFiltroFechaHistorial() {
+    const items = document.querySelectorAll('#lista-historial-tratamientos .historial-item');
+    const fechaExacta = document.getElementById('filtroFechaExacta')?.value || '';
+    const fechaDesde = document.getElementById('filtroFechaDesde')?.value || '';
+    const fechaHasta = document.getElementById('filtroFechaHasta')?.value || '';
+
+    let visibles = 0;
+    items.forEach(item => {
+        const fechaItem = item.getAttribute('data-fecha');
+        let visible = true;
+
+        if (filtroTipoFecha === 'exacta' && fechaExacta) {
+            visible = fechaItem === fechaExacta;
+        } else if (filtroTipoFecha === 'rango' && (fechaDesde || fechaHasta)) {
+            if (fechaDesde && fechaItem < fechaDesde) visible = false;
+            if (fechaHasta && fechaItem > fechaHasta) visible = false;
+        }
+
+        item.style.display = visible ? 'block' : 'none';
+        if (visible) visibles++;
+    });
+
+    const contador = document.getElementById('contador-historial');
+    if (contador) contador.textContent = `${visibles} tratamiento${visibles !== 1 ? 's' : ''}`;
+}
+
+function activarFiltroFechaHistorial() {
+    document.querySelectorAll('input[name="filtro-tipo-fecha"]').forEach(radio => {
+        radio.addEventListener('change', (e) => {
+            filtroTipoFecha = e.target.value;
+            document.getElementById('wrapper-fecha-exacta').classList.toggle('hidden', filtroTipoFecha !== 'exacta');
+            document.getElementById('wrapper-fecha-rango').classList.toggle('hidden', filtroTipoFecha !== 'rango');
+            aplicarFiltroFechaHistorial();
+        });
+    });
+
+    ['filtroFechaExacta', 'filtroFechaDesde', 'filtroFechaHasta'].forEach(id => {
+        const input = document.getElementById(id);
+        if (input) input.addEventListener('change', aplicarFiltroFechaHistorial);
+    });
+}
+
 // Cargamos el historial también cuando abre la página, y cada vez que se cambia a esa pestaña
-document.addEventListener('DOMContentLoaded', cargarHistorialTratamientos);
+document.addEventListener('DOMContentLoaded', () => {
+    activarFiltroFechaHistorial();
+    cargarHistorialTratamientos();
+});
 
 const tabHistorialBtn = document.querySelector('.tab-btn[onclick*="tab-historial"]');
 if (tabHistorialBtn) {
@@ -482,5 +697,223 @@ if (tabHistorialBtn) {
 if (btnFinalizarPlan) {
     btnFinalizarPlan.addEventListener('click', () => {
         setTimeout(cargarHistorialTratamientos, 500);
+    });
+}
+
+/* ==========================================================================
+   GENERAR REPORTE DE CONTROLES (Vista + Descarga Excel), igual que en Activos
+   ========================================================================== */
+function generarReporteControles() {
+    if (!bibliotecaControles || bibliotecaControles.length === 0) {
+        alert('No hay controles registrados en la biblioteca para generar el reporte.');
+        return;
+    }
+
+    const fecha = new Date().toLocaleDateString('es-EC', { day: '2-digit', month: 'long', year: 'numeric' });
+
+    let filas = '';
+    bibliotecaControles.forEach(c => {
+        const vinculado = !!vinculosPorControlGlobal[c.id_control_emp];
+        const activos = vinculado ? vinculosPorControlGlobal[c.id_control_emp].join(', ') : 'N/A';
+
+        filas += `
+            <tr>
+                <td>${c.nombre_control}</td>
+                <td>ISO ${c.id_iso_padre}</td>
+                <td>${c.eficacia_porcentaje}%</td>
+                <td>${vinculado ? 'Vinculado' : 'No Vinculado'}</td>
+                <td>${activos}</td>
+            </tr>
+        `;
+    });
+
+    const ventana = window.open('', '_blank');
+    ventana.document.write(`
+        <html>
+        <head>
+            <title>Reporte de Controles - SecureCore</title>
+            <style>
+                body { font-family: Arial, sans-serif; padding: 40px; color: #1f2937; }
+                h1 { color: #4f46e5; margin-bottom: 4px; }
+                p.fecha { color: #6b7280; margin-top: 0; }
+                table { width: 100%; border-collapse: collapse; margin-top: 24px; font-size: 12px; }
+                th, td { border: 1px solid #e5e7eb; padding: 6px 8px; text-align: left; }
+                th { background: #f3f4f6; }
+                .botones { margin-top: 20px; display: flex; gap: 12px; }
+                button { padding: 10px 20px; border-radius: 6px; border: none; cursor: pointer; font-weight: 600; }
+                .btn-print { background: #e5e7eb; color: #1f2937; }
+                @media print { .botones { display: none; } }
+            </style>
+        </head>
+        <body>
+            <h1>Reporte de Biblioteca de Controles</h1>
+            <p class="fecha">Generado el ${fecha} — SecureCore Plataforma de Riesgo</p>
+            <p>Total de controles registrados: <strong>${bibliotecaControles.length}</strong></p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Control</th><th>Control ISO</th><th>Eficacia</th><th>Estado de Vínculo</th><th>Activos Vinculados</th>
+                    </tr>
+                </thead>
+                <tbody>${filas}</tbody>
+            </table>
+            <div class="botones">
+                <button class="btn-print" onclick="window.print()">🖨️ Imprimir / Guardar como PDF</button>
+            </div>
+        </body>
+        </html>
+    `);
+    ventana.document.close();
+
+    descargarExcelControles();
+}
+
+function descargarExcelControles() {
+    if (typeof XLSX === 'undefined') {
+        alert('No se pudo cargar la librería de Excel. Verifica tu conexión a internet.');
+        return;
+    }
+
+    const datosExcel = bibliotecaControles.map(c => {
+        const vinculado = !!vinculosPorControlGlobal[c.id_control_emp];
+        const activos = vinculado ? vinculosPorControlGlobal[c.id_control_emp].join(', ') : 'N/A';
+
+        return {
+            'Control': c.nombre_control,
+            'Control ISO': `ISO ${c.id_iso_padre}`,
+            'Eficacia': `${c.eficacia_porcentaje}%`,
+            'Estado de Vínculo': vinculado ? 'Vinculado' : 'No Vinculado',
+            'Activos Vinculados': activos
+        };
+    });
+
+    const hoja = XLSX.utils.json_to_sheet(datosExcel);
+    hoja['!cols'] = [
+        { wch: 30 }, { wch: 14 }, { wch: 12 }, { wch: 16 }, { wch: 40 }
+    ];
+
+    const libro = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(libro, hoja, 'Controles');
+
+    const fechaArchivo = new Date().toISOString().slice(0, 10);
+    XLSX.writeFile(libro, `Reporte_Controles_SecureCore_${fechaArchivo}.xlsx`);
+}
+
+const linkReporteControles = document.getElementById('btnVerReporteControles');
+if (linkReporteControles) {
+    linkReporteControles.addEventListener('click', (e) => {
+        e.preventDefault();
+        generarReporteControles();
+    });
+}
+
+/* ==========================================================================
+   GENERAR REPORTE DE HISTORIAL DE TRATAMIENTOS (respeta el filtro de fecha activo)
+   ========================================================================== */
+function generarReporteHistorial() {
+    const idsVisibles = new Set();
+    document.querySelectorAll('#lista-historial-tratamientos .historial-item').forEach((item, indice) => {
+        if (item.style.display !== 'none') idsVisibles.add(indice);
+    });
+    const datos = historialEnriquecidoGlobal.filter((_, indice) => idsVisibles.has(indice));
+
+    if (datos.length === 0) {
+        alert('No hay tratamientos que coincidan con el filtro actual para generar el reporte.');
+        return;
+    }
+
+    const fecha = new Date().toLocaleDateString('es-EC', { day: '2-digit', month: 'long', year: 'numeric' });
+
+    let filas = '';
+    datos.forEach(d => {
+        filas += `
+            <tr>
+                <td>${d.nombreRiesgo}</td>
+                <td>${d.nombreControl}</td>
+                <td>${d.estrategia}</td>
+                <td>${d.inherente} - ${d.nivelInherente}</td>
+                <td>${d.residual} - ${d.nivelResidual}</td>
+                <td>${d.reduccion > 0 ? `-${d.reduccion}%` : 'Sin cambio'}</td>
+                <td>${d.fecha}</td>
+                <td>${d.observaciones || 'N/A'}</td>
+            </tr>
+        `;
+    });
+
+    const ventana = window.open('', '_blank');
+    ventana.document.write(`
+        <html>
+        <head>
+            <title>Reporte de Historial de Tratamientos - SecureCore</title>
+            <style>
+                body { font-family: Arial, sans-serif; padding: 40px; color: #1f2937; }
+                h1 { color: #4f46e5; margin-bottom: 4px; }
+                p.fecha { color: #6b7280; margin-top: 0; }
+                table { width: 100%; border-collapse: collapse; margin-top: 24px; font-size: 12px; }
+                th, td { border: 1px solid #e5e7eb; padding: 6px 8px; text-align: left; }
+                th { background: #f3f4f6; }
+                .botones { margin-top: 20px; display: flex; gap: 12px; }
+                button { padding: 10px 20px; border-radius: 6px; border: none; cursor: pointer; font-weight: 600; }
+                .btn-print { background: #e5e7eb; color: #1f2937; }
+                @media print { .botones { display: none; } }
+            </style>
+        </head>
+        <body>
+            <h1>Reporte de Historial de Tratamientos</h1>
+            <p class="fecha">Generado el ${fecha} — SecureCore Plataforma de Riesgo</p>
+            <p>Total de tratamientos incluidos: <strong>${datos.length}</strong></p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Riesgo</th><th>Control Aplicado</th><th>Estrategia</th><th>Antes</th><th>Después</th><th>Reducción</th><th>Fecha</th><th>Observaciones</th>
+                    </tr>
+                </thead>
+                <tbody>${filas}</tbody>
+            </table>
+            <div class="botones">
+                <button class="btn-print" onclick="window.print()">🖨️ Imprimir / Guardar como PDF</button>
+            </div>
+        </body>
+        </html>
+    `);
+    ventana.document.close();
+
+    descargarExcelHistorial(datos);
+}
+
+function descargarExcelHistorial(datos) {
+    if (typeof XLSX === 'undefined') {
+        alert('No se pudo cargar la librería de Excel. Verifica tu conexión a internet.');
+        return;
+    }
+
+    const datosExcel = datos.map(d => ({
+        'Riesgo': d.nombreRiesgo,
+        'Control Aplicado': d.nombreControl,
+        'Estrategia': d.estrategia,
+        'Antes': `${d.inherente} - ${d.nivelInherente}`,
+        'Después': `${d.residual} - ${d.nivelResidual}`,
+        'Reducción': d.reduccion > 0 ? `-${d.reduccion}%` : 'Sin cambio',
+        'Fecha': d.fecha,
+        'Observaciones': d.observaciones || 'N/A'
+    }));
+
+    const hoja = XLSX.utils.json_to_sheet(datosExcel);
+    hoja['!cols'] = [
+        { wch: 30 }, { wch: 26 }, { wch: 14 }, { wch: 16 }, { wch: 16 }, { wch: 12 }, { wch: 18 }, { wch: 40 }
+    ];
+
+    const libro = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(libro, hoja, 'Historial');
+
+    const fechaArchivo = new Date().toISOString().slice(0, 10);
+    XLSX.writeFile(libro, `Reporte_Historial_Tratamientos_SecureCore_${fechaArchivo}.xlsx`);
+}
+
+const linkReporteHistorial = document.getElementById('btnVerReporteHistorial');
+if (linkReporteHistorial) {
+    linkReporteHistorial.addEventListener('click', (e) => {
+        e.preventDefault();
+        generarReporteHistorial();
     });
 }

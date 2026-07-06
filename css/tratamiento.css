@@ -134,3 +134,140 @@
     align-items: center;
     gap: 8px;
 }
+
+/* ==========================================================================
+   BIBLIOTECA DE CONTROLES: filtros (izq.) + lista (centro) + historial (der.)
+   ========================================================================== */
+.biblioteca-layout {
+    display: grid;
+    grid-template-columns: 240px 1.6fr 1fr;
+    gap: 24px;
+    align-items: start;
+}
+
+.filtro-slider-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.filtro-slider {
+    flex: 1;
+    accent-color: #6366f1;
+    cursor: pointer;
+}
+.filtro-slider-valor {
+    font-size: 12px;
+    font-weight: 700;
+    color: #334155;
+    min-width: 32px;
+    text-align: right;
+}
+
+.historial-vinculo-item {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin-bottom: 10px;
+}
+.historial-vinculo-item strong { display: block; font-size: 13px; color: #0f172a; margin-bottom: 8px; }
+
+.historial-vinculo-activos {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.historial-vinculo-activo {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: #475569;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 6px 10px;
+}
+.historial-vinculo-activo i { color: #6366f1; font-size: 14px; }
+
+/* La matriz de Riesgo Residual es informativa (no clickeable), pero resalta dinámicamente
+   la casilla "antes" (riesgo inherente) y "después" (riesgo residual) según el tratamiento elegido */
+#heatmap-grid-residual .hm-cell {
+    opacity: 0.25;
+    cursor: default;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+#heatmap-grid-residual .hm-cell:hover {
+    transform: none;
+    box-shadow: none;
+}
+
+#heatmap-grid-residual .hm-cell.hm-antes {
+    opacity: 1;
+    border-color: #f59e0b;
+    box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.35);
+}
+#heatmap-grid-residual .hm-cell.hm-despues {
+    opacity: 1;
+    transform: scale(1.12);
+    z-index: 5;
+    border-color: #16a34a;
+    box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.35);
+}
+/* Cuando el "antes" y el "después" caen en la misma casilla (ej. estrategia "Aceptar") */
+#heatmap-grid-residual .hm-cell.hm-antes.hm-despues {
+    border-color: #6366f1;
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.4);
+}
+
+.heatmap-leyenda {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-top: 14px;
+    font-size: 12px;
+    color: #475569;
+}
+.heatmap-leyenda-item { display: flex; align-items: center; gap: 6px; }
+.heatmap-leyenda-punto {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+    display: inline-block;
+}
+.heatmap-leyenda-antes { background: #f59e0b; }
+.heatmap-leyenda-despues { background: #16a34a; }
+
+/* ==========================================================================
+   HISTORIAL DE TRATAMIENTOS: filtros de fecha (izq.) + lista (der.)
+   ========================================================================== */
+.historial-layout {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    gap: 24px;
+    align-items: start;
+}
+
+.filtro-fecha-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: #64748b;
+    margin-bottom: 6px;
+}
+
+.btn-eliminar-historial {
+    background: #fef2f2;
+    color: #dc2626;
+    border: 1px solid #fecaca;
+    border-radius: 6px;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s ease;
+}
+.btn-eliminar-historial:hover { background: #dc2626; color: #ffffff; border-color: #dc2626; }

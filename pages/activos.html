@@ -10,18 +10,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link rel="stylesheet" href="../css/global.css">
     <link rel="stylesheet" href="../css/activos.css">
-
-    <style>
-        /* Estilizamos la barra de desplazamiento para que sea súper delgada y elegante */
-        .scroll-filtros::-webkit-scrollbar { height: 6px; }
-        .scroll-filtros::-webkit-scrollbar-track { background: transparent; }
-        .scroll-filtros::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 10px; }
-        .scroll-filtros::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
-    </style>
 </head>
 <body>
 
-    <aside class="sidebar">
+    <header class="sidebar">
         <div class="logo-area">
             <div class="logo-icon"><i class='bx bx-shield'></i></div>
             <div>
@@ -59,7 +51,7 @@
                 <span>Analista de Seguridad</span>
             </div>
         </div>
-    </aside>
+    </header>
 
     <main class="main-content">
         <header class="top-header header-flex">
@@ -70,44 +62,149 @@
             <button id="btnAbrirModal" class="btn-primary">+ Registrar Nuevo Activo</button>
         </header>
 
-        <section class="activos-layout">
-            <div class="left-column">
-                
-                <div class="search-filter-container" style="display: flex; flex-direction: column; gap: 16px; width: 100%; max-width: 100%; overflow: hidden;">
-                    
-                    <div style="width: 100%; display: flex;">
-                        <div class="search-box" style="width: 100%; max-width: 450px; display: flex; align-items: center; background: white; border-radius: 25px; padding: 10px 16px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border: 1px solid #e5e7eb;">
-                            <i class='bx bx-search' style="color: #6b7280; font-size: 20px; margin-right: 8px;"></i>
-                            <input type="text" id="buscadorActivos" placeholder="Buscar por nombre..." style="width: 100%; border: none; outline: none; background: transparent; font-size: 14px; color: #374151;">
-                        </div>
-                    </div>
-                    
-                    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-                        
-                        <div class="filter-pills-group scroll-filtros" style="display: flex; flex-wrap: nowrap; overflow-x: auto; gap: 10px; width: 100%; padding-bottom: 8px; align-items: center;">
-                            <button class="filter-btn active" data-categoria="todos" style="flex-shrink: 0;">Todos</button>
-                            
-                            <button class="filter-btn f-info" data-categoria="d" style="flex-shrink: 0;">[D] Datos</button>
-                            <button class="filter-btn f-info" data-categoria="k" style="flex-shrink: 0;">[K] Claves</button>
-                            <button class="filter-btn f-info" data-categoria="media" style="flex-shrink: 0;">[Media] Soportes</button>
-                            
-                            <button class="filter-btn f-soft" data-categoria="sw" style="flex-shrink: 0;">[SW] Software</button>
-                            <button class="filter-btn f-soft" data-categoria="s" style="flex-shrink: 0;">[S] Servicios</button>
-                            
-                            <button class="filter-btn f-hard" data-categoria="hw" style="flex-shrink: 0;">[HW] Hardware</button>
-                            <button class="filter-btn f-hard" data-categoria="com" style="flex-shrink: 0;">[COM] Redes</button>
-                            <button class="filter-btn f-hard" data-categoria="aux" style="flex-shrink: 0;">[AUX] Auxiliar</button>
-                            
-                            <button class="filter-btn f-pers" data-categoria="p" style="flex-shrink: 0;">[P] Personal</button>
-                            <button class="filter-btn f-pers" data-categoria="l" style="flex-shrink: 0;">[L] Instalaciones</button>
-                        </div>
+        <div class="search-toolbar">
+            <div class="search-box">
+                <i class='bx bx-search'></i>
+                <input type="text" id="buscadorActivos" placeholder="Buscar por nombre...">
+            </div>
+            <div class="assets-counter">
+                <i class='bx bx-server'></i>
+                <span id="contadorActivos">0 activos</span>
+            </div>
+        </div>
 
-                        <div class="assets-counter" style="flex-shrink: 0; margin-left: 20px; font-weight: 600; color: #6b7280; font-size: 14px;">
-                            <span id="contadorActivos">0 activos</span>
+        <section class="activos-layout">
+
+            <aside class="card filtros-sidebar">
+                <h3 class="filtros-titulo"><i class='bx bx-filter-alt'></i> Filtrar por</h3>
+
+                <div class="filtro-grupo">
+                    <span class="filtro-grupo-titulo">Tipo de Activo</span>
+                    <div id="filtrosTipo" class="filtro-lista">
+                        <label class="filtro-radio-item">
+                            <input type="radio" name="filtro-tipo" value="todos" checked>
+                            <span class="filtro-radio-label">Todos</span>
+                        </label>
+                        <label class="filtro-radio-item">
+                            <input type="radio" name="filtro-tipo" value="d">
+                            <span class="filtro-radio-label">[D] Datos</span>
+                            <span class="filtro-radio-count" id="count-tipo-d">(0)</span>
+                        </label>
+                        <label class="filtro-radio-item">
+                            <input type="radio" name="filtro-tipo" value="k">
+                            <span class="filtro-radio-label">[K] Claves</span>
+                            <span class="filtro-radio-count" id="count-tipo-k">(0)</span>
+                        </label>
+                        <label class="filtro-radio-item">
+                            <input type="radio" name="filtro-tipo" value="media">
+                            <span class="filtro-radio-label">[Media] Soportes</span>
+                            <span class="filtro-radio-count" id="count-tipo-media">(0)</span>
+                        </label>
+                        <div class="filtro-extra oculto">
+                            <label class="filtro-radio-item">
+                                <input type="radio" name="filtro-tipo" value="sw">
+                                <span class="filtro-radio-label">[SW] Software</span>
+                                <span class="filtro-radio-count" id="count-tipo-sw">(0)</span>
+                            </label>
+                            <label class="filtro-radio-item">
+                                <input type="radio" name="filtro-tipo" value="s">
+                                <span class="filtro-radio-label">[S] Servicios</span>
+                                <span class="filtro-radio-count" id="count-tipo-s">(0)</span>
+                            </label>
+                            <label class="filtro-radio-item">
+                                <input type="radio" name="filtro-tipo" value="hw">
+                                <span class="filtro-radio-label">[HW] Hardware</span>
+                                <span class="filtro-radio-count" id="count-tipo-hw">(0)</span>
+                            </label>
+                            <label class="filtro-radio-item">
+                                <input type="radio" name="filtro-tipo" value="com">
+                                <span class="filtro-radio-label">[COM] Redes</span>
+                                <span class="filtro-radio-count" id="count-tipo-com">(0)</span>
+                            </label>
+                            <label class="filtro-radio-item">
+                                <input type="radio" name="filtro-tipo" value="aux">
+                                <span class="filtro-radio-label">[AUX] Auxiliar</span>
+                                <span class="filtro-radio-count" id="count-tipo-aux">(0)</span>
+                            </label>
+                            <label class="filtro-radio-item">
+                                <input type="radio" name="filtro-tipo" value="p">
+                                <span class="filtro-radio-label">[P] Personal</span>
+                                <span class="filtro-radio-count" id="count-tipo-p">(0)</span>
+                            </label>
+                            <label class="filtro-radio-item">
+                                <input type="radio" name="filtro-tipo" value="l">
+                                <span class="filtro-radio-label">[L] Instalaciones</span>
+                                <span class="filtro-radio-count" id="count-tipo-l">(0)</span>
+                            </label>
                         </div>
-                        
+                        <button type="button" class="filtro-ver-todos">Ver todos</button>
                     </div>
                 </div>
+
+                <div class="filtro-grupo">
+                    <span class="filtro-grupo-titulo">Impacto (Valor Final Máx)</span>
+                    <div id="filtrosImpacto" class="filtro-lista">
+                        <label class="filtro-radio-item">
+                            <input type="radio" name="filtro-impacto" value="todos" checked>
+                            <span class="filtro-radio-label">Todos</span>
+                        </label>
+                        <label class="filtro-radio-item">
+                            <input type="radio" name="filtro-impacto" value="1">
+                            <span class="filtro-radio-label">Nivel 1 - Marginal</span>
+                            <span class="filtro-radio-count" id="count-impacto-1">(0)</span>
+                        </label>
+                        <label class="filtro-radio-item">
+                            <input type="radio" name="filtro-impacto" value="2">
+                            <span class="filtro-radio-label">Nivel 2 - Bajo</span>
+                            <span class="filtro-radio-count" id="count-impacto-2">(0)</span>
+                        </label>
+                        <label class="filtro-radio-item">
+                            <input type="radio" name="filtro-impacto" value="3">
+                            <span class="filtro-radio-label">Nivel 3 - Medio</span>
+                            <span class="filtro-radio-count" id="count-impacto-3">(0)</span>
+                        </label>
+                        <label class="filtro-radio-item">
+                            <input type="radio" name="filtro-impacto" value="4">
+                            <span class="filtro-radio-label">Nivel 4 - Alto</span>
+                            <span class="filtro-radio-count" id="count-impacto-4">(0)</span>
+                        </label>
+                        <label class="filtro-radio-item">
+                            <input type="radio" name="filtro-impacto" value="5">
+                            <span class="filtro-radio-label">Nivel 5 - Crítico</span>
+                            <span class="filtro-radio-count" id="count-impacto-5">(0)</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="filtro-grupo">
+                    <span class="filtro-grupo-titulo">Estado Actual</span>
+                    <div id="filtrosEstado" class="filtro-lista">
+                        <label class="filtro-radio-item">
+                            <input type="radio" name="filtro-estado" value="todos" checked>
+                            <span class="filtro-radio-label">Todos</span>
+                        </label>
+                        <label class="filtro-radio-item">
+                            <input type="radio" name="filtro-estado" value="1">
+                            <span class="filtro-radio-label">Operativo</span>
+                            <span class="filtro-radio-count" id="count-estado-1">(0)</span>
+                        </label>
+                        <label class="filtro-radio-item">
+                            <input type="radio" name="filtro-estado" value="2">
+                            <span class="filtro-radio-label">En Mantenimiento</span>
+                            <span class="filtro-radio-count" id="count-estado-2">(0)</span>
+                        </label>
+                        <label class="filtro-radio-item">
+                            <input type="radio" name="filtro-estado" value="3">
+                            <span class="filtro-radio-label">Inactivo / Retirado</span>
+                            <span class="filtro-radio-count" id="count-estado-3">(0)</span>
+                        </label>
+                    </div>
+                </div>
+            </aside>
+
+            <div class="left-column">
+
+                <div id="filtrosAplicados" class="filtros-aplicados" style="display: none;"></div>
 
                 <div class="assets-list" id="contenedor-activos">
                     </div>
@@ -180,19 +277,19 @@
 
                         <div class="form-group-row"> <div class="form-group">
                             <label>Área de Trabajo</label>
-                            <input type="text" id="area_trabajo" class="form-control" placeholder="Ej. Finanzas, Recursos Humanos...">
+                            <input type="text" id="area_trabajo" class="form-input" placeholder="Ej. Finanzas, Recursos Humanos...">
                         </div>
 
                         <div class="form-group">
                             <label>Cargo Administrativo</label>
-                            <input type="text" id="cargo_admin" class="form-control" placeholder="Ej. Gerente de TI, Analista...">
+                            <input type="text" id="cargo_admin" class="form-input" placeholder="Ej. Gerente de TI, Analista...">
                         </div>
                     </div>
 
                     <div class="form-group-row">
                         <div class="form-group">
                             <label>Sensibilidad del Activo (ISO 27001)</label>
-                            <select id="sensibilidad_activo" class="form-control">
+                            <select id="sensibilidad_activo" class="form-input form-select">
                                 <option value="">Selecciona el nivel de sensibilidad...</option>
                                 <option value="3">Alto (Información Confidencial / Estratégica)</option>
                                 <option value="2">Medio (Uso Interno de la empresa)</option>
@@ -202,7 +299,7 @@
 
                         <div class="form-group">
                             <label>Función del Activo</label>
-                            <select id="funcion_activo" class="form-control">
+                            <select id="funcion_activo" class="form-input form-select">
                                 <option value="">Selecciona cómo afecta a la empresa...</option>
                                 <option value="Primaria">Primaria (Afecta el núcleo del negocio)</option>
                                 <option value="Soporte">Soporte (Apoya procesos secundarios)</option>

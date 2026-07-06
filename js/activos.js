@@ -38,7 +38,9 @@ function cargarActivosDesdeSQL() {
                     const tipoObjeto = catalogoTipos.find(t => t.id_tipo_activo === activo.id_tipo_activo);
                     const nombreTipoReal = tipoObjeto ? tipoObjeto.nombre_tipo : 'Desconocido';
                     const codigoTipoReal = tipoObjeto ? tipoObjeto.codigo : 'OTRO';
-                    
+                    const etiquetaTipoReal = tipoObjeto ? `[${codigoTipoReal}] ${nombreTipoReal}` : 'Desconocido';
+                    const claseColorTipo = obtenerClaseColorTipo(codigoTipoReal);
+
                     // PROTECCIÓN DE FECHAS: Solo formatear si realmente existe un valor válido
                     let fechaFormateada = 'N/A';
                     if(activo.fecha_registro) {
@@ -71,9 +73,11 @@ function cargarActivosDesdeSQL() {
                         nombreEstadoReal = 'Inactivo / Retirado';
                     }
                     
+                    const nivelImpactoReal = activo.nivel_impacto || activo.valor_final_max || 0;
+
                     // 3. Renderizar la tarjeta
                     const tarjetaHTML = `
-                        <div class="asset-card" id="activo-${activo.id_activo}" data-categoria="${codigoTipoReal.toLowerCase()}">
+                        <div class="asset-card" id="activo-${activo.id_activo}" data-categoria="${codigoTipoReal.toLowerCase()}" data-impacto="${nivelImpactoReal}" data-estado="${activo.id_estado_activo || ''}">
                             <div class="asset-card-main">
                                 <div class="asset-info-wrapper">
                                     <div class="asset-icon"><i class='bx ${icono}'></i></div>
@@ -82,9 +86,9 @@ function cargarActivosDesdeSQL() {
                                             <span class="asset-id">#ACT-${activo.id_activo}</span> ${activo.nombre_activo || 'Sin Nombre'} <i class='bx bx-chevron-down'></i>
                                         </strong>
                                         <div class="asset-tags">
-                                            <span class="tag tag-tipo">${nombreTipoReal}</span>
+                                            <span class="tag tag-tipo ${claseColorTipo}">${etiquetaTipoReal}</span>
                                             <span class="tag tag-estado ${claseEstado}">${nombreEstadoReal}</span>
-                                            <span class="tag tag-critico">Impacto: ${activo.nivel_impacto || activo.valor_final_max || '0'}</span>
+                                            <span class="tag ${obtenerClaseImpacto(activo.nivel_impacto || activo.valor_final_max)}">Impacto: ${activo.nivel_impacto || activo.valor_final_max || '0'}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -121,6 +125,7 @@ function cargarActivosDesdeSQL() {
             });
 
             activarTarjetasExpandibles();
+            actualizarConteosFiltros(datos_sql);
             activarFiltros();
             actualizarResumenCriticidad(datos_sql); // <-- AGREGA ESTA LÍNEA
             
@@ -130,6 +135,26 @@ function cargarActivosDesdeSQL() {
             const contenedor = document.getElementById('contenedor-activos');
             if(contenedor) contenedor.innerHTML = '<p style="color:red; padding:20px;">Error al cargar los activos.</p>';
         });
+}
+
+// Devuelve la misma clase de color que se usa en el modal al calcular el impacto (calcularCriticidad)
+function obtenerClaseImpacto(valor) {
+    const nivel = parseInt(valor) || 0;
+    if (nivel === 5) return 'impacto-critico';
+    if (nivel === 4) return 'impacto-alto';
+    if (nivel === 3) return 'impacto-medio';
+    if (nivel === 2) return 'impacto-bajo';
+    return 'impacto-marginal';
+}
+
+// Asigna la misma agrupación de color que usan los botones de filtro ([D][K][Media]=azul, [SW][S]=verde, [HW][COM][AUX]=rojo, [P][L]=amarillo)
+function obtenerClaseColorTipo(codigo) {
+    const codigoNormalizado = (codigo || '').toLowerCase();
+    if (['d', 'k', 'media'].includes(codigoNormalizado)) return 'f-info';
+    if (['sw', 's'].includes(codigoNormalizado)) return 'f-soft';
+    if (['hw', 'com', 'aux'].includes(codigoNormalizado)) return 'f-hard';
+    if (['p', 'l'].includes(codigoNormalizado)) return 'f-pers';
+    return '';
 }
 
 function generarPills(valor, tipo) {
@@ -150,8 +175,11 @@ function cargarTiposDeActivo() {
     fetch('http://127.0.0.1:8000/api/tipos-activo/')
         .then(respuesta => respuesta.json())
         .then(tipos => {
+            // Guardamos el catálogo en memoria para poder "traducir" los IDs en las tarjetas
+            catalogoTipos = tipos;
+
             const selectTipo = document.getElementById('in-tipo');
-            
+
             // Limpiamos el "Cargando..." y ponemos el texto inicial
             selectTipo.innerHTML = '<option value="" disabled selected>Selecciona un tipo de activo...</option>';
 
@@ -176,15 +204,20 @@ const btnAbrir = document.getElementById('btnAbrirModal');
 const btnCerrar = document.getElementById('btnCerrarModal');
 const btnCancelar = document.getElementById('btnCancelarModal');
 
-btnAbrir.addEventListener('click', () => { 
+btnAbrir.addEventListener('click', () => {
     idActivoEditar = null; // Nos aseguramos que esté en modo crear
     document.querySelector('#modalNuevoActivo h2').textContent = "Registrar Nuevo Activo";
     document.getElementById('btnGuardarActivo').textContent = "Guardar Activo";
     document.getElementById('formNuevoActivo').reset();
-    document.getElementById('btnEliminarActivo').classList.add('hidden'); 
+    document.getElementById('btnEliminarActivo').classList.add('hidden');
     calcularCriticidad();
-    modal.classList.remove('hidden'); 
+    modal.classList.remove('hidden');
 });
+
+// Acceso directo desde el Panel: activos.html?accion=nuevo abre este modal automáticamente
+if (new URLSearchParams(window.location.search).get('accion') === 'nuevo') {
+    btnAbrir.click();
+}
 
 const cerrarModal = () => { modal.classList.add('hidden'); };
 btnCerrar.addEventListener('click', cerrarModal);
@@ -258,28 +291,81 @@ todosLosRadios.forEach(radio => radio.addEventListener('change', calcularCritici
 calcularCriticidad();
 
 
-// --- E. LÓGICA DE BÚSQUEDA Y FILTRADO MULTIPLE (Refactorizado) ---
+// --- E. LÓGICA DE BÚSQUEDA Y FILTRADO MULTIPLE (Refactorizado con filtros radio en columna lateral) ---
 function activarFiltros() {
     const buscadorActivos = document.getElementById('buscadorActivos');
-    const botonesFiltro = document.querySelectorAll('.filter-btn');
+    const radiosTipo = document.querySelectorAll('input[name="filtro-tipo"]');
+    const radiosImpacto = document.querySelectorAll('input[name="filtro-impacto"]');
+    const radiosEstado = document.querySelectorAll('input[name="filtro-estado"]');
     const contadorActivos = document.getElementById('contadorActivos');
-    let filtroActual = 'todos';
+    const contenedorChips = document.getElementById('filtrosAplicados');
+    const botonVerTodos = document.querySelector('.filtro-ver-todos');
+
+    let filtroTipo = 'todos';
+    let filtroImpacto = 'todos';
+    let filtroEstado = 'todos';
+
+    // Pinta las "chips" de filtros aplicados arriba de la lista, cada una con su botón de quitar (x)
+    const renderChips = () => {
+        const chips = [];
+        if (filtroTipo !== 'todos') {
+            const label = document.querySelector(`input[name="filtro-tipo"][value="${filtroTipo}"] + .filtro-radio-label`);
+            chips.push({ grupo: 'tipo', texto: label ? label.textContent.trim() : filtroTipo });
+        }
+        if (filtroImpacto !== 'todos') {
+            const label = document.querySelector(`input[name="filtro-impacto"][value="${filtroImpacto}"] + .filtro-radio-label`);
+            chips.push({ grupo: 'impacto', texto: label ? label.textContent.trim() : filtroImpacto });
+        }
+        if (filtroEstado !== 'todos') {
+            const label = document.querySelector(`input[name="filtro-estado"][value="${filtroEstado}"] + .filtro-radio-label`);
+            chips.push({ grupo: 'estado', texto: label ? label.textContent.trim() : filtroEstado });
+        }
+
+        if (chips.length === 0) {
+            contenedorChips.style.display = 'none';
+            contenedorChips.innerHTML = '';
+            return;
+        }
+
+        contenedorChips.style.display = 'flex';
+        contenedorChips.innerHTML = '<span class="filtros-aplicados-titulo">Filtros aplicados:</span>' +
+            chips.map(chip => `
+                <span class="filtro-chip" data-grupo="${chip.grupo}">
+                    ${chip.texto}
+                    <button type="button" title="Quitar filtro"><i class='bx bx-x'></i></button>
+                </span>
+            `).join('');
+
+        contenedorChips.querySelectorAll('.filtro-chip button').forEach(botonQuitar => {
+            botonQuitar.addEventListener('click', () => {
+                const grupo = botonQuitar.closest('.filtro-chip').getAttribute('data-grupo');
+                if (grupo === 'tipo') { filtroTipo = 'todos'; document.querySelector('input[name="filtro-tipo"][value="todos"]').checked = true; }
+                if (grupo === 'impacto') { filtroImpacto = 'todos'; document.querySelector('input[name="filtro-impacto"][value="todos"]').checked = true; }
+                if (grupo === 'estado') { filtroEstado = 'todos'; document.querySelector('input[name="filtro-estado"][value="todos"]').checked = true; }
+                filtrarActivos();
+            });
+        });
+    };
 
     const filtrarActivos = () => {
         const textoBusqueda = buscadorActivos.value.toLowerCase();
         let activosVisibles = 0;
-        
+
         // Lo movemos AQUI ADENTRO para que siempre busque las tarjetas frescas de SQL
-        const tarjetasActivosDinámicas = document.querySelectorAll('.asset-card'); 
+        const tarjetasActivosDinámicas = document.querySelectorAll('.asset-card');
 
         tarjetasActivosDinámicas.forEach(tarjeta => {
             const categoriaTarjeta = tarjeta.getAttribute('data-categoria');
+            const impactoTarjeta = tarjeta.getAttribute('data-impacto');
+            const estadoTarjeta = tarjeta.getAttribute('data-estado');
             const textoTarjeta = tarjeta.innerText.toLowerCase();
 
             const coincideTexto = textoTarjeta.includes(textoBusqueda);
-            const coincideCategoria = (filtroActual === 'todos') || (categoriaTarjeta === filtroActual);
+            const coincideTipo = (filtroTipo === 'todos') || (categoriaTarjeta === filtroTipo);
+            const coincideImpacto = (filtroImpacto === 'todos') || (impactoTarjeta === filtroImpacto);
+            const coincideEstado = (filtroEstado === 'todos') || (estadoTarjeta === filtroEstado);
 
-            if (coincideTexto && coincideCategoria) {
+            if (coincideTexto && coincideTipo && coincideImpacto && coincideEstado) {
                 tarjeta.style.display = 'flex';
                 activosVisibles++;
             } else {
@@ -288,22 +374,75 @@ function activarFiltros() {
         });
 
         contadorActivos.textContent = `${activosVisibles} activo${activosVisibles !== 1 ? 's' : ''}`;
+        renderChips();
     };
 
     buscadorActivos.addEventListener('input', filtrarActivos);
 
-    botonesFiltro.forEach(boton => {
-        boton.addEventListener('click', (e) => {
-            botonesFiltro.forEach(b => b.classList.remove('active'));
-            const botonClickeado = e.currentTarget;
-            botonClickeado.classList.add('active');
-
-            filtroActual = botonClickeado.getAttribute('data-categoria');
+    radiosTipo.forEach(radio => {
+        radio.addEventListener('change', (e) => {
+            filtroTipo = e.currentTarget.value;
             filtrarActivos();
         });
     });
 
-    filtrarActivos(); 
+    radiosImpacto.forEach(radio => {
+        radio.addEventListener('change', (e) => {
+            filtroImpacto = e.currentTarget.value;
+            filtrarActivos();
+        });
+    });
+
+    radiosEstado.forEach(radio => {
+        radio.addEventListener('change', (e) => {
+            filtroEstado = e.currentTarget.value;
+            filtrarActivos();
+        });
+    });
+
+    // El botón "Ver todos" despliega el resto de las categorías de tipo de activo
+    if (botonVerTodos) {
+        botonVerTodos.addEventListener('click', () => {
+            const extra = document.querySelector('.filtro-extra');
+            const expandido = extra.classList.toggle('oculto') === false;
+            botonVerTodos.textContent = expandido ? 'Ver menos' : 'Ver todos';
+        });
+    }
+
+    filtrarActivos();
+}
+
+// --- ACTUALIZAR LOS CONTADORES "(N)" DE CADA OPCIÓN DE FILTRO EN LA COLUMNA LATERAL ---
+function actualizarConteosFiltros(datos) {
+    const conteoTipo = {};
+    const conteoImpacto = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+    const conteoEstado = { 1: 0, 2: 0, 3: 0 };
+
+    datos.forEach(activo => {
+        const tipoObjeto = catalogoTipos.find(t => t.id_tipo_activo === activo.id_tipo_activo);
+        const codigo = tipoObjeto ? tipoObjeto.codigo.toLowerCase() : 'otro';
+        conteoTipo[codigo] = (conteoTipo[codigo] || 0) + 1;
+
+        const nivel = activo.nivel_impacto || activo.valor_final_max || 0;
+        if (conteoImpacto[nivel] !== undefined) conteoImpacto[nivel]++;
+
+        if (conteoEstado[activo.id_estado_activo] !== undefined) conteoEstado[activo.id_estado_activo]++;
+    });
+
+    Object.keys(conteoTipo).forEach(codigo => {
+        const span = document.getElementById(`count-tipo-${codigo}`);
+        if (span) span.textContent = `(${conteoTipo[codigo]})`;
+    });
+
+    Object.keys(conteoImpacto).forEach(nivel => {
+        const span = document.getElementById(`count-impacto-${nivel}`);
+        if (span) span.textContent = `(${conteoImpacto[nivel]})`;
+    });
+
+    Object.keys(conteoEstado).forEach(estado => {
+        const span = document.getElementById(`count-estado-${estado}`);
+        if (span) span.textContent = `(${conteoEstado[estado]})`;
+    });
 }
 
 // --- F. LÓGICA PARA GUARDAR UN NUEVO ACTIVO (POST a la API) ---

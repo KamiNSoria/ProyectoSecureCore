@@ -12,7 +12,26 @@ let idRiesgoEditar = null;
 
 document.addEventListener('DOMContentLoaded', async () => {
     await Promise.all([cargarAmenazas(), cargarVulnerabilidades(), cargarActivosParaSelect()]);
+    activarFiltroTratado();
+    activarSeleccionHeatmap();
+
+    // Accesos directos desde el Panel (KPIs / Acciones Rápidas)
+    const paramsUrl = new URLSearchParams(window.location.search);
+    const filtroSolicitado = paramsUrl.get('filtro'); // 'tratado' | 'no-tratado'
+    if (filtroSolicitado) {
+        const valorRadio = filtroSolicitado === 'no-tratado' ? 'no' : filtroSolicitado === 'tratado' ? 'si' : 'todos';
+        const radio = document.querySelector(`input[name="filtro-tratado"][value="${valorRadio}"]`);
+        if (radio) {
+            radio.checked = true;
+            filtroTratado = valorRadio;
+        }
+    }
+
     cargarRiesgosDesdeSQL();
+
+    if (paramsUrl.get('accion') === 'nuevo') {
+        btnNuevoRiesgo.click();
+    }
 });
 
 // --- CARGA DE CATÁLOGOS ---
@@ -72,12 +91,21 @@ document.getElementById('in-riesgo-vulnerabilidad').addEventListener('change', (
 });
 
 // --- CARGAR Y PINTAR LISTA DE RIESGOS ---
+let reporteAutoDisparado = false; // Evita re-disparar el reporte automático en recargas posteriores
+
 function cargarRiesgosDesdeSQL() {
     fetch(`${API_BASE}/riesgos/`)
         .then(res => res.json())
         .then(datos => {
             riesgosGlobal = datos;
             pintarListaRiesgos(datos);
+            actualizarHeatmapRiesgos(datos);
+
+            // Acceso directo desde el Panel: analisis.html?accion=reporte genera el reporte automáticamente
+            if (!reporteAutoDisparado && new URLSearchParams(window.location.search).get('accion') === 'reporte') {
+                reporteAutoDisparado = true;
+                generarReporteRiesgos();
+            }
         })
         .catch(err => {
             console.error('Error al cargar riesgos:', err);
@@ -104,11 +132,13 @@ function nombreVulnerabilidadRiesgo(r) {
 }
 
 function nivelYClasePorScore(score) {
-    if (score <= 4) return { clase: 'impacto-bajo', texto: 'BAJO' };
-    if (score <= 9) return { clase: 'impacto-medio', texto: 'MEDIO' };
-    if (score <= 16) return { clase: 'impacto-alto', texto: 'ALTO' };
-    return { clase: 'impacto-critico', texto: 'CRÍTICO' };
+    if (score <= 4) return { clase: 'impacto-bajo', texto: 'BAJO', clave: 'bajo' };
+    if (score <= 9) return { clase: 'impacto-medio', texto: 'MEDIO', clave: 'medio' };
+    if (score <= 16) return { clase: 'impacto-alto', texto: 'ALTO', clave: 'alto' };
+    return { clase: 'impacto-critico', texto: 'CRÍTICO', clave: 'critico' };
 }
+let idsConTratamientoGlobal = new Set();
+
 async function pintarListaRiesgos(datos) {
     // Traemos los tratamientos ya aplicados para saber qué riesgos ya tienen control
     let idsConTratamiento = new Set();
@@ -119,12 +149,14 @@ async function pintarListaRiesgos(datos) {
     } catch (e) {
         console.error('No se pudo verificar tratamientos existentes:', e);
     }
+    idsConTratamientoGlobal = idsConTratamiento;
 
     const contenedor = document.getElementById('lista-riesgos-container');
     document.getElementById('contadorRiesgos').textContent = `${datos.length} riesgo${datos.length !== 1 ? 's' : ''}`;
 
     if (datos.length === 0) {
         contenedor.innerHTML = '<p style="color:#94a3b8; font-size:13px;">Aún no hay riesgos registrados. Haz clic en "+ Registrar Nuevo Riesgo" para empezar.</p>';
+        actualizarConteosTratamiento(datos, idsConTratamiento);
         return;
     }
 
@@ -135,7 +167,7 @@ async function pintarListaRiesgos(datos) {
         const tieneTratamiento = idsConTratamiento.has(r.id_riesgo);
 
         html += `
-            <div class="saved-risk-item">
+            <div class="saved-risk-item" data-tratado="${tieneTratamiento ? 'si' : 'no'}" data-imp="${r.nivel_vulnerabilidad}" data-prob="${r.nivel_probabilidad}">
                 <div class="sr-info" style="cursor:pointer;" onclick="prepararEditarRiesgo(${r.id_riesgo})">
                     <strong>${r.nombre_riesgo} ${tieneTratamiento ? '<span class="badge-tratado"><i class=\'bx bx-check-shield\'></i> Tratado</span>' : ''}</strong>
                     <span>${nombreActivoPorId(r.id_activo)}</span>
@@ -151,12 +183,96 @@ async function pintarListaRiesgos(datos) {
         `;
     });
     contenedor.innerHTML = html;
+
+    actualizarConteosTratamiento(datos, idsConTratamiento);
+    aplicarFiltrosRiesgos();
 }
 
-// --- ABRIR/CERRAR FORMULARIO PRINCIPAL ---
-const wrapperForm = document.getElementById('form-riesgo-wrapper');
+// --- FILTROS COMBINABLES: ESTADO DE TRATAMIENTO (IZQUIERDA) + CELDA DEL MAPA DE CALOR ---
+let filtroTratado = 'todos'; // 'todos' | 'si' | 'no'
+let celdaSeleccionada = null; // { imp, prob } o null
+
+function obtenerFiltroTratadoActual() {
+    const radioMarcado = document.querySelector('input[name="filtro-tratado"]:checked');
+    return radioMarcado ? radioMarcado.value : 'todos';
+}
+
+function aplicarFiltrosRiesgos() {
+    const items = document.querySelectorAll('.saved-risk-item');
+    let visibles = 0;
+    items.forEach(item => {
+        const coincideTratado = (filtroTratado === 'todos') || (item.getAttribute('data-tratado') === filtroTratado);
+        const coincideCelda = !celdaSeleccionada ||
+            (item.getAttribute('data-imp') === celdaSeleccionada.imp && item.getAttribute('data-prob') === celdaSeleccionada.prob);
+        const visible = coincideTratado && coincideCelda;
+        item.style.display = visible ? 'flex' : 'none';
+        if (visible) visibles++;
+    });
+    document.getElementById('contadorRiesgos').textContent = `${visibles} riesgo${visibles !== 1 ? 's' : ''}`;
+}
+
+function activarFiltroTratado() {
+    document.querySelectorAll('input[name="filtro-tratado"]').forEach(radio => {
+        radio.addEventListener('change', (e) => {
+            filtroTratado = e.target.value;
+            aplicarFiltrosRiesgos();
+        });
+    });
+}
+
+function actualizarConteosTratamiento(datos, idsConTratamiento) {
+    let tratados = 0;
+    datos.forEach(r => { if (idsConTratamiento.has(r.id_riesgo)) tratados++; });
+    const spanSi = document.getElementById('count-tratado-si');
+    const spanNo = document.getElementById('count-tratado-no');
+    if (spanSi) spanSi.textContent = `(${tratados})`;
+    if (spanNo) spanNo.textContent = `(${datos.length - tratados})`;
+}
+
+// --- MAPA DE CALOR: MUESTRA CUÁNTOS RIESGOS REALES CAEN EN CADA CASILLA Y PERMITE FILTRAR AL HACER CLIC ---
+function actualizarHeatmapRiesgos(datos) {
+    const conteoCeldas = {};
+    datos.forEach(r => {
+        const clave = `${r.nivel_vulnerabilidad}-${r.nivel_probabilidad}`;
+        conteoCeldas[clave] = (conteoCeldas[clave] || 0) + 1;
+    });
+
+    document.querySelectorAll('.hm-cell').forEach(celda => {
+        const fila = [...celda.classList].find(c => c.startsWith('hm-r-')).replace('hm-r-', '');
+        const columna = [...celda.classList].find(c => c.startsWith('hm-c-')).replace('hm-c-', '');
+        const cantidad = conteoCeldas[`${fila}-${columna}`] || 0;
+        celda.textContent = cantidad;
+        celda.title = `${cantidad} riesgo${cantidad !== 1 ? 's' : ''} registrado${cantidad !== 1 ? 's' : ''} — clic para filtrar`;
+        celda.classList.toggle('tiene-riesgos', cantidad > 0);
+    });
+}
+
+// Permite hacer clic en una celda del mapa de calor para filtrar la lista por esa combinación Probabilidad x Impacto
+function activarSeleccionHeatmap() {
+    document.querySelectorAll('.hm-cell').forEach(celda => {
+        celda.addEventListener('click', () => {
+            const fila = [...celda.classList].find(c => c.startsWith('hm-r-')).replace('hm-r-', '');
+            const columna = [...celda.classList].find(c => c.startsWith('hm-c-')).replace('hm-c-', '');
+            const esLaMismaCelda = celdaSeleccionada && celdaSeleccionada.imp === fila && celdaSeleccionada.prob === columna;
+
+            document.querySelectorAll('.hm-cell').forEach(c => c.classList.remove('hm-cell-seleccionada'));
+
+            if (esLaMismaCelda) {
+                celdaSeleccionada = null;
+            } else {
+                celdaSeleccionada = { imp: fila, prob: columna };
+                celda.classList.add('hm-cell-seleccionada');
+            }
+            aplicarFiltrosRiesgos();
+        });
+    });
+}
+
+// --- ABRIR/CERRAR MODAL PRINCIPAL ---
+const wrapperForm = document.getElementById('modalNuevoRiesgo');
 const btnNuevoRiesgo = document.getElementById('btnNuevoRiesgo');
 const btnCancelarRiesgo = document.getElementById('btnCancelarRiesgo');
+const btnCerrarModalRiesgo = document.getElementById('btnCerrarModalRiesgo');
 
 function resetFormularioRiesgo() {
     idRiesgoEditar = null;
@@ -178,15 +294,21 @@ function resetFormularioRiesgo() {
     actualizarEvaluacionRiesgo();
 }
 
+const cerrarModalRiesgo = () => {
+    wrapperForm.classList.add('hidden');
+    resetFormularioRiesgo();
+};
+
 btnNuevoRiesgo.addEventListener('click', () => {
     resetFormularioRiesgo();
     wrapperForm.classList.remove('hidden');
-    wrapperForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
 });
 
-btnCancelarRiesgo.addEventListener('click', () => {
-    wrapperForm.classList.add('hidden');
-    resetFormularioRiesgo();
+btnCancelarRiesgo.addEventListener('click', cerrarModalRiesgo);
+btnCerrarModalRiesgo.addEventListener('click', cerrarModalRiesgo);
+
+wrapperForm.addEventListener('click', (evento) => {
+    if (evento.target === wrapperForm) cerrarModalRiesgo();
 });
 
 // --- 1. ACORDEONES INTERNOS (impacto / probabilidad) ---
@@ -262,9 +384,10 @@ const actualizarEvaluacionRiesgo = () => {
     labelTextInline.className = `badge-impacto ${nivel.clase}`;
     labelTextInline.textContent = `Nivel ${nivel.texto.charAt(0) + nivel.texto.slice(1).toLowerCase()}`;
 
-    document.querySelectorAll('.hm-cell').forEach(c => c.classList.remove('cell-active'));
-    const celdaObjetivo = document.querySelector(`.hm-r-${impactoNivel}.hm-c-${probNivel}`);
-    if (celdaObjetivo) celdaObjetivo.classList.add('cell-active');
+    // Vista previa mini dentro del modal: resalta dónde caería este riesgo en la matriz
+    document.querySelectorAll('#heatmap-mini-grid .hm-mini-cell').forEach(c => c.classList.remove('cell-active'));
+    const celdaMiniObjetivo = document.querySelector(`#heatmap-mini-grid .hm-r-${impactoNivel}.hm-c-${probNivel}`);
+    if (celdaMiniObjetivo) celdaMiniObjetivo.classList.add('cell-active');
 
     return { probNivel, impactoNivel, riesgoTotal };
 };
@@ -368,7 +491,6 @@ async function prepararEditarRiesgo(id) {
         actualizarEvaluacionRiesgo();
 
         wrapperForm.classList.remove('hidden');
-        wrapperForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
     } catch (e) {
         console.error('Error al preparar edición:', e);
         alert('No se pudo cargar el riesgo para editar.');
@@ -481,3 +603,124 @@ resetFormularioRiesgo = function () {
     document.getElementById('banner-riesgo-actual').classList.add('hidden');
     document.getElementById('controles-recomendados-box').classList.add('hidden');
 };
+
+/* ==========================================================================
+   GENERAR REPORTE DE RIESGOS (Vista + Descarga Excel), igual que en Activos
+   ========================================================================== */
+function generarReporteRiesgos() {
+    if (!riesgosGlobal || riesgosGlobal.length === 0) {
+        alert('No hay riesgos registrados para generar el reporte.');
+        return;
+    }
+
+    const fecha = new Date().toLocaleDateString('es-EC', { day: '2-digit', month: 'long', year: 'numeric' });
+
+    let filas = '';
+    riesgosGlobal.forEach(r => {
+        const score = r.score_inherente ?? (r.nivel_probabilidad * r.nivel_vulnerabilidad);
+        const nivel = nivelYClasePorScore(score);
+        const tratado = idsConTratamientoGlobal.has(r.id_riesgo);
+
+        filas += `
+            <tr>
+                <td>#RSK-${r.id_riesgo}</td>
+                <td>${r.nombre_riesgo}</td>
+                <td>${nombreActivoPorId(r.id_activo)}</td>
+                <td>${nombreAmenazaRiesgo(r)}</td>
+                <td>${nombreVulnerabilidadRiesgo(r)}</td>
+                <td>${r.nivel_probabilidad}</td>
+                <td>${r.nivel_vulnerabilidad}</td>
+                <td><strong>${score} - ${nivel.texto}</strong></td>
+                <td>${tratado ? 'Tratado' : 'No Tratado'}</td>
+                <td>${r.descripcion || 'N/A'}</td>
+            </tr>
+        `;
+    });
+
+    const ventana = window.open('', '_blank');
+    ventana.document.write(`
+        <html>
+        <head>
+            <title>Reporte de Riesgos - SecureCore</title>
+            <style>
+                body { font-family: Arial, sans-serif; padding: 40px; color: #1f2937; }
+                h1 { color: #4f46e5; margin-bottom: 4px; }
+                p.fecha { color: #6b7280; margin-top: 0; }
+                table { width: 100%; border-collapse: collapse; margin-top: 24px; font-size: 12px; }
+                th, td { border: 1px solid #e5e7eb; padding: 6px 8px; text-align: left; }
+                th { background: #f3f4f6; }
+                .botones { margin-top: 20px; display: flex; gap: 12px; }
+                button { padding: 10px 20px; border-radius: 6px; border: none; cursor: pointer; font-weight: 600; }
+                .btn-print { background: #e5e7eb; color: #1f2937; }
+                @media print { .botones { display: none; } }
+            </style>
+        </head>
+        <body>
+            <h1>Reporte de Análisis de Riesgos</h1>
+            <p class="fecha">Generado el ${fecha} — SecureCore Plataforma de Riesgo</p>
+            <p>Total de riesgos registrados: <strong>${riesgosGlobal.length}</strong></p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th><th>Riesgo</th><th>Activo Afectado</th><th>Amenaza</th><th>Vulnerabilidad</th>
+                        <th>Probabilidad</th><th>Impacto</th><th>Riesgo Inherente</th><th>Tratamiento</th><th>Descripción</th>
+                    </tr>
+                </thead>
+                <tbody>${filas}</tbody>
+            </table>
+            <div class="botones">
+                <button class="btn-print" onclick="window.print()">🖨️ Imprimir / Guardar como PDF</button>
+            </div>
+        </body>
+        </html>
+    `);
+    ventana.document.close();
+
+    descargarExcelRiesgos();
+}
+
+function descargarExcelRiesgos() {
+    if (typeof XLSX === 'undefined') {
+        alert('No se pudo cargar la librería de Excel. Verifica tu conexión a internet.');
+        return;
+    }
+
+    const datosExcel = riesgosGlobal.map(r => {
+        const score = r.score_inherente ?? (r.nivel_probabilidad * r.nivel_vulnerabilidad);
+        const nivel = nivelYClasePorScore(score);
+        const tratado = idsConTratamientoGlobal.has(r.id_riesgo);
+
+        return {
+            'ID': `#RSK-${r.id_riesgo}`,
+            'Riesgo': r.nombre_riesgo,
+            'Activo Afectado': nombreActivoPorId(r.id_activo),
+            'Amenaza': nombreAmenazaRiesgo(r),
+            'Vulnerabilidad': nombreVulnerabilidadRiesgo(r),
+            'Probabilidad': r.nivel_probabilidad,
+            'Impacto': r.nivel_vulnerabilidad,
+            'Riesgo Inherente': `${score} - ${nivel.texto}`,
+            'Tratamiento': tratado ? 'Tratado' : 'No Tratado',
+            'Descripción': r.descripcion || 'N/A'
+        };
+    });
+
+    const hoja = XLSX.utils.json_to_sheet(datosExcel);
+    hoja['!cols'] = [
+        { wch: 8 }, { wch: 30 }, { wch: 26 }, { wch: 20 }, { wch: 20 },
+        { wch: 12 }, { wch: 10 }, { wch: 18 }, { wch: 14 }, { wch: 40 }
+    ];
+
+    const libro = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(libro, hoja, 'Riesgos');
+
+    const fechaArchivo = new Date().toISOString().slice(0, 10);
+    XLSX.writeFile(libro, `Reporte_Riesgos_SecureCore_${fechaArchivo}.xlsx`);
+}
+
+const linkReporteRiesgos = document.getElementById('btnVerReporteRiesgos');
+if (linkReporteRiesgos) {
+    linkReporteRiesgos.addEventListener('click', (e) => {
+        e.preventDefault();
+        generarReporteRiesgos();
+    });
+}

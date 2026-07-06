@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="css/dashboard.css">
 </head>
 <body>
-<aside class="sidebar">
+<header class="sidebar">
         
         <div class="logo-area">
             <div class="logo-icon"><i class='bx bx-shield'></i></div>
@@ -46,7 +46,7 @@
                 <span>Analista de Seguridad</span>
             </div>
         </div>
-    </aside>
+    </header>
 
 
     <main class="main-content">
@@ -54,6 +54,45 @@
             <h1>Gestión de Riesgos Cibernéticos</h1>
             <p>Monitoreo de riesgos y controles en tiempo real</p>
         </header>
+
+        <section class="card monitoreo-card">
+            <div class="card-header"><h3>Panel de Monitoreo y Supervisión</h3></div>
+            <div class="monitoreo-grid">
+                <div class="monitoreo-cobertura">
+                    <div class="cobertura-item">
+                        <div class="cobertura-label">
+                            <span>Cobertura de Tratamientos</span>
+                            <strong id="cobertura-tratamientos-pct">0%</strong>
+                        </div>
+                        <div class="cobertura-bar"><div class="cobertura-fill fill-amarillo" id="cobertura-tratamientos-fill" style="width:0%"></div></div>
+                        <small id="cobertura-tratamientos-detalle">Cargando...</small>
+                    </div>
+                    <div class="cobertura-item">
+                        <div class="cobertura-label">
+                            <span>Cobertura de Riesgo Residual</span>
+                            <strong id="cobertura-residual-pct">0%</strong>
+                        </div>
+                        <div class="cobertura-bar"><div class="cobertura-fill fill-azul" id="cobertura-residual-fill" style="width:0%"></div></div>
+                        <small id="cobertura-residual-detalle">Cargando...</small>
+                    </div>
+                </div>
+
+                <div class="acciones-rapidas">
+                    <span class="acciones-rapidas-titulo">Acciones Rápidas</span>
+                    <div class="acciones-rapidas-botones">
+                        <button class="btn-accion-rapida btn-accion-azul" onclick="window.location.href='pages/activos.html?accion=nuevo'">
+                            <i class='bx bx-server'></i> + Activo
+                        </button>
+                        <button class="btn-accion-rapida btn-accion-amarillo" onclick="window.location.href='pages/analisis.html?accion=nuevo'">
+                            <i class='bx bx-error-alt'></i> + Riesgo
+                        </button>
+                        <button class="btn-accion-rapida btn-accion-morado" onclick="window.location.href='pages/analisis.html?accion=reporte'">
+                            <i class='bx bx-file'></i> Reporte
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
 
         <section class="dashboard-top-grid">
             <div class="card map-card">
@@ -83,37 +122,60 @@
             </div>
         </section>
 
+        <section class="card top-riesgos-card">
+            <div class="card-header"><h3>Top 5 Riesgos por Nivel</h3></div>
+            <div class="card-body" style="padding:0;">
+                <table class="top-riesgos-table">
+                    <thead>
+                        <tr>
+                            <th>Activo</th>
+                            <th>Amenaza</th>
+                            <th>Nivel</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody id="top5-riesgos-container">
+                        <tr><td colspan="4" style="color:#94a3b8; font-size:13px; padding:16px;">Cargando...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
         <section class="kpi-row">
-            <div class="kpi-card">
+            <div class="kpi-card" onclick="window.location.href='pages/activos.html'">
                 <div class="kpi-icon blue"><i class='bx bx-server'></i></div>
                 <div class="kpi-data">
                     <small>Activos Registrados</small>
                     <strong id="kpi-activos">0</strong>
                     <span class="trend blue-trend" id="kpi-activos-detalle">Cargando...</span>
+                    <span class="kpi-ver-mas">Ver activos <i class='bx bx-right-arrow-alt'></i></span>
                 </div>
             </div>
-            <div class="kpi-card">
+            <div class="kpi-card" onclick="window.location.href='pages/analisis.html'">
                 <div class="kpi-icon yellow"><i class='bx bx-error-alt'></i></div>
                 <div class="kpi-data">
                     <small>Riesgos Registrados</small>
                     <strong id="kpi-riesgos">0</strong>
                     <span class="trend yellow-trend" id="kpi-riesgos-detalle">Cargando...</span>
+                    <span class="kpi-ver-mas">Ver riesgos <i class='bx bx-right-arrow-alt'></i></span>
                 </div>
             </div>
-            <div class="kpi-card">
+            <div class="kpi-card" onclick="window.location.href='pages/tratamiento.html?tab=biblioteca'">
                 <div class="kpi-icon green"><i class='bx bx-list-check'></i></div>
                 <div class="kpi-data">
                     <small>Controles ISO Aplicados</small>
                     <strong id="kpi-controles">0</strong>
                     <span class="trend green-trend" id="kpi-controles-detalle">Cargando...</span>
+                    <span class="kpi-ver-mas">Ver controles <i class='bx bx-right-arrow-alt'></i></span>
                 </div>
             </div>
-            <div class="kpi-card">
+            <div class="kpi-card" onclick="window.location.href='pages/tratamiento.html?tab=historial'">
                 <div class="kpi-icon purple"><i class='bx bx-trending-down'></i></div>
                 <div class="kpi-data">
                     <small>Reducción Promedio de Riesgo</small>
                     <strong id="kpi-reduccion">0%</strong>
                     <span class="trend blue-trend" id="kpi-reduccion-detalle">Cargando...</span>
+                    <span class="kpi-ver-mas">Ver historial <i class='bx bx-right-arrow-alt'></i></span>
                 </div>
             </div>
         </section>

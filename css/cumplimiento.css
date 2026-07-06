@@ -6,6 +6,23 @@
     gap: 24px;
 }
 
+.card-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    color: #6366f1;
+}
+.card-header i { font-size: 20px; }
+
+.rc4-subtitulo {
+    display: block;
+    font-size: 12px;
+    color: #94a3b8;
+    font-weight: 400;
+    margin-top: 2px;
+}
+
 .flex-center {
     display: flex;
     flex-direction: column;
@@ -51,3 +68,7 @@
 .status-badge { padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
 .status-ok { background: #d1fae5; color: #059669; }
 .status-late { background: #fee2e2; color: #dc2626; }
+
+.monitoring-table tbody tr.fila-brecha { cursor: pointer; transition: background-color 0.2s ease; }
+.monitoring-table tbody tr.fila-brecha:hover { background: #fef2f2; }
+.monitoring-table tbody tr.fila-brecha:hover .status-late { background: #dc2626; color: #ffffff; }

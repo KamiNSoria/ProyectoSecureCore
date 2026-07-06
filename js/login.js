@@ -12,11 +12,23 @@ document.addEventListener('DOMContentLoaded', () => {
     const spinner = btn.querySelector('.btn-spinner');
     const toggleBtn = document.getElementById('toggle-password');
     const passwordInput = document.getElementById('password');
+    const emailInput = document.getElementById('email');
 
     // Si ya hay una sesión guardada, saltar directo al dashboard
     if (localStorage.getItem('securecore_token')) {
         window.location.href = '../index.html';
         return;
+    }
+
+    // Si venimos de un registro exitoso, mostramos el aviso y precargamos el correo
+    const paramsUrl = new URLSearchParams(window.location.search);
+    if (paramsUrl.get('registrado') === '1') {
+        mostrarAlerta('¡Cuenta creada! Ya puedes iniciar sesión con tu correo y contraseña.', true);
+        const correoPrevio = sessionStorage.getItem('securecore_correo_registrado');
+        if (correoPrevio) {
+            emailInput.value = correoPrevio;
+            sessionStorage.removeItem('securecore_correo_registrado');
+        }
     }
 
     toggleBtn.addEventListener('click', () => {
@@ -29,11 +41,11 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         ocultarAlerta();
 
-        const username = document.getElementById('username').value.trim();
+        const email = emailInput.value.trim();
         const password = passwordInput.value;
 
-        if (!username || !password) {
-            mostrarAlerta('Ingresa tu usuario y contraseña.');
+        if (!email || !password) {
+            mostrarAlerta('Ingresa tu correo y contraseña.');
             return;
         }
 
@@ -43,7 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const res = await fetch(`${API_BASE}/auth/login/`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, password })
+                body: JSON.stringify({ email, password })
             });
 
             const data = await res.json().catch(() => ({}));
@@ -71,14 +83,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    function mostrarAlerta(mensaje) {
+    function mostrarAlerta(mensaje, esExito = false) {
         alertBox.textContent = mensaje;
+        alertBox.classList.toggle('exito', esExito);
         alertBox.hidden = false;
     }
 
     function ocultarAlerta() {
         alertBox.hidden = true;
         alertBox.textContent = '';
+        alertBox.classList.remove('exito');
     }
 
     function setCargando(activo) {

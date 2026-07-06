@@ -8,6 +8,7 @@ let catalogoISOTrat = [];
 let catalogoActivosTrat = [];
 let catalogoRiesgosTrat = [];
 let bibliotecaControles = []; // ControlEmpresa reales desde SQL
+let idControlEditar = null;
 
 document.addEventListener('DOMContentLoaded', async () => {
     await Promise.all([cargarCatalogoISOTrat(), cargarActivosTrat(), cargarRiesgosTrat()]);
@@ -76,15 +77,41 @@ const modalControl = document.getElementById('modalNuevoControl');
 const btnAbrirModalControl = document.getElementById('btnAbrirModalControl');
 const btnCerrarModalControl = document.getElementById('btnCerrarModalControl');
 
+function resetFormularioControl() {
+    idControlEditar = null;
+    document.getElementById('in-id-control').value = '';
+    document.getElementById('form-control-titulo').textContent = 'Crear Nuevo Control Maestro';
+    document.getElementById('btnGuardarControl').textContent = 'Guardar en Biblioteca';
+    document.getElementById('btnEliminarControl').classList.add('hidden');
+    document.getElementById('ctrl_name').value = '';
+    document.getElementById('intencion_usuario').selectedIndex = 0;
+    document.getElementById('ctrl_iso').innerHTML = '<option value="">Primero selecciona el objetivo arriba...</option>';
+    document.getElementById('ctrl_iso').disabled = true;
+    document.querySelectorAll('#modalNuevoControl input[type="radio"]').forEach(r => r.checked = false);
+    document.getElementById('lbl-c-tipo').textContent = 'No definido';
+    document.getElementById('lbl-c-exec').textContent = 'No definido';
+    document.getElementById('lbl-c-doc').textContent = 'No definido';
+    strengthLabel.textContent = 'Fuerza: 0%';
+    strengthLabel.style.color = '';
+}
+
+const cerrarModalControl = () => {
+    modalControl.classList.add('hidden');
+    resetFormularioControl();
+};
+
 if (btnAbrirModalControl && modalControl) {
-    btnAbrirModalControl.addEventListener('click', () => modalControl.classList.remove('hidden'));
+    btnAbrirModalControl.addEventListener('click', () => {
+        resetFormularioControl();
+        modalControl.classList.remove('hidden');
+    });
 }
 if (btnCerrarModalControl && modalControl) {
-    btnCerrarModalControl.addEventListener('click', () => modalControl.classList.add('hidden'));
+    btnCerrarModalControl.addEventListener('click', cerrarModalControl);
 }
 if (modalControl) {
     modalControl.addEventListener('click', (e) => {
-        if (e.target === modalControl) modalControl.classList.add('hidden');
+        if (e.target === modalControl) cerrarModalControl();
     });
 }
 
@@ -150,8 +177,8 @@ function pintarSelectRiesgos() {
     calcularResidual();
 }
 
-// --- 5. GUARDAR CONTROL EN BIBLIOTECA (POST real a SQL) ---
-const btnGuardarBiblioteca = document.querySelector('#modalNuevoControl .btn-primary-solid');
+// --- 5. GUARDAR CONTROL EN BIBLIOTECA (POST o PUT real a SQL) ---
+const btnGuardarBiblioteca = document.getElementById('btnGuardarControl');
 
 if (btnGuardarBiblioteca) {
     btnGuardarBiblioteca.addEventListener('click', async () => {
@@ -164,29 +191,33 @@ if (btnGuardarBiblioteca) {
             return;
         }
 
+        const payload = {
+            nombre_control: nombre,
+            id_iso_padre: idControlIso,
+            naturaleza_valor: datosFuerza.tipo,
+            ejecucion_valor: datosFuerza.exec,
+            documentacion_valor: datosFuerza.doc,
+            eficacia_porcentaje: datosFuerza.eficacia
+        };
+
+        let url = `${API_BASE}/controles-empresa/`;
+        let metodo = 'POST';
+        if (idControlEditar !== null) {
+            url = `${API_BASE}/controles-empresa/${idControlEditar}/`;
+            metodo = 'PUT';
+        }
+
         try {
-            const res = await fetch(`${API_BASE}/controles-empresa/`, {
-                method: 'POST',
+            const res = await fetch(url, {
+                method: metodo,
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    nombre_control: nombre,
-                    id_iso_padre: idControlIso,
-                    naturaleza_valor: datosFuerza.tipo,
-                    ejecucion_valor: datosFuerza.exec,
-                    documentacion_valor: datosFuerza.doc,
-                    eficacia_porcentaje: datosFuerza.eficacia
-                })
+                body: JSON.stringify(payload)
             });
 
             if (res.ok) {
-                alert('¡Control guardado en la biblioteca!');
-                document.getElementById('ctrl_name').value = '';
-                document.getElementById('intencion_usuario').selectedIndex = 0;
-                document.getElementById('ctrl_iso').innerHTML = '<option value="">Primero selecciona el objetivo arriba...</option>';
-                document.getElementById('ctrl_iso').disabled = true;
-                document.querySelectorAll('#modalNuevoControl input[type="radio"]').forEach(r => r.checked = false);
-                strengthLabel.textContent = 'Fuerza: 0%';
+                alert(idControlEditar !== null ? '¡Control actualizado!' : '¡Control guardado en la biblioteca!');
                 if (modalControl) modalControl.classList.add('hidden');
+                resetFormularioControl();
                 cargarBiblioteca();
             } else {
                 const err = await res.json();
@@ -198,6 +229,68 @@ if (btnGuardarBiblioteca) {
             alert('No se pudo conectar con el servidor.');
         }
     });
+}
+
+// --- 5b. PREPARAR EDICIÓN DE UN CONTROL EXISTENTE (clic en la tarjeta de la Biblioteca) ---
+async function prepararEditarControl(id) {
+    try {
+        const res = await fetch(`${API_BASE}/controles-empresa/${id}/`);
+        if (!res.ok) throw new Error('No se pudo obtener el control');
+        const c = await res.json();
+
+        idControlEditar = id;
+        document.getElementById('in-id-control').value = id;
+        document.getElementById('form-control-titulo').textContent = 'Modificar Control Maestro';
+        document.getElementById('btnGuardarControl').textContent = 'Actualizar Control';
+        document.getElementById('btnEliminarControl').classList.remove('hidden');
+        document.getElementById('btnEliminarControl').onclick = () => eliminarControl(id);
+
+        document.getElementById('ctrl_name').value = c.nombre_control;
+
+        // Reconstruimos el paso 1 (dominio) a partir del control ISO ya guardado
+        const isoControl = catalogoISOTrat.find(i => i.id_control === c.id_iso_padre);
+        const selectIntencionEl = document.getElementById('intencion_usuario');
+        const selectIsoEl = document.getElementById('ctrl_iso');
+        if (isoControl) {
+            selectIntencionEl.value = isoControl.dominio;
+            selectIntencionEl.dispatchEvent(new Event('change'));
+        }
+        selectIsoEl.disabled = false;
+        selectIsoEl.value = c.id_iso_padre;
+
+        // Paso 3: características del diseño
+        const radioTipo = document.querySelector(`input[name="c_tipo"][value="${c.naturaleza_valor}"]`);
+        const radioExec = document.querySelector(`input[name="c_exec"][value="${c.ejecucion_valor}"]`);
+        const radioDoc = document.querySelector(`input[name="c_doc"][value="${c.documentacion_valor}"]`);
+        if (radioTipo) radioTipo.checked = true;
+        if (radioExec) radioExec.checked = true;
+        if (radioDoc) radioDoc.checked = true;
+        calcularFuerzaControl();
+
+        modalControl.classList.remove('hidden');
+    } catch (e) {
+        console.error('Error al preparar edición del control:', e);
+        alert('No se pudieron cargar los datos del control para editar.');
+    }
+}
+
+// --- 5c. ELIMINAR CONTROL DE LA BIBLIOTECA ---
+async function eliminarControl(id) {
+    if (!confirm('¿Eliminar este control de la biblioteca? Esta acción no se puede deshacer.')) return;
+    try {
+        const res = await fetch(`${API_BASE}/controles-empresa/${id}/`, { method: 'DELETE' });
+        if (res.ok) {
+            alert('Control eliminado correctamente.');
+            modalControl.classList.add('hidden');
+            resetFormularioControl();
+            cargarBiblioteca();
+        } else {
+            alert('No se pudo eliminar el control (puede estar vinculado a un tratamiento aplicado).');
+        }
+    } catch (e) {
+        console.error('Error al eliminar el control:', e);
+        alert('Error de conexión al eliminar el control.');
+    }
 }
 
 // --- 6. CARGAR Y PINTAR BIBLIOTECA REAL ---
@@ -236,7 +329,7 @@ async function cargarBiblioteca() {
         bibliotecaControles.forEach(c => {
             const vinculado = !!vinculosPorControl[c.id_control_emp];
             html += `
-                <div class="saved-risk-item" data-vinculado="${vinculado ? 'si' : 'no'}" data-eficacia="${c.eficacia_porcentaje}">
+                <div class="saved-risk-item" data-vinculado="${vinculado ? 'si' : 'no'}" data-eficacia="${c.eficacia_porcentaje}" style="cursor:pointer;" onclick="prepararEditarControl(${c.id_control_emp})">
                     <div class="sr-info">
                         <strong>${c.nombre_control}</strong>
                         <span>ISO ${c.id_iso_padre} - Eficacia: ${c.eficacia_porcentaje}%</span>

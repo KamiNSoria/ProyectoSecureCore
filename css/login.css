@@ -157,6 +157,45 @@
     color: var(--critico-text);
     border: 1px solid rgba(225, 29, 72, 0.25);
 }
+.login-alert.exito {
+    background: var(--bajo-bg);
+    color: var(--bajo-text);
+    border-color: rgba(22, 163, 74, 0.25);
+}
+
+.field-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+}
+
+.password-hints {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-muted);
+    margin-top: 2px;
+}
+.password-hints li { display: flex; align-items: center; gap: 6px; }
+.password-hints li i { font-size: 14px; color: #cbd5e1; }
+.password-hints li.cumplido { color: var(--bajo-text); }
+.password-hints li.cumplido i { color: var(--bajo-text); }
+
+.auth-switch {
+    text-align: center;
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-top: 4px;
+}
+.auth-switch a { color: var(--active-text); font-weight: 600; text-decoration: none; }
+.auth-switch a:hover { text-decoration: underline; }
+
+@media (max-width: 520px) {
+    .field-row { grid-template-columns: 1fr; }
+}
 
 .btn-login {
     margin-top: 4px;
@@ -179,6 +218,7 @@
 .btn-login:disabled { opacity: 0.7; cursor: not-allowed; }
 
 .btn-spinner { animation: login-spin 0.8s linear infinite; }
+.btn-spinner[hidden] { display: none; }
 @keyframes login-spin { to { transform: rotate(360deg); } }
 
 @media (max-width: 860px) {

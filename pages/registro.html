@@ -3,13 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Iniciar sesión - SecureCore</title>
+<title>Crear cuenta - SecureCore</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/boxicons@2.1.4/css/boxicons.min.css">
 
-<!-- Ajusta estas rutas si login.html no queda en la misma carpeta "pages" que el resto -->
 <link rel="stylesheet" href="../css/global.css">
 <link rel="stylesheet" href="../css/login.css">
 </head>
@@ -38,40 +37,69 @@
     </aside>
 
     <main class="login-panel">
-      <form id="form-login" class="login-form" novalidate>
+      <form id="form-registro" class="login-form" novalidate>
         <div class="login-form-head">
-          <h2>Inicia sesión</h2>
-          <p>Ingresa tus credenciales para acceder al panel.</p>
+          <h2>Crea tu cuenta</h2>
+          <p>Regístrate para acceder al panel de gestión de riesgos.</p>
         </div>
 
-        <div id="login-alert" class="login-alert" role="alert" hidden></div>
+        <div id="registro-alert" class="login-alert" role="alert" hidden></div>
+
+        <div class="field-row">
+          <label class="field">
+            <span>Nombre</span>
+            <input type="text" id="first_name" name="first_name" autocomplete="given-name" required>
+          </label>
+          <label class="field">
+            <span>Apellido</span>
+            <input type="text" id="last_name" name="last_name" autocomplete="family-name" required>
+          </label>
+        </div>
 
         <label class="field">
           <span>Correo electrónico</span>
-          <input type="email" id="email" name="email" autocomplete="username" required>
+          <input type="email" id="email" name="email" autocomplete="email" required>
         </label>
 
         <label class="field">
           <span>Contraseña</span>
           <div class="password-wrap">
-            <input type="password" id="password" name="password" autocomplete="current-password" required>
+            <input type="password" id="password" name="password" autocomplete="new-password" required>
             <button type="button" id="toggle-password" aria-label="Mostrar contraseña">
               <i class='bx bx-hide'></i>
             </button>
           </div>
         </label>
 
-        <button type="submit" class="btn-login" id="btn-login">
-          <span class="btn-text">Ingresar</span>
+        <ul class="password-hints" id="password-hints">
+          <li data-regla="longitud"><i class='bx bx-circle'></i> Al menos 8 caracteres</li>
+          <li data-regla="mayuscula"><i class='bx bx-circle'></i> Una letra mayúscula</li>
+          <li data-regla="minuscula"><i class='bx bx-circle'></i> Una letra minúscula</li>
+          <li data-regla="numero"><i class='bx bx-circle'></i> Un número</li>
+          <li data-regla="especial"><i class='bx bx-circle'></i> Un carácter especial</li>
+        </ul>
+
+        <label class="field">
+          <span>Confirmar contraseña</span>
+          <div class="password-wrap">
+            <input type="password" id="password_confirm" name="password_confirm" autocomplete="new-password" required>
+            <button type="button" id="toggle-password-confirm" aria-label="Mostrar contraseña">
+              <i class='bx bx-hide'></i>
+            </button>
+          </div>
+        </label>
+
+        <button type="submit" class="btn-login" id="btn-registro">
+          <span class="btn-text">Crear cuenta</span>
           <i class='bx bx-loader-alt btn-spinner' hidden></i>
         </button>
 
-        <p class="auth-switch">¿No tienes cuenta? <a href="registro.html">Regístrate</a></p>
+        <p class="auth-switch">¿Ya tienes cuenta? <a href="login.html">Inicia sesión</a></p>
       </form>
     </main>
 
   </div>
 
-  <script src="../js/login.js"></script>
+  <script src="../js/registro.js"></script>
 </body>
 </html>

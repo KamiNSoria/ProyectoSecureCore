@@ -27,6 +27,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
+    // Acceso directo desde el Panel: analisis.html?nivel=alto|medio|bajo|critico|alto-critico
+    const nivelSolicitado = paramsUrl.get('nivel');
+    if (nivelSolicitado) {
+        filtroNivel = nivelSolicitado;
+        const radioNivel = document.querySelector(`input[name="filtro-nivel"][value="${nivelSolicitado}"]`);
+        if (radioNivel) radioNivel.checked = true;
+    }
+
     cargarRiesgosDesdeSQL();
 
     if (paramsUrl.get('accion') === 'nuevo') {
@@ -167,7 +175,7 @@ async function pintarListaRiesgos(datos) {
         const tieneTratamiento = idsConTratamiento.has(r.id_riesgo);
 
         html += `
-            <div class="saved-risk-item" data-tratado="${tieneTratamiento ? 'si' : 'no'}" data-imp="${r.nivel_vulnerabilidad}" data-prob="${r.nivel_probabilidad}">
+            <div class="saved-risk-item" data-tratado="${tieneTratamiento ? 'si' : 'no'}" data-imp="${r.nivel_vulnerabilidad}" data-prob="${r.nivel_probabilidad}" data-nivel="${nivel.clave}">
                 <div class="sr-info" style="cursor:pointer;" onclick="prepararEditarRiesgo(${r.id_riesgo})">
                     <strong>${r.nombre_riesgo} ${tieneTratamiento ? '<span class="badge-tratado"><i class=\'bx bx-check-shield\'></i> Tratado</span>' : ''}</strong>
                     <span>${nombreActivoPorId(r.id_activo)}</span>
@@ -188,13 +196,20 @@ async function pintarListaRiesgos(datos) {
     aplicarFiltrosRiesgos();
 }
 
-// --- FILTROS COMBINABLES: ESTADO DE TRATAMIENTO (IZQUIERDA) + CELDA DEL MAPA DE CALOR ---
+// --- FILTROS COMBINABLES: ESTADO DE TRATAMIENTO + NIVEL DE RIESGO (IZQUIERDA) + CELDA DEL MAPA DE CALOR ---
 let filtroTratado = 'todos'; // 'todos' | 'si' | 'no'
+let filtroNivel = 'todos'; // 'todos' | 'bajo' | 'medio' | 'alto' | 'critico' | 'alto-critico'
 let celdaSeleccionada = null; // { imp, prob } o null
 
 function obtenerFiltroTratadoActual() {
     const radioMarcado = document.querySelector('input[name="filtro-tratado"]:checked');
     return radioMarcado ? radioMarcado.value : 'todos';
+}
+
+function coincideNivel(nivelItem) {
+    if (filtroNivel === 'todos') return true;
+    if (filtroNivel === 'alto-critico') return nivelItem === 'alto' || nivelItem === 'critico';
+    return nivelItem === filtroNivel;
 }
 
 function aplicarFiltrosRiesgos() {
@@ -204,7 +219,7 @@ function aplicarFiltrosRiesgos() {
         const coincideTratado = (filtroTratado === 'todos') || (item.getAttribute('data-tratado') === filtroTratado);
         const coincideCelda = !celdaSeleccionada ||
             (item.getAttribute('data-imp') === celdaSeleccionada.imp && item.getAttribute('data-prob') === celdaSeleccionada.prob);
-        const visible = coincideTratado && coincideCelda;
+        const visible = coincideTratado && coincideCelda && coincideNivel(item.getAttribute('data-nivel'));
         item.style.display = visible ? 'flex' : 'none';
         if (visible) visibles++;
     });
@@ -218,6 +233,12 @@ function activarFiltroTratado() {
             aplicarFiltrosRiesgos();
         });
     });
+    document.querySelectorAll('input[name="filtro-nivel"]').forEach(radio => {
+        radio.addEventListener('change', (e) => {
+            filtroNivel = e.target.value;
+            aplicarFiltrosRiesgos();
+        });
+    });
 }
 
 function actualizarConteosTratamiento(datos, idsConTratamiento) {
@@ -227,6 +248,16 @@ function actualizarConteosTratamiento(datos, idsConTratamiento) {
     const spanNo = document.getElementById('count-tratado-no');
     if (spanSi) spanSi.textContent = `(${tratados})`;
     if (spanNo) spanNo.textContent = `(${datos.length - tratados})`;
+
+    const conteoNivel = { bajo: 0, medio: 0, alto: 0, critico: 0 };
+    datos.forEach(r => {
+        const score = r.score_inherente ?? (r.nivel_probabilidad * r.nivel_vulnerabilidad);
+        conteoNivel[nivelYClasePorScore(score).clave]++;
+    });
+    Object.keys(conteoNivel).forEach(clave => {
+        const span = document.getElementById(`count-nivel-${clave}`);
+        if (span) span.textContent = `(${conteoNivel[clave]})`;
+    });
 }
 
 // --- MAPA DE CALOR: MUESTRA CUÁNTOS RIESGOS REALES CAEN EN CADA CASILLA Y PERMITE FILTRAR AL HACER CLIC ---

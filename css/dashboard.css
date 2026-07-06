@@ -2,28 +2,25 @@
    DASHBOARD.CSS - Estilos exclusivos del Panel Principal (index.html)
    ========================================================================== */
 
-.dashboard-top-grid {
-    display: grid;
-    grid-template-columns: 2fr 1fr;
-    gap: 24px;
-    margin-bottom: 24px;
+/* Accesos rápidos (standalone, debajo de los KPIs) */
+.quick-access-card {
+    margin-bottom: 28px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
 }
 
 /* Panel de Monitoreo y Supervisión */
-.monitoreo-card { margin-bottom: 24px; }
+.monitoreo-card { margin-bottom: 28px; }
 
 .monitoreo-grid {
     display: grid;
-    grid-template-columns: 2fr 1fr;
+    grid-template-columns: 1fr 1fr;
     gap: 32px;
     align-items: center;
 }
 
-.monitoreo-cobertura {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-}
 .cobertura-label {
     display: flex;
     justify-content: space-between;
@@ -38,26 +35,20 @@
 .fill-azul { background: #3b82f6; }
 .cobertura-item small { display: block; margin-top: 6px; font-size: 11px; color: var(--text-muted); }
 
-.acciones-rapidas {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    border-left: 1px solid var(--border-color);
-    padding-left: 24px;
-}
 .acciones-rapidas-titulo {
     font-size: 12px;
     font-weight: 700;
     color: var(--text-muted);
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    flex-shrink: 0;
 }
-.acciones-rapidas-botones { display: flex; gap: 8px; flex-wrap: wrap; }
+.acciones-rapidas-botones { display: flex; gap: 12px; flex-wrap: wrap; }
 .btn-accion-rapida {
     display: flex;
     align-items: center;
     gap: 6px;
-    padding: 8px 14px;
+    padding: 10px 18px;
     border-radius: 8px;
     border: 1px solid transparent;
     font-size: 12px;
@@ -72,12 +63,63 @@
 .btn-accion-morado { background: #f5f3ff; color: #8b5cf6; border-color: #ede9fe; }
 .btn-accion-morado:hover { background: #8b5cf6; color: #ffffff; }
 
-/* Mapa de Calor */
-.heat-grid {
+/* Fila de 3 dashboards dinámicos: Activos por Tipo | Riesgos por Nivel | Riesgo Residual Promedio */
+.dashboard-3-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr); 
+    grid-template-columns: 1fr 1fr 1fr;
     gap: 24px;
+    margin-bottom: 28px;
+    align-items: stretch;
 }
+
+/* Activos por Tipo (lista de barras horizontales) */
+.tipo-bar-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+.tipo-bar-row .tipo-bar-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    font-weight: 600;
+    color: #334155;
+    margin-bottom: 6px;
+}
+.tipo-bar-row .tipo-bar-label span { color: var(--text-muted); font-weight: 500; }
+.tipo-bar-track { background: #e2e8f0; height: 8px; border-radius: 4px; overflow: hidden; }
+.tipo-bar-fill { height: 100%; border-radius: 4px; background: #3b82f6; transition: width 0.6s ease; }
+
+/* Riesgos por Nivel (dona) */
+.nivel-donut-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    height: 80%;
+}
+.nivel-donut { margin-bottom: 0; cursor: default; }
+.nivel-leyenda {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+}
+.nivel-leyenda-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+.nivel-leyenda-item:hover { background: #f8fafc; }
+.nivel-leyenda-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.nivel-leyenda-label { font-size: 12px; font-weight: 600; color: #334155; flex: 1; }
+.nivel-leyenda-count { font-size: 13px; font-weight: 700; color: #0f172a; }
+
 .heat-item {
     padding: 16px;
     border-radius: 8px;
@@ -95,6 +137,15 @@
 .medio { background: var(--medio-bg); color: var(--medio-text); border: 1px solid rgba(202, 138, 4, 0.3); }
 .bajo { background: var(--bajo-bg); color: var(--bajo-text); border: 1px solid rgba(22, 163, 74, 0.3); }
 
+/* Fila de detalle: Top 5 Riesgos | Resumen General */
+.detalle-grid {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: 24px;
+    margin-bottom: 28px;
+    align-items: start;
+}
+
 /* Dona de Riesgo Residual */
 .chart-container {
     display: flex;
@@ -111,7 +162,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: 24px;
+    margin-bottom: 28px;
 }
 .donut-inner {
     width: 110px;
@@ -137,7 +188,6 @@
 }
 
 /* Top 5 Riesgos por Nivel */
-.top-riesgos-card { margin-bottom: 24px; }
 .top-riesgos-table { width: 100%; border-collapse: collapse; }
 .top-riesgos-table th, .top-riesgos-table td { padding: 14px 20px; border-bottom: 1px solid var(--border-color); text-align: left; font-size: 13px; }
 .top-riesgos-table th { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); font-weight: 700; }
@@ -160,12 +210,13 @@
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 24px;
+    margin-bottom: 28px;
 }
 .kpi-card {
     background: #ffffff;
     border: 1px solid var(--border-color);
     border-radius: 12px;
-    padding: 20px;
+    padding: 22px 24px;
     display: flex;
     gap: 16px;
     align-items: flex-start;
@@ -206,13 +257,8 @@
 }
 .kpi-ver-mas i { font-size: 14px; }
 
-/* Grid Alertas e Inteligencia */
-.bottom-grid {
-    display: grid;
-    grid-template-columns: 1fr 1.8fr;
-    gap: 24px;
-    margin-top: 24px;
-}
+/* Actividad Reciente */
+.alerts-card { margin-bottom: 28px; }
 .alerts-list {
     display: flex;
     flex-direction: column;
@@ -239,9 +285,23 @@
     font-size: 12px;
     flex-shrink: 0;
 }
-.alert-info { display: flex; flex-direction: column; }
+.alert-info { display: flex; flex-direction: column; flex: 1; }
 .alert-info strong { font-size: 13px; color: #1e293b; margin-bottom: 2px; }
 .alert-info span { font-size: 11px; color: var(--text-muted); }
+.alert-info .alert-detalle { font-size: 12px; color: #475569; margin: 2px 0; }
+.alert-tipo-tag {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    flex-shrink: 0;
+    align-self: center;
+}
+.alert-red .alert-tipo-tag { background: #ffe4e6; color: #e11d48; }
+.alert-yellow .alert-tipo-tag { background: #fef08a; color: #ca8a04; }
+.alert-blue .alert-tipo-tag { background: #dbeafe; color: #3b82f6; }
 
 .alert-red { background: #fff1f2; border-color: #ffe4e6; }
 .alert-red .alert-icon { background: #ffe4e6; color: #e11d48; }
@@ -252,8 +312,8 @@
 
 .threat-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 16px;
+    grid-template-columns: 1fr;
+    gap: 12px;
 }
 .threat-item {
     padding: 20px;

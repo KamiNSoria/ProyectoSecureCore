@@ -108,6 +108,45 @@ body {
     gap: 12px;
     flex-shrink: 0;
 }
+.user-profile-clickable {
+    position: relative;
+    cursor: pointer;
+    padding: 6px 8px;
+    border-radius: 10px;
+    transition: background-color 0.2s ease;
+}
+.user-profile-clickable:hover { background: #f1f5f9; }
+.user-profile-menu {
+    display: none;
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    min-width: 180px;
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+    padding: 6px;
+    z-index: 200;
+}
+.user-profile-clickable.abierto .user-profile-menu { display: block; }
+.user-profile-logout {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    border: none;
+    background: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #e11d48;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+.user-profile-logout:hover { background: #fff1f2; }
+.user-profile-logout i { font-size: 16px; }
 .avatar {
     width: 36px;
     height: 36px;
@@ -185,6 +224,7 @@ body {
     border-radius: 16px;
     display: flex;
     flex-direction: column;
+    overflow: hidden;
     box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
     transform: translateY(0);
     transition: transform 0.3s ease;
@@ -200,6 +240,7 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
+    flex-shrink: 0;
 }
 
 .modal-header h2 { font-size: 18px; color: #0f172a; margin-bottom: 4px; }
@@ -222,6 +263,11 @@ body {
     display: flex;
     flex-direction: column;
     gap: 16px;
+    flex: 1 1 auto;
+    min-height: 0;
+}
+.modal-body > * {
+    flex-shrink: 0;
 }
 
 /* Tarjetas blancas base */

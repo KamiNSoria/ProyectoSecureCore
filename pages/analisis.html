@@ -82,6 +82,36 @@
                         </label>
                     </div>
                 </div>
+
+                <div class="filtro-grupo">
+                    <span class="filtro-grupo-titulo">Nivel de Riesgo</span>
+                    <div id="filtrosNivel" class="filtro-lista">
+                        <label class="filtro-radio-item">
+                            <input type="radio" name="filtro-nivel" value="todos" checked>
+                            <span class="filtro-radio-label">Todos</span>
+                        </label>
+                        <label class="filtro-radio-item">
+                            <input type="radio" name="filtro-nivel" value="critico">
+                            <span class="filtro-radio-label">Crítico</span>
+                            <span class="filtro-radio-count" id="count-nivel-critico">(0)</span>
+                        </label>
+                        <label class="filtro-radio-item">
+                            <input type="radio" name="filtro-nivel" value="alto">
+                            <span class="filtro-radio-label">Alto</span>
+                            <span class="filtro-radio-count" id="count-nivel-alto">(0)</span>
+                        </label>
+                        <label class="filtro-radio-item">
+                            <input type="radio" name="filtro-nivel" value="medio">
+                            <span class="filtro-radio-label">Medio</span>
+                            <span class="filtro-radio-count" id="count-nivel-medio">(0)</span>
+                        </label>
+                        <label class="filtro-radio-item">
+                            <input type="radio" name="filtro-nivel" value="bajo">
+                            <span class="filtro-radio-label">Bajo</span>
+                            <span class="filtro-radio-count" id="count-nivel-bajo">(0)</span>
+                        </label>
+                    </div>
+                </div>
             </aside>
 
             <section class="risks-list-section">
@@ -364,5 +394,6 @@
     </main>
 
     <script src="../js/analisis.js"></script>
+    <script src="../js/session.js"></script>
 </body>
 </html>

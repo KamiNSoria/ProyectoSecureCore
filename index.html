@@ -55,92 +55,6 @@
             <p>Monitoreo de riesgos y controles en tiempo real</p>
         </header>
 
-        <section class="card monitoreo-card">
-            <div class="card-header"><h3>Panel de Monitoreo y Supervisión</h3></div>
-            <div class="monitoreo-grid">
-                <div class="monitoreo-cobertura">
-                    <div class="cobertura-item">
-                        <div class="cobertura-label">
-                            <span>Cobertura de Tratamientos</span>
-                            <strong id="cobertura-tratamientos-pct">0%</strong>
-                        </div>
-                        <div class="cobertura-bar"><div class="cobertura-fill fill-amarillo" id="cobertura-tratamientos-fill" style="width:0%"></div></div>
-                        <small id="cobertura-tratamientos-detalle">Cargando...</small>
-                    </div>
-                    <div class="cobertura-item">
-                        <div class="cobertura-label">
-                            <span>Cobertura de Riesgo Residual</span>
-                            <strong id="cobertura-residual-pct">0%</strong>
-                        </div>
-                        <div class="cobertura-bar"><div class="cobertura-fill fill-azul" id="cobertura-residual-fill" style="width:0%"></div></div>
-                        <small id="cobertura-residual-detalle">Cargando...</small>
-                    </div>
-                </div>
-
-                <div class="acciones-rapidas">
-                    <span class="acciones-rapidas-titulo">Acciones Rápidas</span>
-                    <div class="acciones-rapidas-botones">
-                        <button class="btn-accion-rapida btn-accion-azul" onclick="window.location.href='pages/activos.html?accion=nuevo'">
-                            <i class='bx bx-server'></i> + Activo
-                        </button>
-                        <button class="btn-accion-rapida btn-accion-amarillo" onclick="window.location.href='pages/analisis.html?accion=nuevo'">
-                            <i class='bx bx-error-alt'></i> + Riesgo
-                        </button>
-                        <button class="btn-accion-rapida btn-accion-morado" onclick="window.location.href='pages/analisis.html?accion=reporte'">
-                            <i class='bx bx-file'></i> Reporte
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section class="dashboard-top-grid">
-            <div class="card map-card">
-                <div class="card-header">
-                    <h3>Mapa de Calor de Riesgos por Amenaza</h3>
-                    <p>Distribución de riesgos registrados según su origen</p>
-                </div>
-                <div class="heat-grid" id="heat-grid-real">
-                    <p style="color:#94a3b8; font-size:13px; grid-column: 1/-1;">Cargando...</p>
-                </div>
-            </div>
-
-            <div class="card residual-card">
-                <div class="card-header">
-                    <h3>Riesgo Residual Promedio</h3>
-                    <p>Nivel de exposición actual de la organización</p>
-                </div>
-                <div class="chart-container">
-                    <div class="donut-chart" id="donut-chart">
-                        <div class="donut-inner">
-                            <strong id="donut-puntaje">-</strong>
-                            <span>Puntaje</span>
-                        </div>
-                    </div>
-                    <div class="badge-elevado" id="badge-nivel-residual">Cargando...</div>
-                </div>
-            </div>
-        </section>
-
-        <section class="card top-riesgos-card">
-            <div class="card-header"><h3>Top 5 Riesgos por Nivel</h3></div>
-            <div class="card-body" style="padding:0;">
-                <table class="top-riesgos-table">
-                    <thead>
-                        <tr>
-                            <th>Activo</th>
-                            <th>Amenaza</th>
-                            <th>Nivel</th>
-                            <th>Estado</th>
-                        </tr>
-                    </thead>
-                    <tbody id="top5-riesgos-container">
-                        <tr><td colspan="4" style="color:#94a3b8; font-size:13px; padding:16px;">Cargando...</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </section>
-
         <section class="kpi-row">
             <div class="kpi-card" onclick="window.location.href='pages/activos.html'">
                 <div class="kpi-icon blue"><i class='bx bx-server'></i></div>
@@ -179,15 +93,107 @@
                 </div>
             </div>
         </section>
-        <section class="bottom-grid">
-            
-            <div class="card alerts-card">
-                <div class="card-header">
-                    <h3>Actividad Reciente</h3>
-                    <p>Últimos registros en la plataforma</p>
+
+        <section class="card quick-access-card">
+            <span class="acciones-rapidas-titulo">Acciones Rápidas</span>
+            <div class="acciones-rapidas-botones">
+                <button class="btn-accion-rapida btn-accion-azul" onclick="window.location.href='pages/activos.html?accion=nuevo'">
+                    <i class='bx bx-server'></i> + Activo
+                </button>
+                <button class="btn-accion-rapida btn-accion-amarillo" onclick="window.location.href='pages/analisis.html?accion=nuevo'">
+                    <i class='bx bx-error-alt'></i> + Riesgo
+                </button>
+                <button class="btn-accion-rapida btn-accion-morado" onclick="window.location.href='pages/tratamiento.html?accion=nuevo'">
+                    <i class='bx bx-check-shield'></i> + Control
+                </button>
+            </div>
+        </section>
+
+        <section class="card monitoreo-card">
+            <div class="card-header"><h3>Panel de Monitoreo y Supervisión</h3></div>
+            <div class="monitoreo-grid">
+                <div class="cobertura-item">
+                    <div class="cobertura-label">
+                        <span>Cobertura de Tratamientos</span>
+                        <strong id="cobertura-tratamientos-pct">0%</strong>
+                    </div>
+                    <div class="cobertura-bar"><div class="cobertura-fill fill-amarillo" id="cobertura-tratamientos-fill" style="width:0%"></div></div>
+                    <small id="cobertura-tratamientos-detalle">Cargando...</small>
                 </div>
-                <div class="alerts-list" id="actividad-reciente-list">
+                <div class="cobertura-item">
+                    <div class="cobertura-label">
+                        <span>Cobertura de Riesgo Residual</span>
+                        <strong id="cobertura-residual-pct">0%</strong>
+                    </div>
+                    <div class="cobertura-bar"><div class="cobertura-fill fill-azul" id="cobertura-residual-fill" style="width:0%"></div></div>
+                    <small id="cobertura-residual-detalle">Cargando...</small>
+                </div>
+            </div>
+        </section>
+
+        <section class="dashboard-3-grid">
+            <div class="card tipo-activos-card">
+                <div class="card-header">
+                    <h3>Activos por Tipo</h3>
+                    <p>Distribución del inventario por categoría</p>
+                </div>
+                <div class="tipo-bar-list" id="activos-tipo-list">
                     <p style="color:#94a3b8; font-size:13px;">Cargando...</p>
+                </div>
+            </div>
+
+            <div class="card nivel-riesgos-card">
+                <div class="card-header">
+                    <h3>Riesgos por Nivel</h3>
+                    <p>Distribución según severidad inherente</p>
+                </div>
+                <div class="nivel-donut-wrapper">
+                    <div class="donut-chart nivel-donut" id="nivel-donut-chart">
+                        <div class="donut-inner">
+                            <strong id="nivel-donut-total">0</strong>
+                            <span>Riesgos</span>
+                        </div>
+                    </div>
+                    <div class="nivel-leyenda" id="riesgos-nivel-leyenda">
+                        <p style="color:#94a3b8; font-size:13px;">Cargando...</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card residual-card">
+                <div class="card-header">
+                    <h3>Riesgo Residual Promedio</h3>
+                    <p>Nivel de exposición actual de la organización</p>
+                </div>
+                <div class="chart-container">
+                    <div class="donut-chart" id="donut-chart">
+                        <div class="donut-inner">
+                            <strong id="donut-puntaje">-</strong>
+                            <span>Puntaje</span>
+                        </div>
+                    </div>
+                    <div class="badge-elevado" id="badge-nivel-residual">Cargando...</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="detalle-grid">
+            <div class="card top-riesgos-card">
+                <div class="card-header"><h3>Top 5 Riesgos por Nivel</h3></div>
+                <div class="card-body" style="padding:0;">
+                    <table class="top-riesgos-table">
+                        <thead>
+                            <tr>
+                                <th>Activo</th>
+                                <th>Amenaza</th>
+                                <th>Nivel</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody id="top5-riesgos-container">
+                            <tr><td colspan="4" style="color:#94a3b8; font-size:13px; padding:16px;">Cargando...</td></tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
 
@@ -200,10 +206,20 @@
                     <p style="color:#94a3b8; font-size:13px; grid-column: 1/-1;">Cargando...</p>
                 </div>
             </div>
+        </section>
 
+        <section class="card alerts-card">
+            <div class="card-header">
+                <h3>Actividad Reciente</h3>
+                <p>Últimos registros en la plataforma, con detalle completo</p>
+            </div>
+            <div class="alerts-list" id="actividad-reciente-list">
+                <p style="color:#94a3b8; font-size:13px;">Cargando...</p>
+            </div>
         </section>
     </main>
 
     <script src="js/dashboard.js"></script>
+    <script src="js/session.js"></script>
 </body>
 </html>

@@ -6,13 +6,14 @@ const API_BASE = 'http://127.0.0.1:8000/api';
 
 document.addEventListener('DOMContentLoaded', async () => {
     try {
-        const [resActivos, resRiesgos, resTratamientos, resControles, resIso, resAmenazas] = await Promise.all([
+        const [resActivos, resRiesgos, resTratamientos, resControles, resIso, resAmenazas, resTiposActivo] = await Promise.all([
             fetch(`${API_BASE}/activos/`),
             fetch(`${API_BASE}/riesgos/`),
             fetch(`${API_BASE}/tratamientos/`),
             fetch(`${API_BASE}/controles-empresa/`),
             fetch(`${API_BASE}/catalogo-iso/`),
-            fetch(`${API_BASE}/amenazas/`)
+            fetch(`${API_BASE}/amenazas/`),
+            fetch(`${API_BASE}/tipos-activo/`)
         ]);
 
         const activos = await resActivos.json();
@@ -21,12 +22,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         const controles = await resControles.json();
         const catalogoIso = await resIso.json();
         const amenazas = await resAmenazas.json();
+        const tiposActivo = await resTiposActivo.json();
 
         pintarKPIs(activos, riesgos, tratamientos, controles, catalogoIso);
         pintarPanelMonitoreo(riesgos, tratamientos);
+        pintarActivosPorTipo(activos, tiposActivo);
+        pintarRiesgosPorNivel(riesgos);
         pintarDonutResidual(riesgos, tratamientos);
-        pintarMapaCalorAmenazas(riesgos, amenazas);
-        pintarActividadReciente(activos, riesgos, tratamientos);
+        pintarActividadReciente(activos, riesgos, tratamientos, controles);
         pintarResumenGeneral(activos, riesgos, tratamientos, controles);
         pintarTop5Riesgos(riesgos, activos, amenazas, tratamientos);
 
@@ -153,33 +156,85 @@ function pintarDonutResidual(riesgos, tratamientos) {
     badge.style.borderColor = `${color}40`;
 }
 
-// --- 3. Mapa de Calor por Amenaza ---
-function pintarMapaCalorAmenazas(riesgos, amenazas) {
-    const contenedor = document.getElementById('heat-grid-real');
+// --- 3a. Activos por Tipo ---
+function pintarActivosPorTipo(activos, tiposActivo) {
+    const contenedor = document.getElementById('activos-tipo-list');
+    if (!contenedor) return;
 
-    if (riesgos.length === 0) {
-        contenedor.innerHTML = '<p style="color:#94a3b8; font-size:13px; grid-column: 1/-1;">Aún no hay riesgos registrados para mostrar en el mapa de calor.</p>';
+    if (activos.length === 0) {
+        contenedor.innerHTML = '<p style="color:#94a3b8; font-size:13px;">Aún no hay activos registrados.</p>';
         return;
     }
 
+    const conteoPorTipo = new Map();
+    activos.forEach(a => {
+        const tipo = tiposActivo.find(t => t.id_tipo_activo === a.id_tipo_activo);
+        const nombre = tipo ? tipo.nombre_tipo : 'Sin categoría';
+        conteoPorTipo.set(nombre, (conteoPorTipo.get(nombre) || 0) + 1);
+    });
+
+    const filas = [...conteoPorTipo.entries()].sort((a, b) => b[1] - a[1]);
+    const maximo = Math.max(...filas.map(f => f[1]));
+
     let html = '';
-    amenazas.forEach(amenaza => {
-        const riesgosDeEstaAmenaza = riesgos.filter(r => r.id_amenaza === amenaza.id_amenaza);
-        if (riesgosDeEstaAmenaza.length === 0) return; // Solo mostramos amenazas con riesgos reales
-
-        const scorePromedio = riesgosDeEstaAmenaza.reduce((acc, r) => acc + scoreInherente(r), 0) / riesgosDeEstaAmenaza.length;
-        const nivel = nivelPorScore(scorePromedio);
-
+    filas.forEach(([nombre, cantidad]) => {
+        const porcentaje = Math.round((cantidad / maximo) * 100);
         html += `
-            <div class="heat-item ${nivel.clase}" onclick="window.location.href='pages/analisis.html'">
-                <span>${amenaza.nombre_amenaza}</span>
-                <strong>${riesgosDeEstaAmenaza.length}</strong>
-                <small>${nivel.texto}</small>
+            <div class="tipo-bar-row" onclick="window.location.href='pages/activos.html'">
+                <div class="tipo-bar-label">
+                    <span>${nombre}</span>
+                    <span>${cantidad}</span>
+                </div>
+                <div class="tipo-bar-track"><div class="tipo-bar-fill" style="width:${porcentaje}%"></div></div>
             </div>
         `;
     });
 
-    contenedor.innerHTML = html || '<p style="color:#94a3b8; font-size:13px; grid-column: 1/-1;">Todos tus riesgos usan amenazas personalizadas ("otro"), no hay agrupación por catálogo.</p>';
+    contenedor.innerHTML = html;
+}
+
+// --- 3b. Riesgos por Nivel (dona circular alto/medio/bajo/crítico) ---
+function pintarRiesgosPorNivel(riesgos) {
+    const donut = document.getElementById('nivel-donut-chart');
+    const leyenda = document.getElementById('riesgos-nivel-leyenda');
+    const totalTexto = document.getElementById('nivel-donut-total');
+    if (!donut || !leyenda) return;
+
+    totalTexto.textContent = riesgos.length;
+
+    if (riesgos.length === 0) {
+        donut.style.background = '#f1f5f9';
+        leyenda.innerHTML = '<p style="color:#94a3b8; font-size:13px;">Aún no hay riesgos registrados.</p>';
+        return;
+    }
+
+    const niveles = [
+        { clase: 'critico', texto: 'CRÍTICO', color: '#e11d48' },
+        { clase: 'alto', texto: 'ALTO', color: '#ea580c' },
+        { clase: 'medio', texto: 'MEDIO', color: '#ca8a04' },
+        { clase: 'bajo', texto: 'BAJO', color: '#16a34a' }
+    ];
+
+    const conteos = niveles.map(nivel => ({
+        ...nivel,
+        cantidad: riesgos.filter(r => nivelPorScore(scoreInherente(r)).clase === nivel.clase).length
+    })).filter(n => n.cantidad > 0);
+
+    let acumulado = 0;
+    const segmentos = conteos.map(n => {
+        const desde = acumulado;
+        acumulado += (n.cantidad / riesgos.length) * 100;
+        return `${n.color} ${desde}% ${acumulado}%`;
+    });
+    donut.style.background = `conic-gradient(${segmentos.join(', ')})`;
+
+    leyenda.innerHTML = conteos.map(n => `
+        <div class="nivel-leyenda-item" onclick="window.location.href='pages/analisis.html?nivel=${n.clase}'">
+            <span class="nivel-leyenda-dot" style="background:${n.color}"></span>
+            <span class="nivel-leyenda-label">Riesgo ${n.texto.toLowerCase()}</span>
+            <span class="nivel-leyenda-count">${n.cantidad}</span>
+        </div>
+    `).join('');
 }
 
 // --- 3b. Top 5 Riesgos por Nivel ---
@@ -217,22 +272,94 @@ function pintarTop5Riesgos(riesgos, activos, amenazas, tratamientos) {
 }
 
 // --- 4. Actividad Reciente ---
-function pintarActividadReciente(activos, riesgos, tratamientos) {
+// Considera que hubo una edición real si la fecha de modificación quedó más de 2s después de la de creación
+// (en la creación, ambas fechas se graban casi al mismo instante).
+function huboEdicion(fechaCreacion, fechaModificacion) {
+    if (!fechaCreacion || !fechaModificacion) return false;
+    return (new Date(fechaModificacion) - new Date(fechaCreacion)) > 2000;
+}
+
+function pintarActividadReciente(activos, riesgos, tratamientos, controles) {
     const contenedor = document.getElementById('actividad-reciente-list');
     let eventos = [];
 
     activos.forEach(a => {
-        if (a.fecha_registro) eventos.push({ tipo: 'activo', fecha: a.fecha_registro, texto: `Activo registrado: ${a.nombre_activo}` });
+        if (a.fecha_registro) {
+            eventos.push({
+                tipo: 'activo',
+                fecha: a.fecha_registro,
+                texto: `Activo registrado: ${a.nombre_activo}`,
+                detalle: `Impacto ${a.nivel_impacto || a.valor_final_max || 'N/A'}/5`
+            });
+        }
+        if (huboEdicion(a.fecha_registro, a.fecha_modificacion)) {
+            eventos.push({
+                tipo: 'activo-mod',
+                fecha: a.fecha_modificacion,
+                texto: `Activo modificado: ${a.nombre_activo}`,
+                detalle: `Impacto ${a.nivel_impacto || a.valor_final_max || 'N/A'}/5`
+            });
+        }
     });
     riesgos.forEach(r => {
-        if (r.fecha_registro) eventos.push({ tipo: 'riesgo', fecha: r.fecha_registro, texto: `Riesgo identificado: ${r.nombre_riesgo}` });
+        const nivel = nivelPorScore(scoreInherente(r));
+        if (r.fecha_registro) {
+            eventos.push({
+                tipo: 'riesgo',
+                fecha: r.fecha_registro,
+                texto: `Riesgo identificado: ${r.nombre_riesgo}`,
+                detalle: `Score inherente ${scoreInherente(r)} — nivel ${nivel.texto}`
+            });
+        }
+        if (huboEdicion(r.fecha_registro, r.fecha_modificacion)) {
+            eventos.push({
+                tipo: 'riesgo-mod',
+                fecha: r.fecha_modificacion,
+                texto: `Riesgo modificado: ${r.nombre_riesgo}`,
+                detalle: `Score inherente ${scoreInherente(r)} — nivel ${nivel.texto}`
+            });
+        }
+    });
+    controles.forEach(c => {
+        if (c.fecha_registro) {
+            eventos.push({
+                tipo: 'control',
+                fecha: c.fecha_registro,
+                texto: `Control creado: ${c.nombre_control}`,
+                detalle: `ISO ${c.id_iso_padre} — Eficacia ${c.eficacia_porcentaje}%`
+            });
+        }
+        if (huboEdicion(c.fecha_registro, c.fecha_modificacion)) {
+            eventos.push({
+                tipo: 'control-mod',
+                fecha: c.fecha_modificacion,
+                texto: `Control modificado: ${c.nombre_control}`,
+                detalle: `ISO ${c.id_iso_padre} — Eficacia ${c.eficacia_porcentaje}%`
+            });
+        }
     });
     tratamientos.forEach(t => {
-        if (t.fecha_actualizacion) eventos.push({ tipo: 'tratamiento', fecha: t.fecha_actualizacion, texto: `Tratamiento aplicado (${t.estrategia})` });
+        const riesgo = riesgos.find(r => r.id_riesgo === t.id_riesgo);
+        if (t.fecha_actualizacion) {
+            eventos.push({
+                tipo: 'tratamiento',
+                fecha: t.fecha_actualizacion,
+                texto: `Tratamiento aplicado: ${t.estrategia}${riesgo ? ` sobre "${riesgo.nombre_riesgo}"` : ''}`,
+                detalle: `Score residual: ${t.score_residual}`
+            });
+        }
+        if (huboEdicion(t.fecha_actualizacion, t.fecha_modificacion)) {
+            eventos.push({
+                tipo: 'tratamiento-mod',
+                fecha: t.fecha_modificacion,
+                texto: `Tratamiento modificado: ${t.estrategia}${riesgo ? ` sobre "${riesgo.nombre_riesgo}"` : ''}`,
+                detalle: `Score residual: ${t.score_residual}`
+            });
+        }
     });
 
     eventos.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
-    eventos = eventos.slice(0, 7);
+    eventos = eventos.slice(0, 12);
 
     if (eventos.length === 0) {
         contenedor.innerHTML = '<p style="color:#94a3b8; font-size:13px;">Aún no hay actividad registrada.</p>';
@@ -240,22 +367,29 @@ function pintarActividadReciente(activos, riesgos, tratamientos) {
     }
 
     const iconos = {
-        activo: { clase: 'alert-blue', icono: '<i class="bx bx-server"></i>', destino: 'pages/activos.html' },
-        riesgo: { clase: 'alert-yellow', icono: '<i class="bx bx-error-alt"></i>', destino: 'pages/analisis.html' },
-        tratamiento: { clase: 'alert-red', icono: '<i class="bx bx-check-shield"></i>', destino: 'pages/tratamiento.html?tab=historial' }
+        activo: { clase: 'alert-blue', icono: '<i class="bx bx-server"></i>', destino: 'pages/activos.html', etiqueta: 'Activo' },
+        'activo-mod': { clase: 'alert-blue', icono: '<i class="bx bx-edit-alt"></i>', destino: 'pages/activos.html', etiqueta: 'Editado' },
+        riesgo: { clase: 'alert-yellow', icono: '<i class="bx bx-error-alt"></i>', destino: 'pages/analisis.html', etiqueta: 'Riesgo' },
+        'riesgo-mod': { clase: 'alert-yellow', icono: '<i class="bx bx-edit-alt"></i>', destino: 'pages/analisis.html', etiqueta: 'Editado' },
+        control: { clase: 'alert-blue', icono: '<i class="bx bx-list-check"></i>', destino: 'pages/tratamiento.html?tab=biblioteca', etiqueta: 'Control' },
+        'control-mod': { clase: 'alert-blue', icono: '<i class="bx bx-edit-alt"></i>', destino: 'pages/tratamiento.html?tab=biblioteca', etiqueta: 'Editado' },
+        tratamiento: { clase: 'alert-red', icono: '<i class="bx bx-check-shield"></i>', destino: 'pages/tratamiento.html?tab=historial', etiqueta: 'Tratamiento' },
+        'tratamiento-mod': { clase: 'alert-red', icono: '<i class="bx bx-edit-alt"></i>', destino: 'pages/tratamiento.html?tab=historial', etiqueta: 'Editado' }
     };
 
     let html = '';
     eventos.forEach(e => {
         const meta = iconos[e.tipo];
-        const fecha = new Date(e.fecha).toLocaleDateString('es-EC', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+        const fecha = new Date(e.fecha).toLocaleDateString('es-EC', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
         html += `
             <div class="alert-item ${meta.clase}" onclick="window.location.href='${meta.destino}'">
                 <div class="alert-icon">${meta.icono}</div>
                 <div class="alert-info">
                     <strong>${e.texto}</strong>
+                    <span class="alert-detalle">${e.detalle}</span>
                     <span>${fecha}</span>
                 </div>
+                <span class="alert-tipo-tag">${meta.etiqueta}</span>
             </div>
         `;
     });
@@ -273,12 +407,12 @@ function pintarResumenGeneral(activos, riesgos, tratamientos, controles) {
         : 0;
 
     contenedor.innerHTML = `
-        <div class="threat-item threat-red" onclick="window.location.href='pages/activos.html'">
+        <div class="threat-item threat-red" onclick="window.location.href='pages/activos.html?impacto=5'">
             <span class="threat-title">Activos Críticos</span>
             <strong>${activosCriticos}</strong>
             <small>De ${activos.length} activos totales</small>
         </div>
-        <div class="threat-item threat-purple" onclick="window.location.href='pages/analisis.html'">
+        <div class="threat-item threat-purple" onclick="window.location.href='pages/analisis.html?nivel=alto-critico'">
             <span class="threat-title">Riesgos Alto/Crítico</span>
             <strong>${riesgosAltos}</strong>
             <small>De ${riesgos.length} riesgos totales</small>

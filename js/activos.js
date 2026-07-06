@@ -305,6 +305,16 @@ function activarFiltros() {
     let filtroImpacto = 'todos';
     let filtroEstado = 'todos';
 
+    // Acceso directo desde el Panel: activos.html?impacto=5 filtra automáticamente por ese nivel de impacto
+    const impactoSolicitado = new URLSearchParams(window.location.search).get('impacto');
+    if (impactoSolicitado) {
+        const radioImpacto = document.querySelector(`input[name="filtro-impacto"][value="${impactoSolicitado}"]`);
+        if (radioImpacto) {
+            radioImpacto.checked = true;
+            filtroImpacto = impactoSolicitado;
+        }
+    }
+
     // Pinta las "chips" de filtros aplicados arriba de la lista, cada una con su botón de quitar (x)
     const renderChips = () => {
         const chips = [];

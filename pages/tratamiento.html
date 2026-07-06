@@ -131,12 +131,13 @@
             <div class="modal-content" style="width: 560px;">
                 <header class="modal-header">
                     <div>
-                        <h2>Crear Nuevo Control Maestro</h2>
+                        <h2 id="form-control-titulo">Crear Nuevo Control Maestro</h2>
                         <p>Define el objetivo, el control ISO y la fuerza del diseño.</p>
                     </div>
                     <button id="btnCerrarModalControl" class="close-modal-btn"><i class='bx bx-x'></i></button>
                 </header>
                 <div class="modal-body">
+                    <input type="hidden" id="in-id-control" value="">
                     <div class="form-group">
                         <label>Nombre del Control</label>
                         <input type="text" class="form-input" id="ctrl_name" placeholder="Ej. Implementación de WAF Corporativo">
@@ -194,7 +195,12 @@
                         </div>
                     </div>
 
-                    <button class="btn-primary-solid w-100">Guardar en Biblioteca</button>
+                    <footer class="form-footer-actions">
+                        <button type="button" id="btnEliminarControl" class="btn-secondary hidden" style="background-color:#ef4444; color:white; border:none;">Eliminar Control</button>
+                        <div style="margin-left:auto; display:flex; gap:10px;">
+                            <button type="button" id="btnGuardarControl" class="btn-primary-solid">Guardar en Biblioteca</button>
+                        </div>
+                    </footer>
                 </div>
             </div>
         </div>
@@ -333,5 +339,6 @@
     </main>
 
     <script src="../js/tratamiento.js"></script>
+    <script src="../js/session.js"></script>
 </body>
 </html>

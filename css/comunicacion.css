@@ -1,0 +1,84 @@
+/* ==========================================================================
+   COMUNICACION.CSS - Estilos exclusivos del módulo de Comunicación
+   ========================================================================== */
+
+.comunicacion-filtros {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 4px 0 20px;
+}
+
+.filtro-pill {
+    background: #f8fafc;
+    color: #475569;
+    border: 1px solid var(--border-color);
+    padding: 8px 16px;
+    border-radius: 999px;
+    font-size: 12.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.filtro-pill:hover { background: #f1f5f9; color: #1e293b; }
+.filtro-pill.active {
+    background: var(--active-bg);
+    color: var(--active-text);
+    border-color: var(--active-border);
+}
+
+.comunicacion-table { width: 100%; border-collapse: collapse; }
+.comunicacion-table th, .comunicacion-table td {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border-color);
+    text-align: left;
+    font-size: 13px;
+    vertical-align: top;
+}
+.comunicacion-table th {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    font-weight: 700;
+}
+.comunicacion-table tbody tr:last-child td { border-bottom: none; }
+.comunicacion-table tbody tr:hover { background: #f8fafc; }
+
+.badge-modulo {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 700;
+    background: var(--active-bg);
+    color: var(--active-text);
+    white-space: nowrap;
+}
+
+.obs-autor {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #334155;
+    white-space: nowrap;
+}
+.obs-autor i { font-size: 15px; color: var(--text-muted); }
+
+.btn-eliminar-obs {
+    background: none;
+    border: none;
+    color: #e11d48;
+    font-size: 18px;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 6px;
+    transition: background-color 0.2s ease;
+}
+.btn-eliminar-obs:hover { background: #fff1f2; }
+
+.comunicacion-total {
+    font-size: 12px;
+    color: var(--text-muted);
+    padding: 16px 4px 0;
+}

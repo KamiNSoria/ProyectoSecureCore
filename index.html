@@ -37,6 +37,10 @@
             <a href="pages/cumplimiento.html" class="nav-item">
                 <i class='bx bx-file'></i> Cumplimiento
             </a>
+
+            <a href="pages/comunicacion.html" class="nav-item">
+                <i class='bx bx-message-square-dots'></i> Comunicación
+            </a>
         </nav>
 
         <div class="user-profile">
@@ -56,7 +60,7 @@
         </header>
 
         <section class="kpi-row">
-            <div class="kpi-card" onclick="window.location.href='pages/activos.html'">
+            <div class="kpi-card" data-tooltip="activos" onclick="window.location.href='pages/activos.html'">
                 <div class="kpi-icon blue"><i class='bx bx-server'></i></div>
                 <div class="kpi-data">
                     <small>Activos Registrados</small>
@@ -65,7 +69,7 @@
                     <span class="kpi-ver-mas">Ver activos <i class='bx bx-right-arrow-alt'></i></span>
                 </div>
             </div>
-            <div class="kpi-card" onclick="window.location.href='pages/analisis.html'">
+            <div class="kpi-card" data-tooltip="riesgos" onclick="window.location.href='pages/analisis.html'">
                 <div class="kpi-icon yellow"><i class='bx bx-error-alt'></i></div>
                 <div class="kpi-data">
                     <small>Riesgos Registrados</small>
@@ -74,7 +78,7 @@
                     <span class="kpi-ver-mas">Ver riesgos <i class='bx bx-right-arrow-alt'></i></span>
                 </div>
             </div>
-            <div class="kpi-card" onclick="window.location.href='pages/tratamiento.html?tab=biblioteca'">
+            <div class="kpi-card" data-tooltip="controles" onclick="window.location.href='pages/tratamiento.html?tab=biblioteca'">
                 <div class="kpi-icon green"><i class='bx bx-list-check'></i></div>
                 <div class="kpi-data">
                     <small>Controles ISO Aplicados</small>
@@ -83,7 +87,7 @@
                     <span class="kpi-ver-mas">Ver controles <i class='bx bx-right-arrow-alt'></i></span>
                 </div>
             </div>
-            <div class="kpi-card" onclick="window.location.href='pages/tratamiento.html?tab=historial'">
+            <div class="kpi-card" data-tooltip="reduccion" onclick="window.location.href='pages/tratamiento.html?tab=historial'">
                 <div class="kpi-icon purple"><i class='bx bx-trending-down'></i></div>
                 <div class="kpi-data">
                     <small>Reducción Promedio de Riesgo</small>
@@ -160,7 +164,7 @@
                 </div>
             </div>
 
-            <div class="card residual-card">
+            <div class="card residual-card" data-tooltip="residual">
                 <div class="card-header">
                     <h3>Riesgo Residual Promedio</h3>
                     <p>Nivel de exposición actual de la organización</p>
@@ -208,7 +212,7 @@
             </div>
         </section>
 
-        <section class="card alerts-card">
+        <section class="card alerts-card" data-tooltip="actividad">
             <div class="card-header">
                 <h3>Actividad Reciente</h3>
                 <p>Últimos registros en la plataforma, con detalle completo</p>

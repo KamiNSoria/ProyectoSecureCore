@@ -342,3 +342,92 @@
 .heat-item.medio:hover { box-shadow: 0 10px 20px rgba(202, 138, 4, 0.25); }
 .heat-item.bajo:hover { box-shadow: 0 10px 20px rgba(22, 163, 74, 0.25); }
 .kpi-card:hover, .alert-item:hover, .threat-item:hover { box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08); }
+
+/* ==========================================================================
+   POPOVER DE ESTADÍSTICAS (hover en tarjetas) - datos reales de la API
+   ========================================================================== */
+
+.dash-popover {
+    position: absolute;
+    z-index: 999;
+    min-width: 230px;
+    max-width: 300px;
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    box-shadow: 0 16px 40px rgba(15, 23, 42, 0.18);
+    padding: 16px 18px;
+    opacity: 0;
+    transform: translateY(4px);
+    transition: opacity 0.15s ease, transform 0.15s ease;
+    pointer-events: none;
+}
+.dash-popover.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.dash-popover h4 {
+    font-size: 13px;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.dash-popover-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* Fila simple: label a la izquierda, valor corto a la derecha (números, %) */
+.dash-popover-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 14px;
+    font-size: 12px;
+    color: var(--text-muted);
+}
+.dash-popover-row strong {
+    font-size: 12.5px;
+    color: #1e293b;
+    font-weight: 700;
+    text-align: right;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+/* Bloque apilado: para valores largos (nombres de riesgos/activos/eventos) que necesitan envolver */
+.dash-popover-block {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+.dash-popover-label {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+.dash-popover-block strong {
+    font-size: 12.5px;
+    color: #1e293b;
+    font-weight: 700;
+    white-space: normal;
+    overflow-wrap: break-word;
+    word-break: break-word;
+    line-height: 1.4;
+}
+
+.dash-popover-empty {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.text-critico { color: var(--critico-text) !important; }
+.text-alto { color: var(--alto-text) !important; }
+.text-medio { color: var(--medio-text) !important; }
+.text-bajo { color: var(--bajo-text) !important; }
+.text-azul { color: var(--active-text) !important; }

@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SecureCore - Comunicación</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/analisis.css">
+    <link rel="stylesheet" href="../css/comunicacion.css">
+</head>
+<body>
+    <header class="sidebar">
+        <div class="logo-area">
+            <div class="logo-icon"><i class='bx bx-shield'></i></div>
+            <div><h2>SecureCore</h2><p>Plataforma de Riesgo</p></div>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="../index.html" class="nav-item">
+                <i class='bx bx-grid-alt'></i> Panel
+            </a>
+            <a href="activos.html" class="nav-item">
+                <i class='bx bx-server'></i> Activos
+            </a>
+            <a href="analisis.html" class="nav-item">
+                <i class='bx bx-line-chart-down'></i> Riesgos
+            </a>
+            <a href="tratamiento.html" class="nav-item">
+                <i class='bx bx-check-shield'></i> Tratamiento
+            </a>
+            <a href="cumplimiento.html" class="nav-item">
+                <i class='bx bx-file'></i> Cumplimiento
+            </a>
+            <a href="#" class="nav-item active">
+                <i class='bx bx-message-square-dots'></i> Comunicación
+            </a>
+        </nav>
+
+        <div class="user-profile">
+            <div class="avatar">UA</div>
+            <div class="user-info">
+                <strong>Usuario Admin</strong>
+                <span>Analista de Seguridad</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <header class="top-header header-flex">
+            <div>
+                <h1>Comunicación</h1>
+                <p>Registro centralizado de observaciones, recomendaciones y notas para partes interesadas.</p>
+            </div>
+        </header>
+
+        <section class="card">
+            <div class="card-header header-flex">
+                <div>
+                    <h3>Observaciones y Recomendaciones</h3>
+                    <p>Todo lo que el equipo técnico ha dejado a lo largo de la evaluación, en un solo lugar.</p>
+                </div>
+                <button class="btn-primary" id="btnNuevaObservacion">
+                    <i class='bx bx-plus'></i> Nueva Observación
+                </button>
+            </div>
+
+            <div class="comunicacion-filtros" id="comunicacion-filtros">
+                <button class="filtro-pill active" data-modulo="todos">Todos</button>
+                <button class="filtro-pill" data-modulo="activos">Activos</button>
+                <button class="filtro-pill" data-modulo="riesgos">Riesgos</button>
+                <button class="filtro-pill" data-modulo="tratamiento">Tratamiento</button>
+                <button class="filtro-pill" data-modulo="riesgo_residual">Riesgo Residual</button>
+                <button class="filtro-pill" data-modulo="monitoreo">Monitoreo</button>
+                <button class="filtro-pill" data-modulo="general">General</button>
+            </div>
+
+            <div class="card-body" style="padding:0;">
+                <table class="comunicacion-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Módulo</th>
+                            <th>Observación / Recomendación</th>
+                            <th>Autor</th>
+                            <th>Fecha</th>
+                            <th>Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody id="comunicacion-tabla-container">
+                        <tr><td colspan="6" style="color:#94a3b8; font-size:13px; padding:16px;">Cargando...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="comunicacion-total" id="comunicacion-total">Total: 0 observación(es) registrada(s)</p>
+        </section>
+    </main>
+
+    <div id="modalNuevaObservacion" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div>
+                    <h2>Nueva Observación</h2>
+                    <p>Deja una recomendación o nota visible para todo el equipo.</p>
+                </div>
+                <button class="close-modal-btn" id="btnCerrarModalObservacion">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Módulo relacionado</label>
+                    <select class="form-input form-select" id="obs_modulo">
+                        <option value="activos">Activos</option>
+                        <option value="riesgos">Riesgos</option>
+                        <option value="tratamiento">Tratamiento</option>
+                        <option value="riesgo_residual">Riesgo Residual</option>
+                        <option value="monitoreo">Monitoreo</option>
+                        <option value="general" selected>General</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Autor / Rol</label>
+                    <input type="text" class="form-input" id="obs_autor" placeholder="Ej. Oficial de Seguridad">
+                </div>
+                <div class="form-group">
+                    <label>Observación / Recomendación</label>
+                    <textarea class="form-input" id="obs_texto" rows="3" placeholder="Ej. Priorizar tratamiento de riesgos críticos del Data Center este trimestre."></textarea>
+                </div>
+                <button class="btn-primary" id="btnGuardarObservacion" style="align-self:flex-end;">Guardar Observación</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/comunicacion.js"></script>
+    <script src="../js/session.js"></script>
+</body>
+</html>

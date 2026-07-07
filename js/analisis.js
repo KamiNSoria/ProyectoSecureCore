@@ -644,108 +644,75 @@ function generarReporteRiesgos() {
         return;
     }
 
-    const fecha = new Date().toLocaleDateString('es-EC', { day: '2-digit', month: 'long', year: 'numeric' });
-
+    let tratados = 0;
     let filas = '';
     riesgosGlobal.forEach(r => {
         const score = r.score_inherente ?? (r.nivel_probabilidad * r.nivel_vulnerabilidad);
         const nivel = nivelYClasePorScore(score);
         const tratado = idsConTratamientoGlobal.has(r.id_riesgo);
+        if (tratado) tratados++;
 
         filas += `
             <tr>
                 <td>#RSK-${r.id_riesgo}</td>
-                <td>${r.nombre_riesgo}</td>
+                <td><strong>${r.nombre_riesgo}</strong></td>
                 <td>${nombreActivoPorId(r.id_activo)}</td>
                 <td>${nombreAmenazaRiesgo(r)}</td>
                 <td>${nombreVulnerabilidadRiesgo(r)}</td>
                 <td>${r.nivel_probabilidad}</td>
                 <td>${r.nivel_vulnerabilidad}</td>
-                <td><strong>${score} - ${nivel.texto}</strong></td>
-                <td>${tratado ? 'Tratado' : 'No Tratado'}</td>
+                <td><span class="badge ${badgeSeveridad(nivel.texto)}">${score} - ${nivel.texto}</span></td>
+                <td><span class="badge ${tratado ? 'badge-bajo' : 'badge-neutro'}">${tratado ? 'Tratado' : 'No Tratado'}</span></td>
                 <td>${r.descripcion || 'N/A'}</td>
             </tr>
         `;
     });
 
-    const ventana = window.open('', '_blank');
-    ventana.document.write(`
-        <html>
-        <head>
-            <title>Reporte de Riesgos - SecureCore</title>
-            <style>
-                body { font-family: Arial, sans-serif; padding: 40px; color: #1f2937; }
-                h1 { color: #4f46e5; margin-bottom: 4px; }
-                p.fecha { color: #6b7280; margin-top: 0; }
-                table { width: 100%; border-collapse: collapse; margin-top: 24px; font-size: 12px; }
-                th, td { border: 1px solid #e5e7eb; padding: 6px 8px; text-align: left; }
-                th { background: #f3f4f6; }
-                .botones { margin-top: 20px; display: flex; gap: 12px; }
-                button { padding: 10px 20px; border-radius: 6px; border: none; cursor: pointer; font-weight: 600; }
-                .btn-print { background: #e5e7eb; color: #1f2937; }
-                @media print { .botones { display: none; } }
-            </style>
-        </head>
-        <body>
-            <h1>Reporte de Análisis de Riesgos</h1>
-            <p class="fecha">Generado el ${fecha} — SecureCore Plataforma de Riesgo</p>
-            <p>Total de riesgos registrados: <strong>${riesgosGlobal.length}</strong></p>
-            <table>
-                <thead>
-                    <tr>
-                        <th>ID</th><th>Riesgo</th><th>Activo Afectado</th><th>Amenaza</th><th>Vulnerabilidad</th>
-                        <th>Probabilidad</th><th>Impacto</th><th>Riesgo Inherente</th><th>Tratamiento</th><th>Descripción</th>
-                    </tr>
-                </thead>
-                <tbody>${filas}</tbody>
-            </table>
-            <div class="botones">
-                <button class="btn-print" onclick="window.print()">🖨️ Imprimir / Guardar como PDF</button>
-            </div>
-        </body>
-        </html>
-    `);
-    ventana.document.close();
+    abrirReporteElegante({
+        titulo: 'Reporte de Análisis de Riesgos',
+        subtitulo: 'Riesgos derivados de amenazas y vulnerabilidades sobre los activos',
+        stats: [
+            { valor: riesgosGlobal.length, etiqueta: 'Riesgos totales' },
+            { valor: tratados, etiqueta: 'Tratados', color: '#16a34a' },
+            { valor: riesgosGlobal.length - tratados, etiqueta: 'Sin tratar', color: '#dc2626' }
+        ],
+        columnas: ['ID', 'Riesgo', 'Activo Afectado', 'Amenaza', 'Vulnerabilidad', 'Probabilidad', 'Impacto', 'Riesgo Inherente', 'Tratamiento', 'Descripción'],
+        filasHtml: filas
+    });
 
     descargarExcelRiesgos();
 }
 
 function descargarExcelRiesgos() {
-    if (typeof XLSX === 'undefined') {
-        alert('No se pudo cargar la librería de Excel. Verifica tu conexión a internet.');
-        return;
-    }
-
-    const datosExcel = riesgosGlobal.map(r => {
+    const filas = riesgosGlobal.map(r => {
         const score = r.score_inherente ?? (r.nivel_probabilidad * r.nivel_vulnerabilidad);
         const nivel = nivelYClasePorScore(score);
         const tratado = idsConTratamientoGlobal.has(r.id_riesgo);
 
-        return {
-            'ID': `#RSK-${r.id_riesgo}`,
-            'Riesgo': r.nombre_riesgo,
-            'Activo Afectado': nombreActivoPorId(r.id_activo),
-            'Amenaza': nombreAmenazaRiesgo(r),
-            'Vulnerabilidad': nombreVulnerabilidadRiesgo(r),
-            'Probabilidad': r.nivel_probabilidad,
-            'Impacto': r.nivel_vulnerabilidad,
-            'Riesgo Inherente': `${score} - ${nivel.texto}`,
-            'Tratamiento': tratado ? 'Tratado' : 'No Tratado',
-            'Descripción': r.descripcion || 'N/A'
-        };
+        return [
+            `#RSK-${r.id_riesgo}`,
+            r.nombre_riesgo,
+            nombreActivoPorId(r.id_activo),
+            nombreAmenazaRiesgo(r),
+            nombreVulnerabilidadRiesgo(r),
+            r.nivel_probabilidad,
+            r.nivel_vulnerabilidad,
+            `${score} - ${nivel.texto}`,
+            tratado ? 'Tratado' : 'No Tratado',
+            r.descripcion || 'N/A'
+        ];
     });
 
-    const hoja = XLSX.utils.json_to_sheet(datosExcel);
-    hoja['!cols'] = [
-        { wch: 8 }, { wch: 30 }, { wch: 26 }, { wch: 20 }, { wch: 20 },
-        { wch: 12 }, { wch: 10 }, { wch: 18 }, { wch: 14 }, { wch: 40 }
-    ];
-
-    const libro = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(libro, hoja, 'Riesgos');
-
     const fechaArchivo = new Date().toISOString().slice(0, 10);
-    XLSX.writeFile(libro, `Reporte_Riesgos_SecureCore_${fechaArchivo}.xlsx`);
+    descargarExcelElegante({
+        nombreHoja: 'Riesgos',
+        titulo: 'Reporte de Análisis de Riesgos',
+        subtitulo: 'Riesgos derivados de amenazas y vulnerabilidades sobre los activos',
+        columnas: ['ID', 'Riesgo', 'Activo Afectado', 'Amenaza', 'Vulnerabilidad', 'Probabilidad', 'Impacto', 'Riesgo Inherente', 'Tratamiento', 'Descripción'],
+        filas,
+        anchos: [10, 30, 26, 20, 20, 12, 10, 18, 14, 40],
+        nombreArchivo: `Reporte_Riesgos_SecureCore_${fechaArchivo}.xlsx`
+    });
 }
 
 const linkReporteRiesgos = document.getElementById('btnVerReporteRiesgos');

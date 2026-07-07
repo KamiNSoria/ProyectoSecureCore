@@ -690,11 +690,13 @@ function generarReporte() {
     }
 
     const niveles = { 5: 'Crítico', 4: 'Alto', 3: 'Medio', 2: 'Bajo', 1: 'Marginal' };
-    const fecha = new Date().toLocaleDateString('es-EC', { day: '2-digit', month: 'long', year: 'numeric' });
 
+    let criticos = 0, altos = 0;
     let filas = '';
     activosGlobal.forEach(activo => {
         const nivel = activo.nivel_impacto || activo.valor_final_max || 0;
+        if (nivel === 5) criticos++;
+        if (nivel === 4) altos++;
         const tipoObjeto = catalogoTipos.find(t => t.id_tipo_activo === activo.id_tipo_activo);
         const nombreTipo = tipoObjeto ? `[${tipoObjeto.codigo}] ${tipoObjeto.nombre_tipo}` : 'N/A';
 
@@ -703,10 +705,12 @@ function generarReporte() {
             fechaReg = new Date(activo.fecha_registro).toLocaleDateString('es-EC', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
         }
 
+        const textoNivel = `${nivel} - ${niveles[nivel] || 'N/A'}`;
+
         filas += `
             <tr>
                 <td>#ACT-${activo.id_activo}</td>
-                <td>${activo.nombre_activo}</td>
+                <td><strong>${activo.nombre_activo}</strong></td>
                 <td>${nombreTipo}</td>
                 <td>${activo.descripcion || 'N/A'}</td>
                 <td>${activo.sistema_involucrado || 'N/A'}</td>
@@ -717,52 +721,23 @@ function generarReporte() {
                 <td>${activo.confidencialidad}</td>
                 <td>${activo.integridad}</td>
                 <td>${activo.disponibilidad}</td>
-                <td><strong>${nivel} - ${niveles[nivel] || 'N/A'}</strong></td>
+                <td><span class="badge ${badgeSeveridad(textoNivel)}">${textoNivel}</span></td>
                 <td>${fechaReg}</td>
             </tr>
         `;
     });
 
-    const ventana = window.open('', '_blank');
-    ventana.document.write(`
-        <html>
-        <head>
-            <title>Reporte de Criticidad de Activos - SecureCore</title>
-            <style>
-                body { font-family: Arial, sans-serif; padding: 40px; color: #1f2937; }
-                h1 { color: #4f46e5; margin-bottom: 4px; }
-                p.fecha { color: #6b7280; margin-top: 0; }
-                table { width: 100%; border-collapse: collapse; margin-top: 24px; font-size: 12px; }
-                th, td { border: 1px solid #e5e7eb; padding: 6px 8px; text-align: left; }
-                th { background: #f3f4f6; }
-                .botones { margin-top: 20px; display: flex; gap: 12px; }
-                button { padding: 10px 20px; border-radius: 6px; border: none; cursor: pointer; font-weight: 600; }
-                .btn-print { background: #e5e7eb; color: #1f2937; }
-                .btn-excel { background: #16a34a; color: white; }
-                @media print { .botones { display: none; } }
-            </style>
-        </head>
-        <body>
-            <h1>Reporte de Gestión de Activos</h1>
-            <p class="fecha">Generado el ${fecha} — SecureCore Plataforma de Riesgo</p>
-            <p>Total de activos registrados: <strong>${activosGlobal.length}</strong></p>
-            <table>
-                <thead>
-                    <tr>
-                        <th>ID</th><th>Nombre</th><th>Tipo</th><th>Descripción</th><th>Sistema</th>
-                        <th>Área</th><th>Cargo Admin.</th><th>Función</th><th>Sensibilidad</th>
-                        <th>C</th><th>I</th><th>D</th><th>Nivel Impacto</th><th>Fecha Registro</th>
-                    </tr>
-                </thead>
-                <tbody>${filas}</tbody>
-            </table>
-            <div class="botones">
-                <button class="btn-print" onclick="window.print()">🖨️ Imprimir / Guardar como PDF</button>
-            </div>
-        </body>
-        </html>
-    `);
-    ventana.document.close();
+    abrirReporteElegante({
+        titulo: 'Reporte de Gestión de Activos',
+        subtitulo: 'Inventario y evaluación de criticidad en la infraestructura (CIA)',
+        stats: [
+            { valor: activosGlobal.length, etiqueta: 'Activos totales' },
+            { valor: criticos, etiqueta: 'Nivel crítico', color: '#dc2626' },
+            { valor: altos, etiqueta: 'Nivel alto', color: '#ea580c' }
+        ],
+        columnas: ['ID', 'Nombre', 'Tipo', 'Descripción', 'Sistema', 'Área', 'Cargo Admin.', 'Función', 'Sensibilidad', 'C', 'I', 'D', 'Nivel Impacto', 'Fecha Registro'],
+        filasHtml: filas
+    });
 
     // Descarga automática del Excel también
     descargarExcelActivos();
@@ -770,14 +745,9 @@ function generarReporte() {
 
 // --- K. DESCARGAR REPORTE COMO EXCEL (.xlsx) ---
 function descargarExcelActivos() {
-    if (typeof XLSX === 'undefined') {
-        alert('No se pudo cargar la librería de Excel. Verifica tu conexión a internet.');
-        return;
-    }
-
     const niveles = { 5: 'Crítico', 4: 'Alto', 3: 'Medio', 2: 'Bajo', 1: 'Marginal' };
 
-    const datosExcel = activosGlobal.map(activo => {
+    const filas = activosGlobal.map(activo => {
         const nivel = activo.nivel_impacto || activo.valor_final_max || 0;
         const tipoObjeto = catalogoTipos.find(t => t.id_tipo_activo === activo.id_tipo_activo);
         const nombreTipo = tipoObjeto ? `[${tipoObjeto.codigo}] ${tipoObjeto.nombre_tipo}` : 'N/A';
@@ -787,36 +757,34 @@ function descargarExcelActivos() {
             fechaReg = new Date(activo.fecha_registro).toLocaleDateString('es-EC', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
         }
 
-        return {
-            'ID': `#ACT-${activo.id_activo}`,
-            'Nombre': activo.nombre_activo,
-            'Tipo': nombreTipo,
-            'Descripción': activo.descripcion || 'N/A',
-            'Sistema Involucrado': activo.sistema_involucrado || 'N/A',
-            'Área de Trabajo': activo.area_trabajo || 'N/A',
-            'Cargo Administrativo': activo.cargo_administrative || 'N/A',
-            'Función': activo.funcion_activo || 'N/A',
-            'Sensibilidad ISO': activo.sensibilidad || 'N/A',
-            'Confidencialidad': activo.confidencialidad,
-            'Integridad': activo.integridad,
-            'Disponibilidad': activo.disponibilidad,
-            'Nivel de Impacto': `${nivel} - ${niveles[nivel] || 'N/A'}`,
-            'Fecha de Registro': fechaReg
-        };
+        return [
+            `#ACT-${activo.id_activo}`,
+            activo.nombre_activo,
+            nombreTipo,
+            activo.descripcion || 'N/A',
+            activo.sistema_involucrado || 'N/A',
+            activo.area_trabajo || 'N/A',
+            activo.cargo_administrative || 'N/A',
+            activo.funcion_activo || 'N/A',
+            activo.sensibilidad || 'N/A',
+            activo.confidencialidad,
+            activo.integridad,
+            activo.disponibilidad,
+            `${nivel} - ${niveles[nivel] || 'N/A'}`,
+            fechaReg
+        ];
     });
 
-    const hoja = XLSX.utils.json_to_sheet(datosExcel);
-    hoja['!cols'] = [
-        { wch: 8 }, { wch: 30 }, { wch: 20 }, { wch: 40 }, { wch: 25 },
-        { wch: 18 }, { wch: 22 }, { wch: 15 }, { wch: 14 }, { wch: 14 },
-        { wch: 12 }, { wch: 14 }, { wch: 16 }, { wch: 20 }
-    ];
-
-    const libro = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(libro, hoja, 'Activos');
-
     const fechaArchivo = new Date().toISOString().slice(0, 10);
-    XLSX.writeFile(libro, `Reporte_Activos_SecureCore_${fechaArchivo}.xlsx`);
+    descargarExcelElegante({
+        nombreHoja: 'Activos',
+        titulo: 'Reporte de Gestión de Activos',
+        subtitulo: 'Inventario y evaluación de criticidad en la infraestructura (CIA)',
+        columnas: ['ID', 'Nombre', 'Tipo', 'Descripción', 'Sistema Involucrado', 'Área de Trabajo', 'Cargo Administrativo', 'Función', 'Sensibilidad ISO', 'Confidencialidad', 'Integridad', 'Disponibilidad', 'Nivel de Impacto', 'Fecha de Registro'],
+        filas,
+        anchos: [10, 30, 20, 40, 25, 18, 22, 15, 14, 14, 12, 14, 16, 20],
+        nombreArchivo: `Reporte_Activos_SecureCore_${fechaArchivo}.xlsx`
+    });
 }
 
 const linkReporte = document.getElementById('btnVerReporte');

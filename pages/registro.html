@@ -10,15 +10,19 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/boxicons@2.1.4/css/boxicons.min.css">
 
 <link rel="stylesheet" href="../css/global.css">
+<link rel="stylesheet" href="../css/theme.css">
 <link rel="stylesheet" href="../css/login.css">
 </head>
 <body class="login-body">
 
+  <div class="bg-lights login-bg-lights">
+    <span class="luz-1"></span><span class="luz-2"></span><span class="luz-3"></span>
+  </div>
+  <div class="login-grid-overlay"></div>
+
   <div class="login-shell">
-
-    <aside class="login-brand">
+    <div class="login-context">
       <div class="brand-mark"><i class='bx bx-shield-quarter'></i> SecureCore</div>
-
       <h1>La seguridad no se improvisa,<br>se mide.</h1>
       <p>Gestión de activos, riesgos y controles ISO 27001 en un solo lugar.</p>
 
@@ -34,15 +38,16 @@
         </div>
       </div>
       <span class="brand-foot">Matriz de riesgo · probabilidad × impacto</span>
-    </aside>
+    </div>
 
-    <main class="login-panel">
+    <div class="login-card">
+      <div class="login-card-head">
+        <div class="brand-mark login-card-head-mark"><i class='bx bx-shield-quarter'></i> SecureCore</div>
+        <h1>Crea tu cuenta</h1>
+        <p>Regístrate para acceder al panel de gestión de riesgos.</p>
+      </div>
+
       <form id="form-registro" class="login-form" novalidate>
-        <div class="login-form-head">
-          <h2>Crea tu cuenta</h2>
-          <p>Regístrate para acceder al panel de gestión de riesgos.</p>
-        </div>
-
         <div id="registro-alert" class="login-alert" role="alert" hidden></div>
 
         <div class="field-row">
@@ -96,7 +101,7 @@
 
         <p class="auth-switch">¿Ya tienes cuenta? <a href="login.html">Inicia sesión</a></p>
       </form>
-    </main>
+    </div>
 
   </div>
 

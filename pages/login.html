@@ -11,15 +11,19 @@
 
 <!-- Ajusta estas rutas si login.html no queda en la misma carpeta "pages" que el resto -->
 <link rel="stylesheet" href="../css/global.css">
+<link rel="stylesheet" href="../css/theme.css">
 <link rel="stylesheet" href="../css/login.css">
 </head>
 <body class="login-body">
 
+  <div class="bg-lights login-bg-lights">
+    <span class="luz-1"></span><span class="luz-2"></span><span class="luz-3"></span>
+  </div>
+  <div class="login-grid-overlay"></div>
+
   <div class="login-shell">
-
-    <aside class="login-brand">
+    <div class="login-context">
       <div class="brand-mark"><i class='bx bx-shield-quarter'></i> SecureCore</div>
-
       <h1>La seguridad no se improvisa,<br>se mide.</h1>
       <p>Gestión de activos, riesgos y controles ISO 27001 en un solo lugar.</p>
 
@@ -35,24 +39,26 @@
         </div>
       </div>
       <span class="brand-foot">Matriz de riesgo · probabilidad × impacto</span>
-    </aside>
+    </div>
 
-    <main class="login-panel">
+    <div class="login-card">
+
+      <div class="login-card-head">
+        <div class="brand-mark login-card-head-mark"><i class='bx bx-shield-quarter'></i> SecureCore</div>
+        <h1>Bienvenido de nuevo</h1>
+        <p>Ingresa tus credenciales para acceder al panel.</p>
+      </div>
+
       <form id="form-login" class="login-form" novalidate>
-        <div class="login-form-head">
-          <h2>Inicia sesión</h2>
-          <p>Ingresa tus credenciales para acceder al panel.</p>
-        </div>
-
         <div id="login-alert" class="login-alert" role="alert" hidden></div>
 
         <label class="field">
-          <span>Correo electrónico</span>
+          <span><i class='bx bx-envelope'></i> Correo electrónico</span>
           <input type="email" id="email" name="email" autocomplete="username" required>
         </label>
 
         <label class="field">
-          <span>Contraseña</span>
+          <span><i class='bx bx-lock-alt'></i> Contraseña</span>
           <div class="password-wrap">
             <input type="password" id="password" name="password" autocomplete="current-password" required>
             <button type="button" id="toggle-password" aria-label="Mostrar contraseña">
@@ -68,8 +74,8 @@
 
         <p class="auth-switch">¿No tienes cuenta? <a href="registro.html">Regístrate</a></p>
       </form>
-    </main>
 
+    </div>
   </div>
 
   <script src="../js/login.js"></script>

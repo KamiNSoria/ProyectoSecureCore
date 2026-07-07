@@ -167,7 +167,9 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 14px;
+    min-width: 0;
 }
+.field-row .field { min-width: 0; }
 
 .password-hints {
     list-style: none;
@@ -224,4 +226,170 @@
 @media (max-width: 860px) {
     .login-brand { display: none; }
     .login-panel { padding: 32px 20px; }
+}
+
+/* ==========================================================================
+   REDISEÑO — panel de contexto + tarjeta de vidrio, ambos sobre el fondo de
+   luces animado. Usado por login.html y registro.html (las reglas viejas de
+   arriba quedan sin usar pero no se tocan, por si se necesitan de nuevo)
+   ========================================================================== */
+
+.login-body:has(.login-card) {
+    background: radial-gradient(circle at 20% 20%, #0b1230 0%, #05070f 60%, #030408 100%);
+    position: relative;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+/* Variante de luces más "cian tecnológico" para el login */
+.login-bg-lights .luz-1 { background: #38bdf8; }
+.login-bg-lights .luz-2 { background: #6366f1; }
+.login-bg-lights .luz-3 { background: #22d3ee; }
+.login-bg-lights span { opacity: 0.55; }
+
+/* Retícula sutil estilo "circuito" detrás de la tarjeta */
+.login-grid-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background-image:
+        linear-gradient(rgba(148, 197, 253, 0.07) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(148, 197, 253, 0.07) 1px, transparent 1px);
+    background-size: 42px 42px;
+    -webkit-mask-image: radial-gradient(circle at 50% 40%, #000 0%, transparent 75%);
+    mask-image: radial-gradient(circle at 50% 40%, #000 0%, transparent 75%);
+}
+
+.login-shell:has(.login-card) {
+    flex: 1;
+    display: flex;
+    align-items: safe center;
+    justify-content: center;
+    gap: 48px;
+    padding: 40px 24px;
+}
+
+/* Panel de contexto (izquierda) — la misma marca/tagline/matriz de riesgo que
+   antes vivía en .login-brand, ahora como panel de vidrio consistente con la
+   tarjeta del formulario */
+.login-context {
+    width: 100%;
+    max-width: 400px;
+    padding: 8px 12px;
+    animation: loginCardIn 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.login-context .brand-mark { color: #7dd3fc; margin-bottom: 32px; }
+.login-context h1 {
+    font-size: 32px;
+    line-height: 1.28;
+    font-weight: 800;
+    color: #f8fafc;
+    margin-bottom: 14px;
+}
+.login-context p {
+    color: #94a3b8;
+    font-size: 14px;
+    max-width: 340px;
+    margin-bottom: 40px;
+}
+.login-context .risk-chip { box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25); }
+.login-context .brand-foot {
+    font-size: 11px;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-top: 20px;
+    display: block;
+}
+
+@media (max-width: 900px) {
+    .login-context { display: none; }
+}
+
+.login-card {
+    width: 100%;
+    max-width: 420px;
+    background: rgba(15, 23, 42, 0.55);
+    border: 1px solid rgba(148, 197, 253, 0.18);
+    border-radius: 20px;
+    padding: 40px 36px;
+    backdrop-filter: blur(22px);
+    -webkit-backdrop-filter: blur(22px);
+    box-shadow: 0 25px 60px rgba(2, 6, 23, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.03) inset;
+    animation: loginCardIn 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes loginCardIn {
+    from { opacity: 0; transform: translateY(14px) scale(0.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.login-card-head { text-align: center; margin-bottom: 28px; }
+.login-card-head .brand-mark {
+    justify-content: center;
+    color: #7dd3fc;
+    margin-bottom: 18px;
+}
+/* Se repite el logo pequeño en la tarjeta solo cuando el panel de contexto se
+   oculta (pantallas angostas) — evita mostrar la marca dos veces en desktop */
+.login-card-head-mark { display: none; }
+@media (max-width: 900px) {
+    .login-card-head-mark { display: flex; }
+}
+.login-card-head h1 {
+    font-size: 24px;
+    font-weight: 800;
+    color: #f8fafc;
+    margin-bottom: 8px;
+}
+.login-card-head p {
+    font-size: 13px;
+    color: #94a3b8;
+    max-width: 320px;
+    margin: 0 auto;
+}
+
+.login-card .field { color: #cbd5e1; }
+.login-card .field span {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12.5px;
+}
+.login-card .field span i { font-size: 15px; color: #7dd3fc; }
+.login-card .field input {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(148, 197, 253, 0.2);
+    color: #f1f5f9;
+}
+.login-card .field input::placeholder { color: #64748b; }
+.login-card .field input:focus {
+    border-color: #38bdf8;
+    box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.18);
+}
+.login-card .password-wrap button { color: #94a3b8; }
+.login-card .password-wrap button:hover { color: #e2e8f0; }
+
+.login-card .btn-login {
+    background: linear-gradient(135deg, #38bdf8 0%, #6366f1 100%);
+    box-shadow: 0 10px 25px rgba(56, 189, 248, 0.3);
+}
+.login-card .btn-login:hover {
+    background: linear-gradient(135deg, #0ea5e9 0%, #4f46e5 100%);
+    box-shadow: 0 12px 28px rgba(56, 189, 248, 0.4);
+    transform: translateY(-1px);
+}
+
+.login-card .auth-switch { color: #94a3b8; }
+.login-card .auth-switch a { color: #7dd3fc; }
+
+.login-card .login-alert {
+    background: rgba(225, 29, 72, 0.12);
+    color: #fda4af;
+    border-color: rgba(225, 29, 72, 0.3);
+}
+.login-card .login-alert.exito {
+    background: rgba(22, 163, 74, 0.12);
+    color: #86efac;
+    border-color: rgba(22, 163, 74, 0.3);
 }

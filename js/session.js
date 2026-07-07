@@ -19,11 +19,21 @@ document.addEventListener('DOMContentLoaded', () => {
         console.error('No se pudo leer la sesión guardada:', e);
     }
 
-    // Menú desplegable con la opción de cerrar sesión
+    // Menú desplegable con el interruptor de tema y la opción de cerrar sesión
     perfil.classList.add('user-profile-clickable');
+    const esOscuro = document.documentElement.classList.contains('dark-mode');
     const menu = document.createElement('div');
     menu.className = 'user-profile-menu';
-    menu.innerHTML = `<button type="button" class="user-profile-logout"><i class='bx bx-log-out'></i> Cerrar sesión</button>`;
+    menu.innerHTML = `
+        <label class="theme-toggle-row" onclick="event.stopPropagation();">
+            <span class="theme-toggle-label"><i class='bx ${esOscuro ? 'bx-moon' : 'bx-sun'}' id="theme-toggle-icon"></i> Modo oscuro</span>
+            <span class="theme-switch">
+                <input type="checkbox" id="theme-switch-input" ${esOscuro ? 'checked' : ''}>
+                <span class="theme-switch-slider"></span>
+            </span>
+        </label>
+        <button type="button" class="user-profile-logout"><i class='bx bx-log-out'></i> Cerrar sesión</button>
+    `;
     perfil.appendChild(menu);
 
     perfil.addEventListener('click', () => {
@@ -32,6 +42,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.addEventListener('click', (e) => {
         if (!perfil.contains(e.target)) perfil.classList.remove('abierto');
+    });
+
+    menu.querySelector('#theme-switch-input').addEventListener('change', (e) => {
+        const activarOscuro = e.target.checked;
+        document.documentElement.classList.toggle('dark-mode', activarOscuro);
+        localStorage.setItem('securecore_theme', activarOscuro ? 'dark' : 'light');
+        const icono = document.getElementById('theme-toggle-icon');
+        if (icono) icono.className = `bx ${activarOscuro ? 'bx-moon' : 'bx-sun'}`;
     });
 
     menu.querySelector('.user-profile-logout').addEventListener('click', (e) => {

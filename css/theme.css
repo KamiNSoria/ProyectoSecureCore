@@ -1,0 +1,411 @@
+/* ==========================================================================
+   THEME.CSS - Glassmorfismo, fondo de luces animado y modo oscuro/claro
+   Se carga al final en todas las páginas: gana la cascada sin tocar el
+   resto de los .css existentes.
+   ========================================================================== */
+
+:root {
+    --glass-blur: 18px;
+}
+
+/* --------------------------------------------------------------------
+   FONDO DE LUCES EN MOVIMIENTO
+   -------------------------------------------------------------------- */
+body { position: relative; overflow-x: hidden; }
+
+.bg-lights {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    overflow: hidden;
+    pointer-events: none;
+}
+.bg-lights span {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(90px);
+    opacity: 0.4;
+    will-change: transform;
+}
+.bg-lights .luz-1 {
+    width: 480px; height: 480px;
+    background: #818cf8;
+    top: -120px; left: -100px;
+    animation: luzFloat1 20s ease-in-out infinite;
+}
+.bg-lights .luz-2 {
+    width: 520px; height: 520px;
+    background: #38bdf8;
+    bottom: -160px; right: -120px;
+    animation: luzFloat2 24s ease-in-out infinite;
+}
+.bg-lights .luz-3 {
+    width: 420px; height: 420px;
+    background: #f472b6;
+    top: 45%; left: 55%;
+    animation: luzFloat3 26s ease-in-out infinite;
+}
+
+@keyframes luzFloat1 { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(140px, 90px); } }
+@keyframes luzFloat2 { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(-120px, -70px); } }
+@keyframes luzFloat3 { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(-90px, 60px); } }
+
+@media (prefers-reduced-motion: reduce) {
+    .bg-lights span { animation: none; }
+}
+
+/* --------------------------------------------------------------------
+   GLASSMORFISMO
+   -------------------------------------------------------------------- */
+.sidebar {
+    background: rgba(255, 255, 255, 0.55) !important;
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+}
+
+.card, .kpi-card, .threat-item, .alert-item, .heat-item, .modal-content, .dash-popover, .user-profile-menu {
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+}
+.card, .kpi-card {
+    background: rgba(255, 255, 255, 0.6) !important;
+    border: 1px solid rgba(255, 255, 255, 0.5) !important;
+}
+.modal-content { background: rgba(255, 255, 255, 0.75) !important; }
+.dash-popover { background: rgba(255, 255, 255, 0.85) !important; }
+
+/* --------------------------------------------------------------------
+   INTERRUPTOR DE TEMA (dentro del menú de usuario)
+   -------------------------------------------------------------------- */
+.theme-toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 12px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #334155;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-bottom: 4px;
+}
+.theme-toggle-row:hover { background: #f1f5f9; }
+.theme-toggle-row .theme-toggle-label { display: flex; align-items: center; gap: 8px; }
+.theme-toggle-row i { font-size: 16px; }
+
+.theme-switch { position: relative; width: 38px; height: 22px; flex-shrink: 0; }
+.theme-switch input { opacity: 0; width: 0; height: 0; position: absolute; }
+.theme-switch-slider {
+    position: absolute; inset: 0;
+    background: #cbd5e1;
+    border-radius: 999px;
+    transition: background-color 0.25s ease;
+}
+.theme-switch-slider::before {
+    content: "";
+    position: absolute;
+    width: 16px; height: 16px;
+    left: 3px; top: 3px;
+    background: #ffffff;
+    border-radius: 50%;
+    transition: transform 0.25s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+.theme-switch input:checked + .theme-switch-slider { background: #6366f1; }
+.theme-switch input:checked + .theme-switch-slider::before { transform: translateX(16px); }
+
+/* ==========================================================================
+   MODO OSCURO — activado con la clase .dark-mode en <html>
+   ========================================================================== */
+html.dark-mode { color-scheme: dark; }
+
+html.dark-mode body {
+    --bg-main: #0b1120;
+    --bg-sidebar: #0f172a;
+    --text-main: #e2e8f0;
+    --text-muted: #94a3b8;
+    --border-color: rgba(255, 255, 255, 0.08);
+    --active-bg: rgba(59, 130, 246, 0.18);
+    --critico-bg: rgba(225, 29, 72, 0.16);
+    --alto-bg: rgba(234, 88, 12, 0.16);
+    --medio-bg: rgba(202, 138, 4, 0.16);
+    --bajo-bg: rgba(22, 163, 74, 0.16);
+    --critico-text: #fda4af;
+    --alto-text: #fdba74;
+    --medio-text: #fde047;
+    --bajo-text: #86efac;
+    --active-text: #93c5fd;
+    background: var(--bg-main);
+    color: var(--text-main);
+}
+
+html.dark-mode .bg-lights span { opacity: 0.28; }
+
+/* Contenedores base a vidrio oscuro */
+html.dark-mode .card,
+html.dark-mode .kpi-card,
+html.dark-mode .threat-item,
+html.dark-mode .alert-item,
+html.dark-mode .heat-item,
+html.dark-mode .saved-risk-item,
+html.dark-mode .historial-vinculo-item,
+html.dark-mode .comunicacion-table,
+html.dark-mode .top-riesgos-table,
+html.dark-mode .monitoring-table {
+    background: rgba(15, 23, 42, 0.65) !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+    color: var(--text-main);
+}
+html.dark-mode .sidebar { background: rgba(9, 14, 26, 0.65) !important; border-bottom-color: rgba(255, 255, 255, 0.08); }
+html.dark-mode .modal-content { background: rgba(15, 23, 42, 0.9) !important; color: var(--text-main); }
+html.dark-mode .modal-header { border-bottom-color: rgba(255, 255, 255, 0.08) !important; }
+html.dark-mode .dash-popover { background: rgba(15, 23, 42, 0.92) !important; border-color: rgba(255, 255, 255, 0.1) !important; }
+html.dark-mode .user-profile-menu { background: rgba(15, 23, 42, 0.95) !important; border-color: rgba(255, 255, 255, 0.1) !important; }
+html.dark-mode .theme-toggle-row { color: #e2e8f0; }
+html.dark-mode .theme-toggle-row:hover { background: rgba(255, 255, 255, 0.06); }
+
+/* Tipografía: red de seguridad — el resto de los .css tiene decenas de colores de
+   texto oscuros escritos a mano (#0f172a, #334155, #475569...) que quedan invisibles
+   sobre fondo oscuro. En vez de perseguir cada selector, forzamos un texto claro por
+   defecto en todo lo que vive dentro de tarjetas/sidebar/modales/menús, y luego los
+   badges de color (abajo) se reafirman con !important para no perder su significado. */
+html.dark-mode .main-content *,
+html.dark-mode .sidebar *,
+html.dark-mode .modal-content *,
+html.dark-mode .dash-popover *,
+html.dark-mode .user-profile-menu * {
+    color: #e2e8f0;
+}
+html.dark-mode h1, html.dark-mode h2, html.dark-mode h3, html.dark-mode h4, html.dark-mode strong {
+    color: #f1f5f9;
+}
+html.dark-mode .logo-area p,
+html.dark-mode .top-header p,
+html.dark-mode .card-header p,
+html.dark-mode small,
+html.dark-mode .text-muted,
+html.dark-mode .comunicacion-total {
+    color: #94a3b8 !important;
+}
+html.dark-mode .logo-area h2 { color: #f1f5f9 !important; }
+html.dark-mode .nav-item { color: #94a3b8 !important; }
+html.dark-mode .nav-item.active, html.dark-mode .nav-item.active i { color: #93c5fd !important; }
+html.dark-mode .nav-item i { color: inherit !important; }
+
+/* Tablas y filas */
+html.dark-mode table th, html.dark-mode table td { border-color: rgba(255, 255, 255, 0.08) !important; }
+html.dark-mode tr:hover,
+html.dark-mode .comunicacion-table tbody tr:hover,
+html.dark-mode .top-riesgos-table tbody tr:hover,
+html.dark-mode .nivel-leyenda-item:hover,
+html.dark-mode .user-profile-clickable:hover,
+html.dark-mode .filtro-pill:hover,
+html.dark-mode .tab-btn:hover {
+    background: rgba(255, 255, 255, 0.05) !important;
+}
+html.dark-mode .filtro-pill { background: rgba(255, 255, 255, 0.04); color: #cbd5e1; border-color: rgba(255, 255, 255, 0.1); }
+html.dark-mode .filtro-pill.active { background: rgba(59, 130, 246, 0.18); color: #93c5fd; border-color: rgba(59, 130, 246, 0.4); }
+html.dark-mode .tag-tipo, html.dark-mode .estado-pendiente { background: rgba(255, 255, 255, 0.06) !important; color: #cbd5e1 !important; }
+
+/* Formularios */
+html.dark-mode .form-input,
+html.dark-mode select,
+html.dark-mode textarea,
+html.dark-mode input {
+    background: rgba(15, 23, 42, 0.6) !important;
+    color: #e2e8f0 !important;
+    border-color: rgba(255, 255, 255, 0.12) !important;
+}
+html.dark-mode .form-input::placeholder { color: #64748b; }
+
+/* Badges e íconos de color (familias semánticas) */
+html.dark-mode .kpi-icon.blue, html.dark-mode .alert-blue, html.dark-mode .btn-accion-azul,
+html.dark-mode .impacto-marginal, html.dark-mode .tag-marginal {
+    background: rgba(59, 130, 246, 0.16) !important; color: #93c5fd !important; border-color: rgba(59, 130, 246, 0.3) !important;
+}
+html.dark-mode .kpi-icon.green, html.dark-mode .threat-green, html.dark-mode .impacto-bajo, html.dark-mode .tag-bajo {
+    background: rgba(34, 197, 94, 0.16) !important; color: #86efac !important; border-color: rgba(34, 197, 94, 0.3) !important;
+}
+html.dark-mode .kpi-icon.yellow, html.dark-mode .alert-yellow, html.dark-mode .btn-accion-amarillo,
+html.dark-mode .impacto-medio, html.dark-mode .tag-medio {
+    background: rgba(234, 179, 8, 0.16) !important; color: #fde047 !important; border-color: rgba(234, 179, 8, 0.3) !important;
+}
+html.dark-mode .alert-red, html.dark-mode .threat-red {
+    background: rgba(225, 29, 72, 0.16) !important; color: #fda4af !important; border-color: rgba(225, 29, 72, 0.3) !important;
+}
+/* .badge-elevado ("Nivel Bajo/Moderado/Elevado/Crítico" bajo la dona de Riesgo
+   Residual) recibe su color por JS según el nivel real — no lo forzamos aquí
+   para no pintar todos los niveles del mismo color */
+html.dark-mode .kpi-icon.purple, html.dark-mode .threat-purple, html.dark-mode .btn-accion-morado {
+    background: rgba(139, 92, 246, 0.16) !important; color: #c4b5fd !important; border-color: rgba(139, 92, 246, 0.3) !important;
+}
+html.dark-mode .impacto-critico, html.dark-mode .status-late {
+    background: rgba(225, 29, 72, 0.16) !important; color: #fda4af !important; border-color: rgba(225, 29, 72, 0.3) !important;
+}
+html.dark-mode .impacto-alto {
+    background: rgba(234, 88, 12, 0.16) !important; color: #fdba74 !important; border-color: rgba(234, 88, 12, 0.3) !important;
+}
+html.dark-mode .status-ok {
+    background: rgba(34, 197, 94, 0.16) !important; color: #86efac !important;
+}
+html.dark-mode .monitoring-table tbody tr.fila-brecha:hover .status-late {
+    background: #dc2626 !important; color: #ffffff !important;
+}
+html.dark-mode .btn-eliminar-obs:hover, html.dark-mode .user-profile-logout:hover {
+    background: rgba(225, 29, 72, 0.14) !important;
+}
+html.dark-mode .user-profile-logout { color: #fda4af !important; }
+html.dark-mode .badge-modulo { background: rgba(59, 130, 246, 0.16) !important; color: #93c5fd !important; }
+
+/* Clases que ya usaban var(--critico-text) etc. — se reafirman porque la regla
+   general de arriba (más específica) las aplanaría a gris sin este !important */
+html.dark-mode .nivel-badge.critico, html.dark-mode .heat-item.critico, html.dark-mode .estado-badge.critico { color: var(--critico-text) !important; }
+html.dark-mode .nivel-badge.alto, html.dark-mode .heat-item.alto { color: var(--alto-text) !important; }
+html.dark-mode .nivel-badge.medio, html.dark-mode .heat-item.medio { color: var(--medio-text) !important; }
+html.dark-mode .nivel-badge.bajo, html.dark-mode .heat-item.bajo, html.dark-mode .estado-tratado { color: var(--bajo-text) !important; }
+html.dark-mode .heat-item.critico { background: var(--critico-bg) !important; }
+html.dark-mode .heat-item.alto { background: var(--alto-bg) !important; }
+html.dark-mode .heat-item.medio { background: var(--medio-bg) !important; }
+html.dark-mode .heat-item.bajo { background: var(--bajo-bg) !important; }
+html.dark-mode a { color: #93c5fd; }
+html.dark-mode .kpi-ver-mas, html.dark-mode .view-report-link { color: #93c5fd !important; }
+html.dark-mode .btn-primary { color: #ffffff !important; }
+
+/* Cajas de alerta/aviso hechas a medida (Activos, Riesgos) — mismo problema:
+   fondo pastel claro escrito a mano + texto oscuro escrito a mano */
+html.dark-mode .critical-alert-box {
+    background: rgba(225, 29, 72, 0.14) !important;
+    border-color: rgba(225, 29, 72, 0.3) !important;
+}
+html.dark-mode .critical-alert-box .icon-danger,
+html.dark-mode .critical-alert-box strong { color: #fda4af !important; }
+html.dark-mode .critical-alert-box .number-danger { color: #f1f5f9 !important; }
+html.dark-mode .critical-alert-box p { color: #cbd5e1 !important; }
+
+html.dark-mode .criticidad-resultado {
+    background: rgba(255, 255, 255, 0.04) !important;
+    border-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+html.dark-mode .banner-riesgo {
+    background: rgba(99, 102, 241, 0.14) !important;
+    border-color: rgba(99, 102, 241, 0.35) !important;
+}
+html.dark-mode .banner-riesgo i, html.dark-mode .banner-riesgo small { color: #a5b4fc !important; }
+html.dark-mode .banner-riesgo strong { color: #f1f5f9 !important; }
+
+html.dark-mode .recomendados-box {
+    background: rgba(234, 179, 8, 0.12) !important;
+    border-color: rgba(234, 179, 8, 0.3) !important;
+}
+html.dark-mode .recomendados-header { color: #fde047 !important; }
+html.dark-mode .chip-recomendado { background: rgba(15, 23, 42, 0.6) !important; color: #e2e8f0 !important; }
+
+html.dark-mode .badge-tratado { background: rgba(34, 197, 94, 0.16) !important; color: #86efac !important; }
+html.dark-mode .estado-inactivo, html.dark-mode .tag-critico { background: rgba(225, 29, 72, 0.16) !important; color: #fda4af !important; }
+
+/* Etiquetas de tipo dentro de "Actividad Reciente" (Panel) */
+html.dark-mode .alert-red .alert-tipo-tag { background: rgba(225, 29, 72, 0.25) !important; color: #fda4af !important; }
+html.dark-mode .alert-yellow .alert-tipo-tag { background: rgba(234, 179, 8, 0.25) !important; color: #fde047 !important; }
+html.dark-mode .alert-blue .alert-tipo-tag { background: rgba(59, 130, 246, 0.25) !important; color: #93c5fd !important; }
+
+/* Anillo de madurez ISO (Cumplimiento) — el JS pinta un inline-style con el
+   porcentaje real, así que solo oscurecemos el círculo interior (el color de
+   avance en sí, #6366f1, ya se ve bien sobre fondo oscuro) */
+html.dark-mode .inner-circle { background: #0f172a !important; }
+
+/* Círculos interiores de las donas del Panel (Riesgos por Nivel, Riesgo Residual) */
+html.dark-mode .donut-inner { background: #0f172a !important; }
+
+/* Chips de activo vinculado (Historial de Vínculos) y contador de biblioteca */
+html.dark-mode .historial-vinculo-activo {
+    background: rgba(255, 255, 255, 0.05) !important;
+    color: #cbd5e1 !important;
+}
+html.dark-mode .risk-count-badge {
+    background: rgba(99, 102, 241, 0.18) !important;
+    color: #a5b4fc !important;
+}
+
+/* Tarjetas de lista (Activos) y selectores segmentados de los modales (CIA, fuerza de control) */
+html.dark-mode .asset-card {
+    background: rgba(15, 23, 42, 0.65) !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+}
+html.dark-mode .segmented-picker {
+    background: rgba(15, 23, 42, 0.5) !important;
+    border-color: rgba(255, 255, 255, 0.12) !important;
+}
+html.dark-mode .dark-options span,
+html.dark-mode .rating-options-compact span {
+    background: rgba(15, 23, 42, 0.5) !important;
+    border-color: rgba(255, 255, 255, 0.12) !important;
+    color: #cbd5e1 !important;
+}
+html.dark-mode input:checked + span,
+html.dark-mode .rating-options-compact input:checked + span,
+html.dark-mode .dark-options input:checked + span {
+    background: rgba(99, 102, 241, 0.35) !important;
+    border-color: #6366f1 !important;
+    color: #ffffff !important;
+}
+
+/* Barritas C/I/D (Activos) — el segmento "vacío" era gris muy claro y quedaba
+   como un bloque blanco flotando sobre las tarjetas oscuras */
+html.dark-mode .empty { background-color: rgba(255, 255, 255, 0.12) !important; }
+
+/* Matriz de Riesgo (Riesgos y Plan de Tratamiento residual): los números usaban
+   texto negro semitransparente pensado para fondos pastel claros */
+html.dark-mode .hm-cell {
+    color: rgba(255, 255, 255, 0.8) !important;
+    background-color: rgba(255, 255, 255, 0.05);
+}
+html.dark-mode .hm-low { background-color: rgba(34, 197, 94, 0.3) !important; }
+html.dark-mode .hm-med { background-color: rgba(234, 179, 8, 0.3) !important; }
+html.dark-mode .hm-high { background-color: rgba(234, 88, 12, 0.32) !important; }
+html.dark-mode .hm-crit { background-color: rgba(225, 29, 72, 0.35) !important; }
+html.dark-mode .hm-cell.hm-cell-seleccionada { border-color: #f1f5f9 !important; }
+
+/* Botón "Tratamiento / Ver Tratamiento" en la lista de riesgos */
+html.dark-mode .btn-tratamiento {
+    background: rgba(99, 102, 241, 0.16) !important;
+    color: #a5b4fc !important;
+    border-color: rgba(99, 102, 241, 0.35) !important;
+}
+html.dark-mode .btn-tratamiento:hover { background: #6366f1 !important; color: #ffffff !important; }
+html.dark-mode .progress-track, html.dark-mode .cobertura-bar, html.dark-mode .tipo-bar-track {
+    background: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* Barra de búsqueda (Activos) */
+html.dark-mode .search-box {
+    background: rgba(15, 23, 42, 0.55) !important;
+    border-color: rgba(255, 255, 255, 0.12) !important;
+}
+html.dark-mode .search-box i { color: #94a3b8 !important; }
+html.dark-mode .search-box input { color: #e2e8f0 !important; }
+html.dark-mode .search-box input::placeholder { color: #64748b !important; }
+html.dark-mode .search-box:focus-within {
+    border-color: #6366f1 !important;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2) !important;
+}
+
+/* Tarjeta desplegable de detalle (acordeón de Activos) */
+html.dark-mode .asset-extra-info {
+    background: rgba(255, 255, 255, 0.03) !important;
+    border-top-color: rgba(255, 255, 255, 0.08) !important;
+}
+html.dark-mode .asset-description { color: #cbd5e1 !important; }
+html.dark-mode .extra-item { color: #e2e8f0 !important; }
+html.dark-mode .extra-item span { color: #94a3b8 !important; }
+html.dark-mode .asset-actions { border-top-color: rgba(255, 255, 255, 0.08) !important; }
+html.dark-mode .btn-modificar { color: #94a3b8 !important; }
+html.dark-mode .btn-modificar:hover { color: #f1f5f9 !important; }
+html.dark-mode .toggle-desc { color: #f1f5f9 !important; }
+html.dark-mode .toggle-desc:hover { color: #93c5fd !important; }
+html.dark-mode .asset-icon { background: rgba(255, 255, 255, 0.05) !important; border-color: rgba(255, 255, 255, 0.1) !important; color: #cbd5e1 !important; }
+
+/* Etiqueta de Estado del activo (OPERATIVO / EN MANTENIMIENTO) */
+html.dark-mode .estado-operativo { background: rgba(34, 197, 94, 0.16) !important; color: #86efac !important; }
+html.dark-mode .estado-mantenimiento { background: rgba(217, 119, 6, 0.18) !important; color: #fdba74 !important; }

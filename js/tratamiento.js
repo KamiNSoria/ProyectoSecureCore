@@ -870,94 +870,67 @@ function generarReporteControles() {
         return;
     }
 
-    const fecha = new Date().toLocaleDateString('es-EC', { day: '2-digit', month: 'long', year: 'numeric' });
-
+    let vinculados = 0;
+    let sumaEficacia = 0;
     let filas = '';
     bibliotecaControles.forEach(c => {
         const vinculado = !!vinculosPorControlGlobal[c.id_control_emp];
+        if (vinculado) vinculados++;
+        sumaEficacia += parseFloat(c.eficacia_porcentaje || 0);
         const activos = vinculado ? vinculosPorControlGlobal[c.id_control_emp].join(', ') : 'N/A';
 
         filas += `
             <tr>
-                <td>${c.nombre_control}</td>
+                <td><strong>${c.nombre_control}</strong></td>
                 <td>ISO ${c.id_iso_padre}</td>
                 <td>${c.eficacia_porcentaje}%</td>
-                <td>${vinculado ? 'Vinculado' : 'No Vinculado'}</td>
+                <td><span class="badge ${vinculado ? 'badge-bajo' : 'badge-neutro'}">${vinculado ? 'Vinculado' : 'No Vinculado'}</span></td>
                 <td>${activos}</td>
             </tr>
         `;
     });
 
-    const ventana = window.open('', '_blank');
-    ventana.document.write(`
-        <html>
-        <head>
-            <title>Reporte de Controles - SecureCore</title>
-            <style>
-                body { font-family: Arial, sans-serif; padding: 40px; color: #1f2937; }
-                h1 { color: #4f46e5; margin-bottom: 4px; }
-                p.fecha { color: #6b7280; margin-top: 0; }
-                table { width: 100%; border-collapse: collapse; margin-top: 24px; font-size: 12px; }
-                th, td { border: 1px solid #e5e7eb; padding: 6px 8px; text-align: left; }
-                th { background: #f3f4f6; }
-                .botones { margin-top: 20px; display: flex; gap: 12px; }
-                button { padding: 10px 20px; border-radius: 6px; border: none; cursor: pointer; font-weight: 600; }
-                .btn-print { background: #e5e7eb; color: #1f2937; }
-                @media print { .botones { display: none; } }
-            </style>
-        </head>
-        <body>
-            <h1>Reporte de Biblioteca de Controles</h1>
-            <p class="fecha">Generado el ${fecha} — SecureCore Plataforma de Riesgo</p>
-            <p>Total de controles registrados: <strong>${bibliotecaControles.length}</strong></p>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Control</th><th>Control ISO</th><th>Eficacia</th><th>Estado de Vínculo</th><th>Activos Vinculados</th>
-                    </tr>
-                </thead>
-                <tbody>${filas}</tbody>
-            </table>
-            <div class="botones">
-                <button class="btn-print" onclick="window.print()">🖨️ Imprimir / Guardar como PDF</button>
-            </div>
-        </body>
-        </html>
-    `);
-    ventana.document.close();
+    const eficaciaPromedio = bibliotecaControles.length > 0 ? Math.round(sumaEficacia / bibliotecaControles.length) : 0;
+
+    abrirReporteElegante({
+        titulo: 'Reporte de Biblioteca de Controles',
+        subtitulo: 'Controles ISO/IEC 27002:2022 aplicados y su vínculo con activos/riesgos',
+        stats: [
+            { valor: bibliotecaControles.length, etiqueta: 'Controles totales' },
+            { valor: vinculados, etiqueta: 'Vinculados', color: '#16a34a' },
+            { valor: `${eficaciaPromedio}%`, etiqueta: 'Eficacia promedio' }
+        ],
+        columnas: ['Control', 'Control ISO', 'Eficacia', 'Estado de Vínculo', 'Activos Vinculados'],
+        filasHtml: filas
+    });
 
     descargarExcelControles();
 }
 
 function descargarExcelControles() {
-    if (typeof XLSX === 'undefined') {
-        alert('No se pudo cargar la librería de Excel. Verifica tu conexión a internet.');
-        return;
-    }
-
-    const datosExcel = bibliotecaControles.map(c => {
+    const filas = bibliotecaControles.map(c => {
         const vinculado = !!vinculosPorControlGlobal[c.id_control_emp];
         const activos = vinculado ? vinculosPorControlGlobal[c.id_control_emp].join(', ') : 'N/A';
 
-        return {
-            'Control': c.nombre_control,
-            'Control ISO': `ISO ${c.id_iso_padre}`,
-            'Eficacia': `${c.eficacia_porcentaje}%`,
-            'Estado de Vínculo': vinculado ? 'Vinculado' : 'No Vinculado',
-            'Activos Vinculados': activos
-        };
+        return [
+            c.nombre_control,
+            `ISO ${c.id_iso_padre}`,
+            `${c.eficacia_porcentaje}%`,
+            vinculado ? 'Vinculado' : 'No Vinculado',
+            activos
+        ];
     });
 
-    const hoja = XLSX.utils.json_to_sheet(datosExcel);
-    hoja['!cols'] = [
-        { wch: 30 }, { wch: 14 }, { wch: 12 }, { wch: 16 }, { wch: 40 }
-    ];
-
-    const libro = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(libro, hoja, 'Controles');
-
     const fechaArchivo = new Date().toISOString().slice(0, 10);
-    XLSX.writeFile(libro, `Reporte_Controles_SecureCore_${fechaArchivo}.xlsx`);
+    descargarExcelElegante({
+        nombreHoja: 'Controles',
+        titulo: 'Reporte de Biblioteca de Controles',
+        subtitulo: 'Controles ISO/IEC 27002:2022 aplicados y su vínculo con activos/riesgos',
+        columnas: ['Control', 'Control ISO', 'Eficacia', 'Estado de Vínculo', 'Activos Vinculados'],
+        filas,
+        anchos: [30, 14, 12, 16, 40],
+        nombreArchivo: `Reporte_Controles_SecureCore_${fechaArchivo}.xlsx`
+    });
 }
 
 const linkReporteControles = document.getElementById('btnVerReporteControles');
@@ -983,17 +956,17 @@ function generarReporteHistorial() {
         return;
     }
 
-    const fecha = new Date().toLocaleDateString('es-EC', { day: '2-digit', month: 'long', year: 'numeric' });
-
+    let sumaReduccion = 0, contados = 0;
     let filas = '';
     datos.forEach(d => {
+        if (d.reduccion > 0) { sumaReduccion += d.reduccion; contados++; }
         filas += `
             <tr>
-                <td>${d.nombreRiesgo}</td>
+                <td><strong>${d.nombreRiesgo}</strong></td>
                 <td>${d.nombreControl}</td>
                 <td>${d.estrategia}</td>
-                <td>${d.inherente} - ${d.nivelInherente}</td>
-                <td>${d.residual} - ${d.nivelResidual}</td>
+                <td><span class="badge ${badgeSeveridad(d.nivelInherente)}">${d.inherente} - ${d.nivelInherente}</span></td>
+                <td><span class="badge ${badgeSeveridad(d.nivelResidual)}">${d.residual} - ${d.nivelResidual}</span></td>
                 <td>${d.reduccion > 0 ? `-${d.reduccion}%` : 'Sin cambio'}</td>
                 <td>${d.fecha}</td>
                 <td>${d.observaciones || 'N/A'}</td>
@@ -1001,74 +974,44 @@ function generarReporteHistorial() {
         `;
     });
 
-    const ventana = window.open('', '_blank');
-    ventana.document.write(`
-        <html>
-        <head>
-            <title>Reporte de Historial de Tratamientos - SecureCore</title>
-            <style>
-                body { font-family: Arial, sans-serif; padding: 40px; color: #1f2937; }
-                h1 { color: #4f46e5; margin-bottom: 4px; }
-                p.fecha { color: #6b7280; margin-top: 0; }
-                table { width: 100%; border-collapse: collapse; margin-top: 24px; font-size: 12px; }
-                th, td { border: 1px solid #e5e7eb; padding: 6px 8px; text-align: left; }
-                th { background: #f3f4f6; }
-                .botones { margin-top: 20px; display: flex; gap: 12px; }
-                button { padding: 10px 20px; border-radius: 6px; border: none; cursor: pointer; font-weight: 600; }
-                .btn-print { background: #e5e7eb; color: #1f2937; }
-                @media print { .botones { display: none; } }
-            </style>
-        </head>
-        <body>
-            <h1>Reporte de Historial de Tratamientos</h1>
-            <p class="fecha">Generado el ${fecha} — SecureCore Plataforma de Riesgo</p>
-            <p>Total de tratamientos incluidos: <strong>${datos.length}</strong></p>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Riesgo</th><th>Control Aplicado</th><th>Estrategia</th><th>Antes</th><th>Después</th><th>Reducción</th><th>Fecha</th><th>Observaciones</th>
-                    </tr>
-                </thead>
-                <tbody>${filas}</tbody>
-            </table>
-            <div class="botones">
-                <button class="btn-print" onclick="window.print()">🖨️ Imprimir / Guardar como PDF</button>
-            </div>
-        </body>
-        </html>
-    `);
-    ventana.document.close();
+    const reduccionPromedio = contados > 0 ? Math.round(sumaReduccion / contados) : 0;
+
+    abrirReporteElegante({
+        titulo: 'Reporte de Historial de Tratamientos',
+        subtitulo: 'Estrategias aplicadas y reducción de riesgo residual obtenida',
+        stats: [
+            { valor: datos.length, etiqueta: 'Tratamientos incluidos' },
+            { valor: `${reduccionPromedio}%`, etiqueta: 'Reducción promedio', color: '#16a34a' }
+        ],
+        columnas: ['Riesgo', 'Control Aplicado', 'Estrategia', 'Antes', 'Después', 'Reducción', 'Fecha', 'Observaciones'],
+        filasHtml: filas
+    });
 
     descargarExcelHistorial(datos);
 }
 
 function descargarExcelHistorial(datos) {
-    if (typeof XLSX === 'undefined') {
-        alert('No se pudo cargar la librería de Excel. Verifica tu conexión a internet.');
-        return;
-    }
-
-    const datosExcel = datos.map(d => ({
-        'Riesgo': d.nombreRiesgo,
-        'Control Aplicado': d.nombreControl,
-        'Estrategia': d.estrategia,
-        'Antes': `${d.inherente} - ${d.nivelInherente}`,
-        'Después': `${d.residual} - ${d.nivelResidual}`,
-        'Reducción': d.reduccion > 0 ? `-${d.reduccion}%` : 'Sin cambio',
-        'Fecha': d.fecha,
-        'Observaciones': d.observaciones || 'N/A'
-    }));
-
-    const hoja = XLSX.utils.json_to_sheet(datosExcel);
-    hoja['!cols'] = [
-        { wch: 30 }, { wch: 26 }, { wch: 14 }, { wch: 16 }, { wch: 16 }, { wch: 12 }, { wch: 18 }, { wch: 40 }
-    ];
-
-    const libro = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(libro, hoja, 'Historial');
+    const filas = datos.map(d => [
+        d.nombreRiesgo,
+        d.nombreControl,
+        d.estrategia,
+        `${d.inherente} - ${d.nivelInherente}`,
+        `${d.residual} - ${d.nivelResidual}`,
+        d.reduccion > 0 ? `-${d.reduccion}%` : 'Sin cambio',
+        d.fecha,
+        d.observaciones || 'N/A'
+    ]);
 
     const fechaArchivo = new Date().toISOString().slice(0, 10);
-    XLSX.writeFile(libro, `Reporte_Historial_Tratamientos_SecureCore_${fechaArchivo}.xlsx`);
+    descargarExcelElegante({
+        nombreHoja: 'Historial',
+        titulo: 'Reporte de Historial de Tratamientos',
+        subtitulo: 'Estrategias aplicadas y reducción de riesgo residual obtenida',
+        columnas: ['Riesgo', 'Control Aplicado', 'Estrategia', 'Antes', 'Después', 'Reducción', 'Fecha', 'Observaciones'],
+        filas,
+        anchos: [30, 26, 14, 16, 16, 12, 18, 40],
+        nombreArchivo: `Reporte_Historial_Tratamientos_SecureCore_${fechaArchivo}.xlsx`
+    });
 }
 
 const linkReporteHistorial = document.getElementById('btnVerReporteHistorial');

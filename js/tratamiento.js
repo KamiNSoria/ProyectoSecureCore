@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (riesgoPreseleccionado && selectRiesgo) {
         selectRiesgo.value = riesgoPreseleccionado;
         document.querySelector('.tab-btn[onclick*="tab-plan"]')?.click();
-        calcularResidual();
+        pintarSelectControlLib();
     }
 
     // Acceso directo desde el Panel: tratamiento.html?tab=biblioteca|plan|historial abre esa pestaña
@@ -416,6 +416,25 @@ function pintarHistorialVinculos() {
     contenedor.innerHTML = html;
 }
 
+// Categorías temáticas de ISO/IEC 27002:2022 (Anexo A de ISO/IEC 27001:2022), según el
+// prefijo numérico del control (5.x Organizacionales, 6.x Personas, 7.x Físicos, 8.x Tecnológicos)
+function categoriaISO(idIsoPadre) {
+    const prefijo = String(idIsoPadre).split('.')[0];
+    switch (prefijo) {
+        case '5': return 'Organizacionales';
+        case '6': return 'Personas';
+        case '7': return 'Físicos';
+        case '8': return 'Tecnológicos';
+        default: return 'Otros';
+    }
+}
+
+// Controles de ISO/IEC 27002:2022 propios de la relación con terceros (proveedores, nube, cadena de
+// suministro). Según ISO/IEC 27005:2022 (guía de tratamiento de riesgos), la estrategia "Compartir/
+// Transferir" traslada el riesgo a un tercero mediante contratos, SLA, seguros o servicios en la nube,
+// por lo que solo estos controles aplican como vínculo cuando la estrategia es "Transferir".
+const idsControlesTransferencia = ['5.19', '5.20', '5.21', '5.22', '5.23'];
+
 function pintarSelectControlLib() {
     if (!selectControlLib) return;
     if (bibliotecaControles.length === 0) {
@@ -423,27 +442,76 @@ function pintarSelectControlLib() {
         return;
     }
 
-    // Detectamos la amenaza del riesgo seleccionado para recomendar controles
+    // Detectamos la amenaza del riesgo seleccionado para recomendar controles según ISO/IEC 27002:2022
     const riesgo = catalogoRiesgosTrat.find(r => r.id_riesgo === parseInt(selectRiesgo.value));
     const idsRecomendados = (riesgo && mapeoAmenazaControlesISO[riesgo.id_amenaza]) || [];
 
-    const ordenados = [...bibliotecaControles].sort((a, b) => {
-        const aRec = idsRecomendados.includes(a.id_iso_padre) ? 0 : 1;
-        const bRec = idsRecomendados.includes(b.id_iso_padre) ? 0 : 1;
-        return aRec - bRec;
-    });
+    // La estrategia elegida (Mitigar/Transferir) filtra qué controles pueden vincularse:
+    // - Transferir: solo controles de relación con terceros/proveedores/nube (5.19-5.23)
+    // - Mitigar: el resto de controles (técnicos y organizacionales aplicados internamente)
+    const radioEstrategia = document.querySelector('input[name="estrategia_plan"]:checked');
+    const estrategiaActual = radioEstrategia ? radioEstrategia.value : 'mitigar';
+
+    let candidatos = bibliotecaControles;
+    if (estrategiaActual === 'transferir') {
+        candidatos = bibliotecaControles.filter(c => idsControlesTransferencia.includes(c.id_iso_padre));
+    } else if (estrategiaActual === 'mitigar') {
+        candidatos = bibliotecaControles.filter(c => !idsControlesTransferencia.includes(c.id_iso_padre));
+    }
+
+    const valorPrevio = selectControlLib.value;
+
+    const opcionHtml = c => {
+        const eficaciaDecimal = (parseFloat(c.eficacia_porcentaje) / 100).toFixed(2);
+        return `<option value="${c.id_control_emp}" data-eficacia="${eficaciaDecimal}">${c.nombre_control} (ISO ${c.id_iso_padre} · Eficacia ${c.eficacia_porcentaje}%)</option>`;
+    };
+
+    if (candidatos.length === 0) {
+        const sugerencia = estrategiaActual === 'transferir'
+            ? 'crea uno vinculado a ISO 5.19-5.23 (relación con proveedores / servicios en la nube)'
+            : 'crea uno vinculado a un control distinto de 5.19-5.23';
+        selectControlLib.innerHTML = `<option value="" disabled selected>No hay controles de "${estrategiaActual === 'transferir' ? 'Transferencia a terceros' : 'Mitigación'}" en la biblioteca — ${sugerencia}</option>`;
+        calcularResidual();
+        return;
+    }
+
+    const recomendados = candidatos.filter(c => idsRecomendados.includes(c.id_iso_padre));
+    const resto = candidatos.filter(c => !idsRecomendados.includes(c.id_iso_padre));
 
     let html = '';
-    ordenados.forEach(c => {
-        const eficaciaDecimal = (parseFloat(c.eficacia_porcentaje) / 100).toFixed(2);
-        const esRecomendado = idsRecomendados.includes(c.id_iso_padre);
-        html += `<option value="${c.id_control_emp}" data-eficacia="${eficaciaDecimal}">${esRecomendado ? '⭐ ' : ''}${c.nombre_control} (Eficacia ${c.eficacia_porcentaje}%)</option>`;
+
+    if (recomendados.length > 0) {
+        html += `<optgroup label="⭐ Recomendados para este riesgo (ISO/IEC 27002:2022)">`;
+        recomendados.forEach(c => { html += opcionHtml(c); });
+        html += `</optgroup>`;
+    }
+
+    // Resto de controles agrupados por categoría ISO (Organizacionales, Personas, Físicos, Tecnológicos)
+    const restoPorCategoria = {};
+    resto.forEach(c => {
+        const cat = categoriaISO(c.id_iso_padre);
+        if (!restoPorCategoria[cat]) restoPorCategoria[cat] = [];
+        restoPorCategoria[cat].push(c);
     });
+    Object.keys(restoPorCategoria).sort().forEach(cat => {
+        html += `<optgroup label="${cat}">`;
+        restoPorCategoria[cat].forEach(c => { html += opcionHtml(c); });
+        html += `</optgroup>`;
+    });
+
     selectControlLib.innerHTML = html;
+
+    // Mantenemos la selección previa si el control sigue disponible; si no, preferimos un recomendado
+    if (valorPrevio && [...selectControlLib.options].some(o => o.value === valorPrevio)) {
+        selectControlLib.value = valorPrevio;
+    } else if (recomendados.length > 0) {
+        selectControlLib.value = recomendados[0].id_control_emp;
+    }
+
     calcularResidual();
 }
 
-// Mapeo compartido con analisis.js (Amenaza -> Controles ISO recomendados)
+// Mapeo compartido con analisis.js (Amenaza -> Controles ISO/IEC 27002:2022 recomendados)
 const mapeoAmenazaControlesISO = {
     1: ['5.15', '5.16', '5.17', '5.18', '8.2', '8.5'],
     2: ['8.7', '8.8', '8.13', '5.26'],
@@ -451,7 +519,7 @@ const mapeoAmenazaControlesISO = {
     4: ['7.8', '7.13', '8.13', '8.14'],
     5: ['7.5', '5.29', '5.30', '8.14'],
     6: ['6.3', '5.37', '8.32']
-};  
+};
 
 // --- 7. CÁLCULO DE RIESGO RESIDUAL (Pestaña 2) ---
 const selectRiesgo = document.getElementById('select-riesgo');
@@ -537,9 +605,9 @@ const calcularResidual = () => {
     return { riesgo, residual, opcionControl, estrategia: estrategiaActual };
 };
 
-document.querySelectorAll('input[name="estrategia_plan"]').forEach(r => r.addEventListener('change', calcularResidual));
+document.querySelectorAll('input[name="estrategia_plan"]').forEach(r => r.addEventListener('change', pintarSelectControlLib));
 
-if (selectRiesgo) selectRiesgo.addEventListener('change', calcularResidual);
+if (selectRiesgo) selectRiesgo.addEventListener('change', pintarSelectControlLib);
 if (selectControlLib) selectControlLib.addEventListener('change', calcularResidual);
 
 // Descompone un score total (ej. 4) en Probabilidad x Impacto (1-5 cada uno) lo más cercano posible

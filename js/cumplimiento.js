@@ -58,6 +58,18 @@ const mapeoLegalEtico = [
         idsControlIso: ['5.19', '5.20', '5.21']
     },
     {
+        marco: 'LOPDP (Ecuador)',
+        requisito: 'Encargado de Tratamiento y Debida Diligencia de Terceros',
+        afectacion: 'Privacidad de los ciudadanos frente a proveedores/terceros',
+        idsControlIso: ['5.20', '5.22']
+    },
+    {
+        marco: 'Ley Orgánica de Comercio Electrónico, Firmas y Mensajes de Datos (Ecuador)',
+        requisito: 'Validez de Contratos y Servicios Electrónicos / en la Nube',
+        afectacion: 'Continuidad del servicio y trazabilidad contractual con proveedores TIC',
+        idsControlIso: ['5.23']
+    },
+    {
         marco: 'ISO/IEC 27001:2022',
         requisito: 'Derechos de Propiedad Intelectual',
         afectacion: 'Derechos de autor y licenciamiento',
